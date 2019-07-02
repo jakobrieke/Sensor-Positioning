@@ -30,11 +30,15 @@ namespace Shadows
     public static Polygon HiddenArea(
       Vector2 sensorPosition, Circle obstacle, Rectangle bounds)
     {
-      if (bounds.Contains(sensorPosition) == false) return bounds.ToPolygon(); 
-      if (obstacle.OnBorder(sensorPosition))
+      if (bounds.Contains(sensorPosition) == false)
       {
-        throw new NotImplementedException(
-          "Case sensor on obstacle border not implemented");
+        if (bounds.Contains(sensorPosition) == false || 
+            obstacle.OnBorder(sensorPosition))
+        {
+          return bounds.ToPolygon();
+        }
+        
+        return bounds.ToPolygon();
       }
 
       var d = bounds.Diagonal();

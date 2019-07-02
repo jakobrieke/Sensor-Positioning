@@ -250,5 +250,12 @@ namespace sensor_positioning
 //      plotter.Plot(hidden);
 //      plotter.Plot();
     }
+
+    public static void TestAll()
+    {
+      TestUnseenArea();
+      TestHiddenArea();
+      TestCoreShadows();
+    }
   }
 }

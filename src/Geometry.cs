@@ -585,9 +585,12 @@ namespace Geometry
       return Vector2.Distance(Min, Max);
     }
     
-    /**
-     * Test if a point is inside the bounds.
-     */
+    /// <summary>
+    /// Test if a point is inside the rectangle.
+    /// </summary>
+    /// <param name="point"></param>
+    /// <param name="excludeBorders"></param>
+    /// <returns></returns>
     public bool Contains(Vector2 point, bool excludeBorders = false)
     {
       if (excludeBorders)
@@ -600,10 +603,10 @@ namespace Geometry
              point.X <= Max.X && point.Y <= Max.Y;
     }
 
-    /**
-     * Calculate the intersection point between the rectangle
-     * and a line segment.
-     */
+    ///
+    /// Calculate the intersection point between the rectangle
+    /// and a line segment.
+    ///
     public Vector2[] Intersection(Segment segment)
     {
       var x1 = segment.Start.X;

@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Geometry;
+using LibOptimization.Optimization;
+using MersenneTwister;
+using sensor_positioning;
 using static Geometry.Vector;
 
 
@@ -225,9 +228,9 @@ namespace Optimization
 
       Topology(Particles);
 
-      var best = Pso.GetGlobalBest(this);
-      GlobalBest = best.Item1;
-      GlobalBestValue = best.Item2;
+      var (best, bestValue) = Pso.GetGlobalBest(this);
+      GlobalBest = best;
+      GlobalBestValue = bestValue;
       GlobalBestChanged = true;
 
       Iteration = 0;
@@ -324,11 +327,9 @@ namespace Optimization
         best.Position.CopyTo(GlobalBest, 0);
         GlobalBestValue = best.PositionValue;
         GlobalBestChanged = true;
-//        Console.WriteLine("Global Best: " + GlobalBestValue);
       }
       else GlobalBestChanged = false;
 
-      // Error: Local best is not updated
       if (ShouldTopoUpdate(this)) Topology(Particles);
 
       Iteration++;
@@ -394,8 +395,17 @@ namespace Optimization
     /// <returns></returns>
     public static double UniformRand(double left = 0.0, double right = 1.0)
     {
-      return left > right ? 
-        PcgRandom.Double(right, left) : PcgRandom.Double(left, right);
+      if (left > right)
+      {
+        var buffer = left;
+        left = right;
+        right = buffer;
+      }
+      
+      var rand = MTRandom.Create();
+      return left + rand.NextDouble() * (right - left);
+//      return left > right ? 
+//        PcgRandom.Double(right, left) : PcgRandom.Double(left, right);
     }
 
     /// <summary>
@@ -453,8 +463,11 @@ namespace Optimization
         }
       }
 
+      var best = new double[min.PreviousBest.Length];
+      min.PreviousBest.CopyTo(best, 0);
+      
       return new Tuple<double[], double>(
-        min.PreviousBest,
+        best,
         min.PreviousBestValue);
     }
 
@@ -550,8 +563,8 @@ namespace Optimization
     // Update Functions
     //
 
-    public static double W = 1 / (2 * Math.Log(2));
-    public static double C1 = 1 / 2f + Math.Log(2);
+    public static double W = 0.729;  // 1 / (2 * Math.Log(2));
+    public static double C1 = 1.49445;  // 1 / 2f + Math.Log(2);
     public static double C2 = C1;
 
     /// <summary>
@@ -565,17 +578,8 @@ namespace Optimization
         p.Velocity[i] = 
           W * p.Velocity[i] + 
           UniformRand(0, C1) * (p.PreviousBest[i] - p.Position[i]) + 
-          UniformRand(0, C1) * (p.LocalBest[i] - p.Position[i]);
-        p.Position[i] = 
-          W * p.Velocity[i] +
-          UniformRand(
-            p.Position[i], 
-            p.Position[i] + C1 * (p.PreviousBest[i] - p.Position[i])) 
-          - p.Position[i] + 
-          UniformRand(
-            p.Position[i], 
-            p.Position[i] + C1 * (p.LocalBest[i] - p.Position[i])) 
-          - p.Position[i];
+          UniformRand(0, C2) * (p.LocalBest[i] - p.Position[i]);
+        p.Position[i] += p.Velocity[i];
       }
     }
 
@@ -761,6 +765,138 @@ namespace Optimization
         swarm => AdaptiveRandomTopology(swarm),
         swarm => swarm.GlobalBestChanged,
         UpdateSpso2011, DeterministicBack);
+    }
+  }
+  
+  public class SPSO2006 : absOptimization
+  {
+    private Swarm _swarm;
+    public double[][] Bounds;
+
+    public SPSO2006(absObjectiveFunction objective)
+    {
+      ObjectiveFunction = objective;
+      Results = new List<clsPoint>();
+    }
+
+    public override void Init()
+    {
+      _swarm = Pso.SwarmSpso2006(
+        new SearchSpace(Bounds), 
+        v => ObjectiveFunction.F(v.ToList()));
+      _swarm.Initialize();
+    }
+
+    public override bool DoIteration(int iterations = 0)
+    {
+      _swarm.IterateMaxIterations(iterations);
+      m_iteration += iterations;
+      return true;
+    }
+
+    public override bool IsRecentError()
+    {
+      return false;
+    }
+
+    public override clsPoint Result => 
+      new clsPoint(ObjectiveFunction, _swarm.GlobalBest);
+    
+    public override List<clsPoint> Results { get; }
+    
+    public override int Iteration 
+    {
+      get => _swarm.Iteration;
+      set {}
+    }
+  }
+  
+  public class SPSO2007 : absOptimization
+  {
+    private Swarm _swarm;
+    public double[][] Bounds;
+
+    public SPSO2007(absObjectiveFunction objective)
+    {
+      ObjectiveFunction = objective;
+      Results = new List<clsPoint>();
+    }
+
+    public override void Init()
+    {
+      
+      var obj = ((SspFct) ObjectiveFunction).Raw;
+      _swarm = Pso.SwarmSpso2007(
+        new SearchSpace(Bounds), 
+        v => ObjectiveFunction.F(v.ToList()));
+      _swarm.Initialize();
+    }
+
+    public override bool DoIteration(int iterations = 0)
+    {
+      _swarm.IterateMaxIterations(iterations);
+      m_iteration += iterations;
+      return true;
+    }
+
+    public override bool IsRecentError()
+    {
+      return false;
+    }
+
+    public override clsPoint Result => 
+      new clsPoint(ObjectiveFunction, _swarm.GlobalBest);
+    
+    public override List<clsPoint> Results { get; }
+    
+    public override int Iteration 
+    {
+      get => _swarm.Iteration;
+      set {}
+    }
+  }
+  
+  public class SPSO2011 : absOptimization
+  {
+    private Swarm _swarm;
+    public double[][] Bounds;
+
+    public SPSO2011(absObjectiveFunction objective)
+    {
+      ObjectiveFunction = objective;
+      Results = new List<clsPoint>();
+    }
+
+    public override void Init()
+    {
+      _swarm = Pso.SwarmSpso2011(
+        new SearchSpace(Bounds), 
+        v => ObjectiveFunction.F(v.ToList()));
+//      _swarm.Topology = p => Pso.AdaptiveRandomTopology(p, 3);
+      _swarm.Topology = Pso.RingTopology;
+      _swarm.Initialize();
+    }
+
+    public override bool DoIteration(int iterations = 0)
+    {
+      _swarm.IterateMaxIterations(iterations);
+      m_iteration += iterations;
+      return true;
+    }
+
+    public override bool IsRecentError()
+    {
+      return false;
+    }
+
+    public override clsPoint Result => 
+      new clsPoint(ObjectiveFunction, _swarm.GlobalBest);
+
+    public override List<clsPoint> Results { get; }
+    
+    public override int Iteration {
+      get => _swarm.Iteration;
+      set {}
     }
   }
 }

@@ -367,6 +367,15 @@ public static class VectorTest
 
   public static void TestAll()
   {
+    Vector2Test.TestGradient();
+    CircleTest.TestExternalTangents();
+    CircleTest.TestToPolygon();
+    ArcTest.TestToPolygon();
+    SegmentTest.TestIntersection();
+    BoundsTest.TestOnBounds();
+    BoundsTest.TestSegmentIntersection();
+    
+    // Vector n test
     Console.WriteLine("\nTest Vector");
     Console.WriteLine("Add: " + TestAdd());
     Console.WriteLine("Subtract: " + TestSubtract());

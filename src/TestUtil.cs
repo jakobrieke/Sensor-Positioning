@@ -4,7 +4,6 @@ using Cairo;
 using Geometry;
 using GLib;
 using Gtk;
-using Optimization;
 using Application = Gtk.Application;
 using Key = Gdk.Key;
 using Rectangle = Geometry.Rectangle;
@@ -12,38 +11,7 @@ using Window = Gtk.Window;
 
 namespace sensor_positioning
 {
-  public class Test
-  {
-    public static void Main()
-    {
-      TestGeometryModule();
-      PsoTest.TestAll();
-      TestShadowModule();
-      SensorPositioningTest.TestAll();
-    }
-
-    public static void TestGeometryModule()
-    {
-      Vector2Test.TestGradient();
-      CircleTest.TestExternalTangents();
-      CircleTest.TestToPolygon();
-      ArcTest.TestToPolygon();
-      SegmentTest.TestIntersection();
-      BoundsTest.TestOnBounds();
-      BoundsTest.TestSegmentIntersection();
-      VectorTest.TestAll();
-    }
-    
-    public static void TestShadowModule()
-    {
-      ShadowsTest.TestUnseenArea();
-      ShadowsTest.TestHiddenArea();
-      ShadowsTest.TestCoreShadows();
-    }
-  }
-  
-  
-  class Plotter : Application
+  public class TestPlotter : Application
   {
     public double XScale = 50;
     private double _yScale = -50;
@@ -56,7 +24,7 @@ namespace sensor_positioning
     private double _centerY;
     public readonly Window Window;
     
-    public Plotter() : base("com.jakobrieke.plotter", ApplicationFlags.None)
+    public TestPlotter() : base("com.jakobrieke.plotter", ApplicationFlags.None)
     {
       Init();
       

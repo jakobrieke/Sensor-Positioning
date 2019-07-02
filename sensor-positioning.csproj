@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -64,6 +64,10 @@
       <HintPath>packages\MathNet.Numerics.4.7.0\lib\net461\MathNet.Numerics.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="MersenneTwister, Version=1.0.6146.4688, Culture=neutral, PublicKeyToken=9c84633ec57842f3">
+      <HintPath>packages\MersenneTwister.1.0.5\lib\portable-net45+netcore45+win8+wp8\MersenneTwister.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="PangoSharp, Version=3.22.24.36, Culture=neutral, PublicKeyToken=null">
       <HintPath>packages\PangoSharp.3.22.24.36\lib\netstandard2.0\PangoSharp.dll</HintPath>
       <Private>True</Private>
@@ -73,6 +77,7 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\DynamicSPSimulation.cs" />
     <Compile Include="src\PsoSimulation.cs" />
     <Compile Include="src\SensorPositioning.cs" />
     <Compile Include="src\Shadows.cs" />
@@ -86,10 +91,14 @@
     <Compile Include="src\SensorPositioning.test.cs" />
     <Compile Include="src\Geometry.test.cs" />
     <Compile Include="src\Shadows.test.cs" />
-    <Compile Include="src\Test.cs" />
+    <Compile Include="src\StaticSPSimulation.cs" />
+    <Compile Include="src\TestUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="LICENSES-MersenneTwister.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
