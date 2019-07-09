@@ -33,6 +33,7 @@ namespace sensor_positioning
   {
     public Vector2 Position;
     public readonly double Size;
+    public double Rotation;
 
     public Obstacle(Vector2 position, double size)
     {
@@ -40,16 +41,16 @@ namespace sensor_positioning
       Size = size;
     }
 
-    public Obstacle(double x, double y, double size)
+    public Obstacle(Vector2 position, double size, double rotation)
     {
-      Position = new Vector2(x, y);
+      Position = position;
       Size = size;
+      Rotation = rotation;
     }
   }
 
   public class Sensor : Obstacle
   {
-    public double Rotation;
     public readonly double Range;
     public readonly double Fov;
 
@@ -144,52 +145,57 @@ namespace sensor_positioning
     }
   }
 
-  public class SensorPositioningProblem
+  public class SSP
   {
     /// <summary>The problem environment.</summary>
     public Environment Env;
+    public readonly List<Sensor> Sensors = new List<Sensor>();
+    public readonly List<Obstacle> Obstacles = new List<Obstacle>();
+    public double FieldWidth = 9;
+    public double FieldHeight = 6;
+    public double SensorRange = 12;
+    public double SensorFov = 56.3;
+    public double ObstacleSize = 0.1555;
 
-    /// <summary>A list of sensors.</summary>
-    public List<Sensor> TeamA;
-
-    /// <summary>A list of obstacles</summary>
-    public List<Sensor> TeamB;
-
-
-    public SensorPositioningProblem(
-      int sizeTeamA = 1,
-      int sizeTeamB = 1,
-      double fieldWidth = 9f,
-      double fieldHeight = 6f,
-      double playerSensorRange = 12,
-      double playerSensorFov = 56.3f,
-      double playerSize = 0.1555f
-    )
+    public void Init(int numberOfSensors = 1, int numberOfObstacles = 1)
     {
-      var field = new Rectangle(0, 0, fieldWidth, fieldHeight);
-      Env = new Environment(field);
+      Env = new Environment(
+        new Rectangle(0, 0, FieldWidth, FieldHeight));
 
-      TeamA = new List<Sensor>();
-      TeamB = new List<Sensor>();
+      Obstacles.Clear();
+      Sensors.Clear();
 
-      for (var i = 0; i < sizeTeamA; i++)
+      for (var i = 0; i < numberOfObstacles; i++)
       {
-        var s = new Sensor(0, 0, 0, playerSensorRange,
-          playerSensorFov, playerSize);
+        var s = new Sensor(0, 0, 0, SensorRange, 
+          SensorFov, ObstacleSize);
 
         PlaceWithoutCollision(s);
-        TeamA.Add(s);
+        Obstacles.Add(s);
         Env.Obstacles.Add(s);
       }
-
-      for (var i = 0; i < sizeTeamB; i++)
+      
+      for (var i = 0; i < numberOfSensors; i++)
       {
-        var s = new Sensor(0, 0, 0, playerSensorRange,
-          playerSensorFov, playerSize);
+        var s = new Sensor(0, 0, 0, SensorRange,
+          SensorFov, ObstacleSize);
 
         PlaceWithoutCollision(s);
-        TeamB.Add(s);
+        Sensors.Add(s);
         Env.Obstacles.Add(s);
+      }
+    }
+
+    public void SetObstacles(double[][] positions)
+    {
+      Obstacles.ForEach(o => Env.Obstacles.Remove(o));
+      Obstacles.Clear();
+        
+      foreach (var pos in positions)
+      {
+        var o = new Sensor(pos[0], pos[1], 0, 0, 0, ObstacleSize);
+        Obstacles.Add(o);
+        Env.Obstacles.Add(o);
       }
     }
 
@@ -222,11 +228,9 @@ namespace sensor_positioning
     /// <param name="o"></param>
     public void PlaceRandom(Obstacle o)
     {
-      var x = Pso.UniformRand(Env.Bounds.Min.X,
-        Env.Bounds.Max.X);
-      var y = Pso.UniformRand(Env.Bounds.Min.Y,
-        Env.Bounds.Max.Y);
-      o.Position = new Vector2(x, y);
+      o.Position = new Vector2(
+        Pso.UniformRand(Env.Bounds.Min.X, Env.Bounds.Max.X), 
+        Pso.UniformRand(Env.Bounds.Min.Y,Env.Bounds.Max.Y));
     }
 
     /// <summary>
@@ -284,7 +288,7 @@ namespace sensor_positioning
     public double[][] Intervals()
     {
       var region = Env.Bounds;
-      var intervals = new double[TeamA.Count * 3][];
+      var intervals = new double[Sensors.Count * 3][];
       for (var i = 0; i < intervals.Length; i += 3)
       {
         intervals[i] = new[] {region.Min.X, region.Max.X};
@@ -299,39 +303,18 @@ namespace sensor_positioning
     {
       return new SearchSpace(Intervals());
     }
-  }
-
-  public class SSP : SensorPositioningProblem
-  {
-    public int Collisions { get; private set; }
-  
-    public SSP(
-      int sizeTeamA = 1,
-      int sizeTeamB = 1,
-      double fieldWidth = 9,
-      double fieldHeight = 6,
-      double playerSensorRange = 12,
-      double playerSensorFov = 56.3,
-      double playerSize = 0.1555
-    ) : base(sizeTeamA, sizeTeamB, fieldWidth, fieldHeight,
-      playerSensorRange, playerSensorFov, playerSize)
-    {}
 
     public double FitnessFct(double[] vector)
     {
-      PlaceFromVector(vector, TeamA);
+      PlaceFromVector(vector, Sensors);
       var penalty = 0.0;
-      foreach (var p in TeamA)
+      foreach (var p in Sensors)
       {
-//      var x = Env.Bounds.Min.X + Env.Bounds.Width() / 2;
-//      var y = Env.Bounds.Min.Y + Env.Bounds.Height() / 2;
-//      var dist = Vector2.Distance(new Vector2(x, y), p.Position);
-//      penalty += dist;
-      
-//      if (!CheckCollision(p)) continue;
-//      
-//      Collisions++;
-//      return double.PositiveInfinity;
+        var x = Env.Bounds.Min.X + Env.Bounds.Width() / 2;
+        var y = Env.Bounds.Min.Y + Env.Bounds.Height() / 2;
+        var dist = Vector2.Distance(new Vector2(x, y), p.Position);
+        if (!Env.Bounds.Contains(p.Position, true)) 
+          penalty += dist;
       
         foreach (var o2 in Env.Obstacles)
         {
@@ -341,26 +324,65 @@ namespace sensor_positioning
           if (d < o2.Size + p.Size) return Env.Bounds.Area() + d;
         }
       }
-      return penalty + Sensor.ShadowArea(TeamA, Env);
+      return penalty + Sensor.ShadowArea(Sensors, Env);
     }
   }
 
+  public class SspObjectiveFct : absObjectiveFunction
+  {
+    public readonly Obstacle[] Obstacles;
+    private readonly Sensor[] _sensors;
+    public readonly double FieldWidth;
+    public readonly double FieldHeight;
+    public readonly double ObstacleSize;
+    public readonly double SensorRange;
+    public readonly double SensorFov;
+
+    
+    public SspObjectiveFct(int numberOfSensors, int numberOfObstacles)
+    {
+      _sensors = new Sensor[numberOfSensors];
+      Obstacles = new Obstacle[numberOfObstacles];
+    }
+
+    public override int NumberOfVariable()
+    {
+      return _sensors.Length * 3;
+    }
+
+    public override double F(List<double> x)
+    {
+      for (var i = 0; i < _sensors.Length; i++)
+      {
+        _sensors[i] = new Sensor(x[i * 3], x[i * 3 + 1], x[i * 3 + 2], 
+          SensorRange, SensorFov, ObstacleSize);
+//        _sensors[i].Shadows()
+      }
+      
+      var allObstacles = new Obstacle[Obstacles.Length + _sensors.Length];
+      Obstacles.CopyTo(allObstacles, 0);
+      _sensors.CopyTo(allObstacles, Obstacles.Length - 1);
+      throw new NotImplementedException();
+    }
+
+    public override List<double> Gradient(List<double> x)
+    {
+      throw new NotImplementedException();
+    }
+
+    public override List<List<double>> Hessian(List<double> x)
+    {
+      throw new NotImplementedException();
+    }
+  }
+  
   public class SspFct : absObjectiveFunction
   {
     public readonly SSP Raw;
 
-    public SspFct(
-      int sizeTeamA = 1,
-      int sizeTeamB = 1,
-      double fieldWidth = 9,
-      double fieldHeight = 6,
-      double playerSensorRange = 12,
-      double playerSensorFov = 56.3,
-      double playerSize = 0.1555)
+    public SspFct(SSP raw)
     {
-      Raw = new SSP(
-        sizeTeamA, sizeTeamB, fieldWidth, fieldHeight, playerSensorRange,
-        playerSensorFov, playerSize);
+      Raw = raw;
     }
 
     public override int NumberOfVariable()
@@ -370,14 +392,7 @@ namespace sensor_positioning
 
     public override double F(List<double> x)
     {
-      try
-      {
-        return Raw.FitnessFct(x.ToArray());
-      }
-      catch (Exception)
-      {
-        return double.PositiveInfinity;
-      }
+      return Raw.FitnessFct(x.ToArray());
     }
 
     public override List<double> Gradient(List<double> x)

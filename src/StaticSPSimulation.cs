@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using charlie;
 using Cairo;
 using Geometry;
@@ -19,6 +20,9 @@ namespace sensor_positioning
     public override string GetMeta()
     {
       /* Recent Changes
+       * Change config attribute names "SizeTeamA", "SizeTeamB"
+       * Add option to set fixed positions for obstacles
+       * Change rendering color to red for sensor area
        * Fix 'sometimes worse best' in PSO implementation
        * Test standard PSO 2006 without neighbourhood -> did not work
        * Fix standard PSO 2007 & 2006 implementation
@@ -28,7 +32,7 @@ namespace sensor_positioning
        * Test behaviour if punishment factor is added to fitness
        *   -> sensors are getting drawn into the center
        */
-      return "Author: Jakob Rieke; Version v1.3.3; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v1.4.0; Deterministic: No"; 
     }
     
     public override string GetDescr()
@@ -44,104 +48,145 @@ namespace sensor_positioning
     public override string GetConfig()
     {
       return "Zoom = 80\n" +
-             "SizeTeamA = 1\n" +
-             "SizeTeamB = 1\n" +
+             "NumberOfSensors = 1\n" +
+             "NumberOfObstacles = 1\n" +
              "FieldHeight = 9\n" +
              "FieldWidth = 6\n" +
+             "# If SensorPositions is set NumberOfSensors is\n" +
+             "# ignored\n" +
+             "# SensorPositions = [[0, 0, 0.0], [9, 6, 128]]\n" +
+             "# If ObstaclePositions is set NumberOfObstacles is\n" +
+             "# ignored\n" +
+             "# ObstaclePositions = []\n" +
              "PlayerSensorRange = 12\n" +
              "PlayerSensorFOV = 56.3\n" +
              "PlayerSize = 0.1555\n" +
              "# The function used to optimize the problem,\n" +
              "# possible values are:\n" +
-             "# Simplex, PSO, SPSO-2006, SPSO-2007, SPSO-2011,\n" +
-             "# PSO-A-IW, PSO-LD-IW, PSO-Chaotic-IW, PSO-LD-IW,\n" +
-             "# Evolution-Strategy, Differential-Evolution,\n" +
-             "# Adaptive-Differential-Evolution\n" +
-             "Optimizer = Adaptive-Differential-Evolution";
+             "# PSO, SPSO-2006, SPSO-2007, SPSO-2011, ADE\n" +
+             "Optimizer = SPSO-2006";
     }
 
-    private Dictionary<string, Func<SspFct, absOptimization>> _optimizers =
-      new Dictionary<string, Func<SspFct, absOptimization>>
-      {
-//        {"Cuckoo-Search", obj => new clsOptCS(obj)},
-        {"Hill-Climbing", obj => new clsOptHillClimbing(obj)},
-        {"Simulated-Annealing", obj => new clsOptSimulatedAnnealing(obj)},
-        {"Pattern-Search", obj => new clsOptPatternSearch(obj)},
-        {"Simplex", obj => new clsOptNelderMead(obj)},
-        {"Simplex-Wikipedia", obj => new clsOptNelderMeadWiki(obj)},
-        {"SPSO-2006", obj => new SPSO2006(obj)
-        {
-          Bounds = obj.Raw.Intervals()
-        }},
-        {"SPSO-2007", obj => new SPSO2007(obj)
-        {
-          Bounds = obj.Raw.Intervals()
-        }},
-        {
-          "SPSO-2011", obj => new SPSO2011(obj)
-          {
-            Bounds = obj.Raw.Intervals()
-          }
-        },
-        {"PSO", obj => new clsOptPSO(obj)
-          {
-            InitialPosition = obj.Raw.SearchSpace().RandPos()
-          }
-        },
-        {"PSO-A-IW", obj => new clsOptPSOAIW(obj)},
-        {"PSO-Chaotic-IW", obj => new clsOptPSOChaoticIW(obj)},
-        {"PSO-LD-IW", obj => new clsOptPSOLDIW(obj)},
-        {"Evolution-Strategy", obj => new clsOptES(obj)}, // no criterion
-        {"Differential-Evolution", obj => new clsOptDE(obj)},
-        {"Adaptive-Differential-Evolution", obj => new clsOptDEJADE(obj)
-          {
-            LowerBounds = obj.Raw.Intervals().Select(i => i[0]).ToArray(),
-            UpperBounds = obj.Raw.Intervals().Select(i => i[1]).ToArray()
-          }
-        },
-        {"Real-Coded-GA-BLX-Alpha+JGG", obj => new clsOptRealGABLX(obj)},
-        {"Real-Coded-GA-PCX", obj => new clsOptRealGAPCX(obj)},
-        {"Real-Coded-GA-REX", obj => new clsOptRealGAREX(obj)},
-        {"Real-Coded-GA-SPX+JGG", obj => new clsOptRealGASPX(obj)
-          {
-            LowerBounds = obj.Raw.Intervals().Select(i => i[0]).ToArray(),
-            UpperBounds = obj.Raw.Intervals().Select(i => i[1]).ToArray()
-          }
-        },
-        {"Real-Coded-GA-UNDX", obj => new clsOptRealGAUNDX(obj)},
-      };
-    
     private absOptimization _optimizer;
     private SspFct _objective;
     private int _zoom;
 
+    private double[][] GetPositions(Dictionary<string, string> model, 
+      string key)
+    {
+      if (!model.ContainsKey(key)) return null;
+      
+      var value = model[key].Replace(" ", "");
+      value = value.Substring(1, value.Length - 2);
+
+      if (value == "") return new double[0][];
+      
+      var positions = Regex.Split(value, "],");
+      var result = new double[positions.Length][];
+      
+      for (var i = 0; i < positions.Length; i++)
+      {
+        var pos = positions[i]
+          .Replace("]", "")
+          .Replace("[", "")
+          .Split(',');
+        result[i] = new double[pos.Length];
+        
+        for (var j = 0; j < pos.Length; j++)
+        {
+          if (float.TryParse(pos[j], out var number)) result[i][j] = number;
+          else return null;
+        }
+      }
+      return result;
+      
+//      const string regex =
+//        @"[+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*)(?:[eE][+-]?\d+)?";
+    }
+
+    public static void Test()
+    {
+      var sim = new StaticSpSimulation();
+      var config = new Dictionary<string, string>
+      {
+        {"ObstaclePositions", "[[0.0, 0, 0]]"}
+      };
+      sim.Init(config);
+    }
+    
     public override void Init(Dictionary<string, string> model)
     {
-      _zoom = GetInt(model, "Zoom", 80);
-      var sizeTeamA = GetInt(model, "SizeTeamA", 1);
-      var sizeTeamB = GetInt(model, "SizeTeamB", 1);
-      var fieldWidth = GetDouble(model, "FieldHeight", 9);
-      var fieldHeight = GetDouble(model, "FieldWidth", 6);
-      var playerSensorRange = GetDouble(model, "PlayerSensorRange", 12);
-      var playerSensorFov = GetDouble(model, "PlayerSensorFOV", 56.3);
-      var playerSize = GetDouble(model, "PlayerSize", 0.1555);
-
-      var optimizerName = GetAnyOf(model, "Optimizer", 
-        _optimizers.Keys.ToList(), "Adaptive-Differential-Evolution");
+      // -- Initialize objective
       
-      _objective = new SspFct(sizeTeamA, sizeTeamB, fieldWidth, fieldHeight,
-        playerSensorRange, playerSensorFov, playerSize);
-      _optimizer = _optimizers[optimizerName](_objective);
+      _zoom = GetInt(model, "Zoom", 80);
+      var possibleOptimizers = new[]
+      {
+        "SPSO-2006", "SPSO-2007", "SPSO-2011", "PSO", "ADE"
+      };
+      var numberOfSensors = GetInt(model, "NumberOfSensors", 1);
+      var numberOfObstacles = GetInt(model, "NumberOfObstacles", 1);
+      var sensorPositions = GetPositions(model, "SensorPositions");
+      var obstaclePositions = GetPositions(model, "ObstaclePositions");
+      var optimizerName = GetAnyOf(model, "Optimizer", 
+        possibleOptimizers.ToList(), "SPSO-2006");
+
+      var ssp = new SSP
+      {
+        FieldWidth = GetDouble(model, "FieldHeight", 9),
+        FieldHeight = GetDouble(model, "FieldWidth", 6),
+        SensorRange = GetDouble(model, "PlayerSensorRange", 12),
+        SensorFov = GetDouble(model, "PlayerSensorFOV", 56.3),
+        ObstacleSize = GetDouble(model, "PlayerSize", 0.1555)
+      };
+      ssp.Init(numberOfSensors, numberOfObstacles);
+
+      if (obstaclePositions != null)
+      {
+        Console.WriteLine("Setting up obstacles from fixed values");
+        ssp.SetObstacles(obstaclePositions);
+      }
+      
+      _objective = new SspFct(ssp);
+      
+      // -- Initialize optimizer
+
+      if (optimizerName == "SPSO-2006")
+      {
+        _optimizer = new SPSO2006(_objective)
+        {
+          Bounds = _objective.Raw.Intervals()
+        };
+      }
+      else if (optimizerName == "SPSO-2007")
+        _optimizer = new SPSO2007(_objective)
+        {
+          Bounds = _objective.Raw.Intervals()
+        };
+      else if (optimizerName == "SPSO-2011")
+        _optimizer =  new SPSO2011(_objective)
+        {
+          Bounds = _objective.Raw.Intervals()
+        };
+      else if (optimizerName == "PSO")
+        _optimizer = new clsOptPSO(_objective)
+        {
+          InitialPosition = _objective.Raw.SearchSpace().RandPos()
+        };
+      else if (optimizerName == "ADE")
+        _optimizer = new clsOptDEJADE(_objective)
+        {
+          LowerBounds = _objective.Raw.Intervals().Select(i => i[0]).ToArray(),
+          UpperBounds = _objective.Raw.Intervals().Select(i => i[1]).ToArray()
+        };
+
       _optimizer.Init();
-      SensorPositioningProblem.PlaceFromVector(
-        _optimizer.Result.ToArray(), _objective.Raw.TeamA);
+      SSP.PlaceFromVector(_optimizer.Result.ToArray(), _objective.Raw.Sensors);
     }
 
     public override void Update(long deltaTime)
     {
       _optimizer.DoIteration(1);
-      SensorPositioningProblem.PlaceFromVector(
-        _optimizer.Result.ToArray(), _objective.Raw.TeamA);
+      SSP.PlaceFromVector(_optimizer.Result.ToArray(), _objective.Raw.Sensors);
     }
 
     private void DrawCoordinateSystem(Context cr)
@@ -190,18 +235,18 @@ namespace sensor_positioning
     {
       cr.SetSourceRGBA(0, 0, 0, 0.7);
       foreach (var polygon in Sensor.Shadows(
-        _objective.Raw.TeamA, _objective.Raw.Env))
+        _objective.Raw.Sensors, _objective.Raw.Env))
       {
         if (polygon.Count == 0) continue;
         DrawPolygon(cr, polygon);
         cr.Fill();
       }
       
-      foreach (var sensor in _objective.Raw.TeamA)
+      foreach (var sensor in _objective.Raw.Sensors)
       {
-        cr.SetSourceRGB(0, 0, 0);
+        cr.SetSourceRGB(1, 0, 0);
         cr.SetDash(new double[]{10}, 0);
-        cr.LineWidth = .2;
+        cr.LineWidth = .4;
         DrawPolygon(cr, sensor.AreaOfActivity().ToPolygon());
         cr.Stroke();
         
@@ -217,7 +262,7 @@ namespace sensor_positioning
 
     private void DrawObstacles(Context cr)
     {
-      foreach (var obstacle in _objective.Raw.TeamB)
+      foreach (var obstacle in _objective.Raw.Obstacles)
       {
         cr.SetSourceRGB(0.1, 0.1, 1);
         cr.Arc(
@@ -246,22 +291,22 @@ namespace sensor_positioning
     {
       var sensorPositions = "[";
       var i = 1;
-      foreach (var sensor in _objective.Raw.TeamA)
+      foreach (var sensor in _objective.Raw.Sensors)
       {
         sensorPositions += $"[{sensor.Position.X}," +
                            $"{sensor.Position.Y},{sensor.Rotation}]";
 
-        if (i++ < _objective.Raw.TeamA.Count) sensorPositions += ", ";
+        if (i++ < _objective.Raw.Sensors.Count) sensorPositions += ", ";
       }
       sensorPositions += "]";
       
       var obstaclePositions = "[";
       i = 1;
-      foreach (var obstacle in _objective.Raw.TeamB)
+      foreach (var obstacle in _objective.Raw.Obstacles)
       {
         obstaclePositions += $"[{obstacle.Position.X}, {obstacle.Position.Y}]";
 
-        if (i++ < _objective.Raw.TeamA.Count) obstaclePositions += ", ";
+        if (i++ < _objective.Raw.Sensors.Count) obstaclePositions += ", ";
       }
       obstaclePositions += "]";
 
