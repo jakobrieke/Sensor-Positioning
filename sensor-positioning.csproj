@@ -87,12 +87,12 @@
     <Compile Include="src\Geometry.cs" />
     <Compile Include="src\clipper.cs" />
     <Compile Include="src\PcgRandom.cs" />
-    <Compile Include="src\Pso.test.cs" />
-    <Compile Include="src\SensorPositioning.test.cs" />
-    <Compile Include="src\Geometry.test.cs" />
-    <Compile Include="src\Shadows.test.cs" />
     <Compile Include="src\StaticSPSimulation.cs" />
-    <Compile Include="src\TestUtil.cs" />
+    <Compile Include="test\Geometry.test.cs" />
+    <Compile Include="test\Pso.test.cs" />
+    <Compile Include="test\SensorPositioning.test.cs" />
+    <Compile Include="test\Shadows.test.cs" />
+    <Compile Include="test\TestUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

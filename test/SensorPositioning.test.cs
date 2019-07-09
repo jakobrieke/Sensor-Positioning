@@ -1,22 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Cairo;
-using Gdk;
 using Geometry;
-using GLib;
-using LibOptimization.Optimization;
-using LibOptimization.Util;
 using Optimization;
-using Gtk;
 using Action = System.Action;
-using Application = Gtk.Application;
 using Key = Gdk.Key;
-using Rectangle = Geometry.Rectangle;
-using Window = Gtk.Window;
-using WindowType = Gtk.WindowType;
-
 
 namespace sensor_positioning
 {
@@ -24,88 +12,10 @@ namespace sensor_positioning
   {
     public static void TestAll()
     {
-      for (var i = 0; i < 1000; i++) TestWithExternalPso();
-      for (var i = 0; i < 500; i++) TestSSP();
+      TestSSP();
       TestSSPStepByStep();
-      TestWithSimplex();
-      TestWithAdaptiveDifferentialEvolution();
     }
 
-    public static void TestWithSimplex()
-    {
-      var objective = new SspFct(2, 5);
-      var opt = new clsOptNelderMead(objective);
-      opt.InitialPosition = objective.Raw.SearchSpace().RandPos();
-      opt.IsUseCriterion = false;
-      opt.Init();
-      clsUtil.DebugValue(opt);
-      while (opt.DoIteration(10) == false)
-      {
-        if (opt.Result.Eval < 5) break;
-        clsUtil.DebugValue(opt, ai_isOutValue: false);
-      }
-
-      clsUtil.DebugValue(opt);
-    }
-
-    public static void TestWithAdaptiveDifferentialEvolution()
-    {
-      var objective = new SspFct(2, 5);
-      var opt = new clsOptDEJADE(objective)
-      {
-        LowerBounds = objective.Raw.Intervals().Select(i => i[0]).ToArray(),
-        UpperBounds = objective.Raw.Intervals().Select(i => i[1]).ToArray()
-      };
-      opt.Init();
-
-      // Print debug
-      Console.WriteLine("Sensors: " + objective.Raw.TeamA.Count);
-      Console.WriteLine("Obstacles:");
-      foreach (var sensor in objective.Raw.TeamB)
-      {
-        Console.WriteLine("- " + sensor.Position + " : " + sensor.Size);
-      }
-
-      clsUtil.DebugValue(opt);
-
-      // Optimize
-      while (opt.DoIteration(10) == false)
-      {
-        if (opt.Result.Eval < 5) break;
-        clsUtil.DebugValue(opt, ai_isOutValue: false);
-      }
-
-      Console.WriteLine("Best: " + objective.Raw.Normalize(opt.Result.Eval) +
-                        "%");
-      clsUtil.DebugValue(opt);
-    }
-
-    public static void TestWithExternalPso()
-    {
-      var objective = new SspFct();
-      var opt = new clsOptPSO(objective) {IsUseCriterion = false};
-      opt.Init();
-
-      Console.WriteLine("--- Fitness function setup");
-      Console.WriteLine("Sensors: " + objective.Raw.TeamA.Count);
-      Console.WriteLine("Obstacles: " + objective.Raw.TeamB.Count);
-      foreach (var ob in objective.Raw.TeamB)
-      {
-        Console.Write("- " + ob.Position + " : " + ob.Size);
-      }
-
-      Console.WriteLine();
-      Console.WriteLine("Field: " + objective.Raw.Env.Bounds);
-
-      Console.WriteLine("\n--- Setup");
-      clsUtil.DebugValue(opt);
-
-      opt.DoIteration(500);
-      Console.WriteLine("--- Results");
-      Console.WriteLine("Best: " + objective.Raw.Normalize(opt.Result.Eval) +
-                        "% shadow");
-      clsUtil.DebugValue(opt);
-    }
 
     public static void TestSSPStepByStep()
     {
@@ -124,19 +34,20 @@ namespace sensor_positioning
                           ", Best: " + prob.Normalize(pso.GlobalBestValue) +
                           "% shadow");
         plotter.Clear();
-        SensorPositioningProblem.PlaceFromVector(pso.GlobalBest, prob.TeamA);
+        SSP.PlaceFromVector(pso.GlobalBest, prob.Sensors);
         plotter.Plot(prob.Env.Bounds);
-        plotter.Plot(Sensor.Shadows(prob.TeamA, prob.Env));
-        plotter.Plot(prob.TeamA.Select(o =>
+        plotter.Plot(Sensor.Shadows(prob.Sensors, prob.Env));
+        plotter.Plot(prob.Sensors.Select(o =>
           (IGeometryObject) new Circle(o.Position, o.Size)));
-        plotter.Plot(prob.TeamB.Select(o =>
+        plotter.Plot(prob.Obstacles.Select(o =>
           (IGeometryObject) new Circle(o.Position, o.Size)));
         pso.IterateOnce();
       });
 
       var reset = new Action(() =>
       {
-        prob = new SSP(10, 10);
+        prob = new SSP();
+        prob.Init(10, 10);
         pso = Pso.SwarmSpso2011(
           new SearchSpace(prob.Intervals()),
           prob.FitnessFct);
@@ -163,7 +74,8 @@ namespace sensor_positioning
       const int iterations = 10;
       const int swarmSize = 40;
       
-      var prob = new SSP(sizeTeamA, sizeTeamB);
+      var prob = new SSP();
+      prob.Init(sizeTeamA, sizeTeamB);
       var sw = Pso.SwarmSpso2011(prob.SearchSpace(), prob.FitnessFct);
       sw.Topology = Pso.RingTopology;
       sw.ShouldTopoUpdate = swarm => false;
@@ -179,12 +91,12 @@ namespace sensor_positioning
       
       Console.WriteLine("\n--- Static Sensor Problem");
       Console.WriteLine("Field: " + prob.Env.Bounds);
-      Console.WriteLine("Sensor Range: " + prob.TeamA[0].Range);
-      Console.WriteLine("Sensor FOV: " + prob.TeamA[0].Fov);
-      Console.WriteLine("Obstacle Size: " + prob.TeamA[0].Size);
-      Console.WriteLine("Sensors: " + prob.TeamA.Count);
-      Console.WriteLine("Obstacles: " + prob.TeamB.Count);
-      foreach (var ob in prob.TeamB)
+      Console.WriteLine("Sensor Range: " + prob.Sensors[0].Range);
+      Console.WriteLine("Sensor FOV: " + prob.Sensors[0].Fov);
+      Console.WriteLine("Obstacle Size: " + prob.Sensors[0].Size);
+      Console.WriteLine("Sensors: " + prob.Sensors.Count);
+      Console.WriteLine("Obstacles: " + prob.Obstacles.Count);
+      foreach (var ob in prob.Obstacles)
       {
         Console.WriteLine("- " + ob.Position + ", " + ob.Size);
       }
@@ -224,7 +136,7 @@ namespace sensor_positioning
       Console.WriteLine("\n--- Results");
       Console.Write(string.Join(",\n", sw.GlobalBest));
       Console.WriteLine();
-      Console.WriteLine("Collisions: " + prob.Collisions);
+//      Console.WriteLine("Collisions: " + prob.Collisions);
       Console.WriteLine("Total Distance: " + totalDistance);
       Console.WriteLine(
         "Shadow area: " + prob.Normalize(sw.GlobalBestValue) + "%");
