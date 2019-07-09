@@ -77,17 +77,17 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\DynamicSPSimulation.cs" />
-    <Compile Include="src\PsoSimulation.cs" />
     <Compile Include="src\SensorPositioning.cs" />
     <Compile Include="src\Shadows.cs" />
-    <Compile Include="src\ISimulation.cs" />
     <Compile Include="src\Pso.cs" />
     <Compile Include="src\OptimizationFcts.cs" />
     <Compile Include="src\Geometry.cs" />
     <Compile Include="src\clipper.cs" />
     <Compile Include="src\PcgRandom.cs" />
-    <Compile Include="src\StaticSPSimulation.cs" />
+    <Compile Include="src\Simulations\DynamicSPSimulation.cs" />
+    <Compile Include="src\Simulations\ISimulation.cs" />
+    <Compile Include="src\Simulations\PsoSimulation.cs" />
+    <Compile Include="src\Simulations\StaticSPSimulation.cs" />
     <Compile Include="test\Geometry.test.cs" />
     <Compile Include="test\Pso.test.cs" />
     <Compile Include="test\SensorPositioning.test.cs" />
