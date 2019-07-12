@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simulation>
+<software>charlie-simulation-framework; v1.0.0; Jakob Rieke</software>
+<system>Unix; Unix 18.2.0.0; 18.2.0.0</system>
+<datetime>6/12/2019 2:24:36 PM</datetime>
+<title>Static SP with GA</title>
+<meta>Author: Jakob Rieke; Version v1.3.0</meta>
+<configuration>
+  Zoom = 40
+  SizeTeamA = 2
+  SizeTeamB = 2
+  FieldHeight = 9
+  FieldWidth = 6
+  PlayerSensorRange = 12
+  PlayerSensorFOV = 56.3
+  PlayerSize = 0.1555
+  # The function used to optimize the problem,
+  # possible values are:
+  # Simplex, PSO, SPSO-2006, SPSO-2011, PSO-A-IW,
+  # PSO-LD-IW, PSO-Chaotic-IW, PSO-LD-IW,
+  # Evolution-Strategy, Differential-Evolution,
+  # Adaptive-Differential-Evolution
+  Optimizer = PSO
+  
+</configuration>
+<iteration i="0">
+<sensors>[[6.97019212486852,2.48221362136218,102.61984221962], [6.83034819213217,3.47635882244119,233.464257628809]]</sensors>
+<obstacles>[[7.28799151838757, 0.0412934976629913], [8.5022306679748, 2.1587707400322]]</obstacles>
+<global-best>29.4399916125855</global-best>
+
+</iteration>
+<iteration i="200">
+<sensors>[[8.99988566670513,0.000164234255803473,136.348186577518], [8.99989976672034,5.99997276631873,232.162999111114]]</sensors>
+<obstacles>[[7.28799151838757, 0.0412934976629913], [8.5022306679748, 2.1587707400322]]</obstacles>
+<global-best>3.10963471881602</global-best>
+
+</iteration>
+<iterations>200</iterations>
+<elapsed-time>1526</elapsed-time>
+<average-time>0</average-time>
+</simulation>

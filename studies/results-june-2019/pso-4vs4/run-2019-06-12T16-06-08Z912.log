@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simulation>
+<software>charlie-simulation-framework; v1.0.0; Jakob Rieke</software>
+<system>Unix; Unix 18.2.0.0; 18.2.0.0</system>
+<datetime>6/12/2019 4:06:08 PM</datetime>
+<title>Static SP with GA</title>
+<meta>Author: Jakob Rieke; Version v1.3.0</meta>
+<configuration>
+  Zoom = 40
+  SizeTeamA = 4
+  SizeTeamB = 4
+  FieldHeight = 9
+  FieldWidth = 6
+  PlayerSensorRange = 12
+  PlayerSensorFOV = 56.3
+  PlayerSize = 0.1555
+  # The function used to optimize the problem,
+  # possible values are:
+  # Simplex, PSO, SPSO-2006, SPSO-2011, PSO-A-IW,
+  # PSO-LD-IW, PSO-Chaotic-IW, PSO-LD-IW,
+  # Evolution-Strategy, Differential-Evolution,
+  # Adaptive-Differential-Evolution
+  Optimizer = PSO
+  
+</configuration>
+<iteration i="0">
+<sensors>[[7.61303735630941,0.862671545678718,120.953091788758], [9.17745568189204,7.23630048627598,39.7982186389286], [6.13773875532603,8.77470684838057,308.987106357483], [7.13873988066806,9.98746464843783,177.655863292945]]</sensors>
+<obstacles>[[4.90126925194636, 2.1075197160244], [2.08750779018737, 2.28542210301384], [6.33142367913388, 5.60116552468389], [4.18205490591936, 2.02462056884542]]</obstacles>
+<global-best>10.0733218439947</global-best>
+
+</iteration>
+<iteration i="200">
+<sensors>[[8.86028648987778,0.000694032677234398,99.8106373976073], [3.16516750322419,0.00350897064112845,26.6878659447767], [5.91687885783781E-05,5.57078569904973,298.103020196993], [8.99933340279889,0.578823201477068,158.228079803419]]</sensors>
+<obstacles>[[4.90126925194636, 2.1075197160244], [2.08750779018737, 2.28542210301384], [6.33142367913388, 5.60116552468389], [4.18205490591936, 2.02462056884542]]</obstacles>
+<global-best>0.188502068579166</global-best>
+
+</iteration>
+<iterations>200</iterations>
+<elapsed-time>11557</elapsed-time>
+<average-time>0</average-time>
+</simulation>

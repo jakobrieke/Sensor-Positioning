@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simulation>
+<software>charlie-simulation-framework; v1.0.0; Jakob Rieke</software>
+<system>Unix; Unix 18.2.0.0; 18.2.0.0</system>
+<datetime>6/17/2019 11:47:02 PM</datetime>
+<title>Static Sensor Positioning</title>
+<meta>Author: Jakob Rieke; Version v1.3.0</meta>
+<configuration>
+  Zoom = 40
+  SizeTeamA = 3
+  SizeTeamB = 3
+  FieldHeight = 9
+  FieldWidth = 6
+  PlayerSensorRange = 12
+  PlayerSensorFOV = 56.3
+  PlayerSize = 0.1555
+  # The function used to optimize the problem,
+  # possible values are:
+  # Simplex, PSO, SPSO-2006, SPSO-2011, PSO-A-IW,
+  # PSO-LD-IW, PSO-Chaotic-IW, PSO-LD-IW,
+  # Evolution-Strategy, Differential-Evolution,
+  # Adaptive-Differential-Evolution
+  Optimizer = PSO
+  </configuration>
+<iteration i="0">
+<sensors>[[4.85931482015915,4.75447318677867,104.33705074023], [12.270498735377,0.254893363984541,137.148857499012], [2.5224267633091,4.95291672610557,42.5911426878734]]</sensors>
+<obstacles>[[4.81732928403653, 2.05206577247009], [2.00857540592551, 5.4381221649237], [0.174982911441475, 3.14377130940557]]</obstacles>
+<global-best>18.8838937283396</global-best>
+</iteration>
+<iteration i="200">
+<sensors>[[4.15069378751972E-05,0.0807167960192135,63.8633272776248], [8.99890192244515,0.00143257056199515,155.796767221987], [0.000630464810903041,4.58204578542613,-18.283738010124]]</sensors>
+<obstacles>[[4.81732928403653, 2.05206577247009], [2.00857540592551, 5.4381221649237], [0.174982911441475, 3.14377130940557]]</obstacles>
+<global-best>0.283729528717488</global-best>
+</iteration>
+<iterations>200</iterations>
+<elapsed-time>3568</elapsed-time>
+<average-time>0</average-time>
+</simulation>

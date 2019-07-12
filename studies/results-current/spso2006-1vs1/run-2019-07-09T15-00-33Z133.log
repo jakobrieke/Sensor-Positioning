@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simulation>
+<software>charlie-simulation-framework; v1.0.0; Jakob Rieke</software>
+<system>Unix; Unix 18.2.0.0; 18.2.0.0</system>
+<datetime>7/9/2019 3:00:33 PM</datetime>
+<title>Static Sensor Positioning</title>
+<meta>Author: Jakob Rieke; Version v1.3.4; Deterministic: No</meta>
+<configuration>
+  Zoom = 40
+  SizeTeamA = 1
+  SizeTeamB = 1
+  FieldHeight = 9
+  FieldWidth = 6
+  PlayerSensorRange = 12
+  PlayerSensorFOV = 56.3
+  PlayerSize = 0.1555
+  Optimizer = SPSO-2006
+  </configuration>
+<iteration i="0">
+<sensors>[[8.72085712873377,5.13454095041379,198.254365045577]]</sensors>
+<obstacles>[[1.14108786243014, 0.947092370130122]]</obstacles>
+<global-best>16.8096322179987</global-best>
+</iteration>
+<iteration i="600">
+<sensors>[[2.62438361933315E-16,5.99999999999997,331.85000038147]]</sensors>
+<obstacles>[[1.14108786243014, 0.947092370130122]]</obstacles>
+<global-best>12.0045080810309</global-best>
+</iteration>
+<iterations>600</iterations>
+<elapsed-time>2810</elapsed-time>
+<average-time>0</average-time>
+</simulation>
