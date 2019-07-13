@@ -74,7 +74,7 @@ namespace charlie
     }
 
     public abstract void Update(long deltaTime);
-    public abstract void Render(Context ctx, int width, int height);
+    public abstract void Render(Context cr, int width, int height);
     
     public virtual byte[] Render(int width, int height)
     {

@@ -122,33 +122,33 @@ namespace sensor_positioning
       _swarm.IterateOnce();
     }
 
-    public override void Render(Context ctx, int width, int height)
+    public override void Render(Context cr, int width, int height)
     {
       // Render background
       for (var i = 0; i < _bg.Length; i++)
       {
         for (var j = 0; j < _bg[i].Length; j++)
         {
-          ctx.SetSourceColor(_bg[i][j]);
-          ctx.Rectangle(
+          cr.SetSourceColor(_bg[i][j]);
+          cr.Rectangle(
             _xOffset - _size / 2 + i * _gridSize, 
             _yOffset - _size / 2 + j * _gridSize, 
             _gridSize, _gridSize);
-          ctx.Fill();
+          cr.Fill();
         }
       }
       
       // Render particles
       foreach (var p in _swarm.Particles)
       {
-        ctx.SetSourceColor(new Color(0.769, 0.282, 0.295));
-        ctx.LineWidth = 1;
-        ctx.Arc(
+        cr.SetSourceColor(new Color(0.769, 0.282, 0.295));
+        cr.LineWidth = 1;
+        cr.Arc(
           _xOffset + p.Position[0], 
           _yOffset + p.Position[1], 
           3, 0, 2 * Math.PI);
-        ctx.ClosePath();
-        ctx.Fill();
+        cr.ClosePath();
+        cr.Fill();
       }
       
       // Render global best status message
@@ -161,10 +161,10 @@ namespace sensor_positioning
 
       globalBest += ")  " + Math.Round(_swarm.GlobalBestValue, 3);
       
-      ctx.SetSourceColor(new Color(.7, .7, .7));
-      ctx.SetFontSize(13);
-      ctx.MoveTo(12, 20);
-      ctx.ShowText(globalBest);
+      cr.SetSourceColor(new Color(.7, .7, .7));
+      cr.SetFontSize(13);
+      cr.MoveTo(12, 20);
+      cr.ShowText(globalBest);
     }
   }
 }

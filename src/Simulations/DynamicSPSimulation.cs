@@ -207,15 +207,15 @@ namespace sensor_positioning
       ctx.Fill();
     }
     
-    public override void Render(Context ctx, int width, int height)
+    public override void Render(Context cr, int width, int height)
     {
       var fieldWidth = _env.Bounds.Max.X * 80;
       var fieldHeight = _env.Bounds.Max.Y * 80;
-      ctx.Translate((width - fieldWidth) / 2, (width - fieldHeight) / 2);
-      ctx.Scale(80, 80);
+      cr.Translate((width - fieldWidth) / 2, (width - fieldHeight) / 2);
+      cr.Scale(80, 80);
       
-      DrawCoordinateSystem(ctx, _env.Bounds.Max.X, _env.Bounds.Max.Y);
-      DrawObstacles(ctx, _obstacles);
+      DrawCoordinateSystem(cr, _env.Bounds.Max.X, _env.Bounds.Max.Y);
+      DrawObstacles(cr, _obstacles);
     }
   }
 }

@@ -22,11 +22,6 @@ namespace sensor_positioning
     {
       Bounds = new Rectangle(x, y, x + width, y + height);
     }
-
-    public double Area()
-    {
-      return Bounds.Area();
-    }
   }
 
   public class Obstacle
@@ -151,6 +146,7 @@ namespace sensor_positioning
     public Environment Env;
     public readonly List<Sensor> Sensors = new List<Sensor>();
     public readonly List<Obstacle> Obstacles = new List<Obstacle>();
+    public readonly List<Polygon> ImportantAreas = new List<Polygon>();
     public double FieldWidth = 9;
     public double FieldHeight = 6;
     public double SensorRange = 12;
@@ -277,8 +273,8 @@ namespace sensor_positioning
     /// <returns></returns>
     public double Normalize(double value, bool round = true)
     {
-      if (round) return Math.Round(value / Env.Area() * 100, 2);
-      return value / Env.Area() * 100;
+      if (round) return Math.Round(value / Env.Bounds.Area() * 100, 2);
+      return value / Env.Bounds.Area() * 100;
     }
 
     /// <summary>
@@ -308,11 +304,13 @@ namespace sensor_positioning
     {
       PlaceFromVector(vector, Sensors);
       var penalty = 0.0;
+      
       foreach (var p in Sensors)
       {
         var x = Env.Bounds.Min.X + Env.Bounds.Width() / 2;
         var y = Env.Bounds.Min.Y + Env.Bounds.Height() / 2;
         var dist = Vector2.Distance(new Vector2(x, y), p.Position);
+        
         if (!Env.Bounds.Contains(p.Position, true)) 
           penalty += dist;
       
@@ -324,7 +322,16 @@ namespace sensor_positioning
           if (d < o2.Size + p.Size) return Env.Bounds.Area() + d;
         }
       }
-      return penalty + Sensor.ShadowArea(Sensors, Env);
+
+      var shadows = Sensor.Shadows(Sensors, Env);
+      var shadowArea = Polygon.Area(shadows);
+
+      var importantHidden = Polygon.Intersection(
+        ImportantAreas, shadows);
+      var importantArea = Polygon.Area(ImportantAreas) - 
+                          Polygon.Area(importantHidden);
+      
+      return penalty + shadowArea - importantArea;
     }
   }
 

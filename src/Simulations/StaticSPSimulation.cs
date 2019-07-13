@@ -20,6 +20,11 @@ namespace sensor_positioning
     public override string GetMeta()
     {
       /* Recent Changes
+       *
+       * Add option to hide sensor lines
+       * Change colors of sensors and obstacles
+       * Add functionality to mark important areas with polygons
+       *   -> important areas reduce the fitness function value by their area
        * Change config attribute names "SizeTeamA", "SizeTeamB"
        * Add option to set fixed positions for obstacles
        * Change rendering color to red for sensor area
@@ -48,8 +53,9 @@ namespace sensor_positioning
     public override string GetConfig()
     {
       return "Zoom = 80\n" +
+             "# DrawSensorLines\n" +
              "NumberOfSensors = 1\n" +
-             "NumberOfObstacles = 1\n" +
+             "NumberOfObstacles = 0\n" +
              "FieldHeight = 9\n" +
              "FieldWidth = 6\n" +
              "# If SensorPositions is set NumberOfSensors is\n" +
@@ -58,6 +64,10 @@ namespace sensor_positioning
              "# If ObstaclePositions is set NumberOfObstacles is\n" +
              "# ignored\n" +
              "# ObstaclePositions = []\n" +
+             "ImpArea01 = [[0, 0], [2, 0], [2, 1], [0, 1]]\n" +
+             "# ImpArea02 = [[0, 6], [2, 6], [2, 5], [0, 5]]\n" +
+             "# ImpArea03 = [[9, 0], [7, 0], [7, 1], [9, 1]]\n" +
+             "# ImpArea04 = [[9, 6], [9, 5], [7, 5], [7, 6]]\n" +
              "PlayerSensorRange = 12\n" +
              "PlayerSensorFOV = 56.3\n" +
              "PlayerSize = 0.1555\n" +
@@ -70,18 +80,18 @@ namespace sensor_positioning
     private absOptimization _optimizer;
     private SspFct _objective;
     private int _zoom;
+    private bool _drawSensorLines;
 
-    private double[][] GetPositions(Dictionary<string, string> model, 
-      string key)
+    private static double[][] ParseDoubleMatrix(string source)
     {
-      if (!model.ContainsKey(key)) return null;
+      if (string.IsNullOrEmpty(source)) return null;
       
-      var value = model[key].Replace(" ", "");
-      value = value.Substring(1, value.Length - 2);
+      source = source.Replace(" ", "");
+      source = source.Substring(1, source.Length - 2);
 
-      if (value == "") return new double[0][];
+      if (source == "") return new double[0][];
       
-      var positions = Regex.Split(value, "],");
+      var positions = Regex.Split(source, "],");
       var result = new double[positions.Length][];
       
       for (var i = 0; i < positions.Length; i++)
@@ -99,19 +109,29 @@ namespace sensor_positioning
         }
       }
       return result;
-      
-//      const string regex =
-//        @"[+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*)(?:[eE][+-]?\d+)?";
+    }
+    
+    private double[][] GetDoubleMatrix(Dictionary<string, string> model, 
+      string key)
+    {
+      return !model.ContainsKey(key) ? null : ParseDoubleMatrix(model[key]);
     }
 
-    public static void Test()
+    public static void TestParseDoubleMatrix()
     {
-      var sim = new StaticSpSimulation();
-      var config = new Dictionary<string, string>
+      const string text = "[[0.0, 0, 0], [0.0, 0, 0], [0.0, 0, 0, 0.0, 0, 0]]";
+      var matrix = ParseDoubleMatrix(text);
+      var matrixString = "";
+      foreach (var row in matrix)
       {
-        {"ObstaclePositions", "[[0.0, 0, 0]]"}
-      };
-      sim.Init(config);
+        foreach(var cell in row)
+        {
+          matrixString += cell + ", ";
+        }
+        matrixString = matrixString.Substring(0, 
+                         matrixString.Length - 2) + "\n";
+      }
+      Console.Write(matrixString);
     }
     
     public override void Init(Dictionary<string, string> model)
@@ -119,14 +139,16 @@ namespace sensor_positioning
       // -- Initialize objective
       
       _zoom = GetInt(model, "Zoom", 80);
+      _drawSensorLines = model.ContainsKey("DrawSensorLines");
+      
       var possibleOptimizers = new[]
       {
         "SPSO-2006", "SPSO-2007", "SPSO-2011", "PSO", "ADE"
       };
       var numberOfSensors = GetInt(model, "NumberOfSensors", 1);
       var numberOfObstacles = GetInt(model, "NumberOfObstacles", 1);
-      var sensorPositions = GetPositions(model, "SensorPositions");
-      var obstaclePositions = GetPositions(model, "ObstaclePositions");
+      var sensorPositions = GetDoubleMatrix(model, "SensorPositions");
+      var obstaclePositions = GetDoubleMatrix(model, "ObstaclePositions");
       var optimizerName = GetAnyOf(model, "Optimizer", 
         possibleOptimizers.ToList(), "SPSO-2006");
 
@@ -138,6 +160,22 @@ namespace sensor_positioning
         SensorFov = GetDouble(model, "PlayerSensorFOV", 56.3),
         ObstacleSize = GetDouble(model, "PlayerSize", 0.1555)
       };
+      
+      foreach (var key in model.Keys)
+      {
+        if (!key.StartsWith("ImpArea")) continue;
+
+        var matrix = ParseDoubleMatrix(model[key]);
+        if (matrix != null && matrix.Length < 3) continue;
+
+        var impArea = new Polygon();
+        foreach (var row in matrix)
+        {
+          impArea.Add(new Vector2(row[0], row[1]));
+        }
+        ssp.ImportantAreas.Add(impArea);
+      }
+
       ssp.Init(numberOfSensors, numberOfObstacles);
 
       if (obstaclePositions != null)
@@ -230,12 +268,25 @@ namespace sensor_positioning
       }
       cr.ClosePath();
     }
+
+    private void DrawImportantArea(Context cr)
+    {
+      // Pattern types: Linear, Radial, Solid, Surface
+      cr.SetSourceRGBA(0, 0, 0, 0.3);
+      foreach (var area in _objective.Raw.ImportantAreas)
+      {
+        DrawPolygon(cr, area);
+        cr.LineWidth = 4;
+        cr.Stroke();
+      }
+    }
     
     private void DrawSensors(Context cr)
     {
+      var shadows = Sensor.Shadows(_objective.Raw.Sensors, _objective.Raw.Env);
       cr.SetSourceRGBA(0, 0, 0, 0.7);
-      foreach (var polygon in Sensor.Shadows(
-        _objective.Raw.Sensors, _objective.Raw.Env))
+      
+      foreach (var polygon in shadows)
       {
         if (polygon.Count == 0) continue;
         DrawPolygon(cr, polygon);
@@ -244,13 +295,16 @@ namespace sensor_positioning
       
       foreach (var sensor in _objective.Raw.Sensors)
       {
-        cr.SetSourceRGB(1, 0, 0);
-        cr.SetDash(new double[]{10}, 0);
-        cr.LineWidth = .4;
-        DrawPolygon(cr, sensor.AreaOfActivity().ToPolygon());
-        cr.Stroke();
+        if (_drawSensorLines)
+        {
+          cr.SetSourceRGB(1, 0, 0);
+          cr.SetDash(new double[]{10}, 0);
+          cr.LineWidth = .4;
+          DrawPolygon(cr, sensor.AreaOfActivity().ToPolygon());
+          cr.Stroke();
+        }
         
-        cr.SetSourceRGB(1, 0, 0);
+        cr.SetSourceRGB(0.753, 0.274, 0.275);
         cr.Arc(
           sensor.Position.X * _zoom,
           sensor.Position.Y * _zoom,
@@ -264,7 +318,7 @@ namespace sensor_positioning
     {
       foreach (var obstacle in _objective.Raw.Obstacles)
       {
-        cr.SetSourceRGB(0.1, 0.1, 1);
+        cr.SetSourceRGB(0.159, 0.695, 0.775);
         cr.Arc(
           obstacle.Position.X * _zoom,
           obstacle.Position.Y * _zoom,
@@ -275,16 +329,16 @@ namespace sensor_positioning
       cr.Fill();
     }
 
-    public override void Render(Context ctx, int width, int height)
+    public override void Render(Context cr, int width, int height)
     {
-      var fieldWidth = _objective.Raw.Env.Bounds.Max.X * _zoom;
-      var fieldHeight = _objective.Raw.Env.Bounds.Max.Y * _zoom;
-//      ctx.Scale(2, 2);
-      ctx.Translate((width - fieldWidth) / 2, (width - fieldHeight) / 2);
+      cr.Translate(
+        (width - _objective.Raw.FieldWidth * _zoom) / 2, 
+        (width - _objective.Raw.FieldHeight * _zoom) / 2);
       
-      DrawCoordinateSystem(ctx);
-      DrawSensors(ctx);
-      DrawObstacles(ctx);
+      DrawCoordinateSystem(cr);
+      DrawImportantArea(cr);
+      DrawSensors(cr);
+      DrawObstacles(cr);
     }
 
     public override string Log()
