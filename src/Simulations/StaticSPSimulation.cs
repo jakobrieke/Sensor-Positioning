@@ -55,7 +55,7 @@ namespace sensor_positioning
       return "Zoom = 80\n" +
              "# DrawSensorLines\n" +
              "NumberOfSensors = 1\n" +
-             "NumberOfObstacles = 0\n" +
+             "NumberOfObstacles = 1\n" +
              "FieldHeight = 9\n" +
              "FieldWidth = 6\n" +
              "# If SensorPositions is set NumberOfSensors is\n" +
@@ -64,7 +64,7 @@ namespace sensor_positioning
              "# If ObstaclePositions is set NumberOfObstacles is\n" +
              "# ignored\n" +
              "# ObstaclePositions = []\n" +
-             "ImpArea01 = [[0, 0], [2, 0], [2, 1], [0, 1]]\n" +
+             "# ImpArea01 = [[0, 0], [2, 0], [2, 1], [0, 1]]\n" +
              "# ImpArea02 = [[0, 6], [2, 6], [2, 5], [0, 5]]\n" +
              "# ImpArea03 = [[9, 0], [7, 0], [7, 1], [9, 1]]\n" +
              "# ImpArea04 = [[9, 6], [9, 5], [7, 5], [7, 6]]\n" +
@@ -78,7 +78,7 @@ namespace sensor_positioning
     }
 
     private absOptimization _optimizer;
-    private SspFct _objective;
+    private SspObjectiveFct _objective;
     private int _zoom;
     private bool _drawSensorLines;
 
@@ -152,7 +152,7 @@ namespace sensor_positioning
       var optimizerName = GetAnyOf(model, "Optimizer", 
         possibleOptimizers.ToList(), "SPSO-2006");
 
-      var ssp = new SSP
+      var ssp = new StaticSensorPositioning
       {
         FieldWidth = GetDouble(model, "FieldHeight", 9),
         FieldHeight = GetDouble(model, "FieldWidth", 6),
@@ -166,7 +166,7 @@ namespace sensor_positioning
         if (!key.StartsWith("ImpArea")) continue;
 
         var matrix = ParseDoubleMatrix(model[key]);
-        if (matrix != null && matrix.Length < 3) continue;
+        if (matrix == null || matrix.Length < 3) continue;
 
         var impArea = new Polygon();
         foreach (var row in matrix)
@@ -183,17 +183,28 @@ namespace sensor_positioning
         Console.WriteLine("Setting up obstacles from fixed values");
         ssp.SetObstacles(obstaclePositions);
       }
-      
-      _objective = new SspFct(ssp);
+      _objective = new SspObjectiveFct(ssp);
       
       // -- Initialize optimizer
 
       if (optimizerName == "SPSO-2006")
       {
-        _optimizer = new SPSO2006(_objective)
+        var swarm = Pso.SwarmSpso2006(ssp.SearchSpace(), ssp.FitnessFct);
+        _optimizer = new SPSO2006(swarm, _objective);
+
+        if (sensorPositions != null)
         {
-          Bounds = _objective.Raw.Intervals()
-        };
+          var initialPos = new double[sensorPositions.Length * 3];
+          for (var i = 0; i < sensorPositions.Length; i++)
+          {
+            sensorPositions[i].CopyTo(initialPos, i * 3);
+          }
+          _optimizer.InitialPosition = initialPos;
+        }
+//        _optimizer = new SPSO2006(_objective)
+//        {
+//          Bounds = _objective.Raw.Intervals()
+//        };
       }
       else if (optimizerName == "SPSO-2007")
         _optimizer = new SPSO2007(_objective)
@@ -218,13 +229,13 @@ namespace sensor_positioning
         };
 
       _optimizer.Init();
-      SSP.PlaceFromVector(_optimizer.Result.ToArray(), _objective.Raw.Sensors);
+      StaticSensorPositioning.PlaceFromVector(_optimizer.Result.ToArray(), _objective.Raw.Sensors);
     }
 
     public override void Update(long deltaTime)
     {
       _optimizer.DoIteration(1);
-      SSP.PlaceFromVector(_optimizer.Result.ToArray(), _objective.Raw.Sensors);
+      StaticSensorPositioning.PlaceFromVector(_optimizer.Result.ToArray(), _objective.Raw.Sensors);
     }
 
     private void DrawCoordinateSystem(Context cr)
@@ -303,6 +314,16 @@ namespace sensor_positioning
           DrawPolygon(cr, sensor.AreaOfActivity().ToPolygon());
           cr.Stroke();
         }
+        
+//        cr.SetSourceRGB(0.495, 0.118, 0.248);
+//        cr.LineWidth = 4;
+//        var rot = (sensor.Rotation - 28) * Math.PI / 180;
+//        cr.Arc(sensor.Position.X * _zoom,
+//          sensor.Position.Y * _zoom, 
+//          sensor.Size * _zoom,
+//          rot,
+//          rot + sensor.Fov * Math.PI / 180);
+//        cr.Stroke();
         
         cr.SetSourceRGB(0.753, 0.274, 0.275);
         cr.Arc(

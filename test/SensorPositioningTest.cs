@@ -19,7 +19,7 @@ namespace sensor_positioning
 
     public static void TestSSPStepByStep()
     {
-      SSP prob = null;
+      StaticSensorPositioning prob = null;
       Swarm pso = null;
 
       var plotter = new TestPlotter
@@ -34,19 +34,19 @@ namespace sensor_positioning
                           ", Best: " + prob.Normalize(pso.GlobalBestValue) +
                           "% shadow");
         plotter.Clear();
-        SSP.PlaceFromVector(pso.GlobalBest, prob.Sensors);
+        StaticSensorPositioning.PlaceFromVector(pso.GlobalBest, prob.Sensors);
         plotter.Plot(prob.Env.Bounds);
         plotter.Plot(Sensor.Shadows(prob.Sensors, prob.Env));
         plotter.Plot(prob.Sensors.Select(o =>
           (IGeometryObject) new Circle(o.Position, o.Size)));
         plotter.Plot(prob.Obstacles.Select(o =>
           (IGeometryObject) new Circle(o.Position, o.Size)));
-        pso.IterateOnce();
+        pso.Iterate();
       });
 
       var reset = new Action(() =>
       {
-        prob = new SSP();
+        prob = new StaticSensorPositioning();
         prob.Init(10, 10);
         pso = Pso.SwarmSpso2011(
           new SearchSpace(prob.Intervals()),
@@ -74,7 +74,7 @@ namespace sensor_positioning
       const int iterations = 10;
       const int swarmSize = 40;
       
-      var prob = new SSP();
+      var prob = new StaticSensorPositioning();
       prob.Init(sizeTeamA, sizeTeamB);
       var sw = Pso.SwarmSpso2011(prob.SearchSpace(), prob.FitnessFct);
       sw.Topology = Pso.RingTopology;
@@ -121,7 +121,7 @@ namespace sensor_positioning
       {
         clock.Reset();
         clock.Start();
-        sw.IterateMaxIterations(iterations);
+        sw.Iterate(iterations);
         clock.Stop();
         distance = Vector.Distance(last, sw.GlobalBest);
         totalDistance += Vector.Distance(last, sw.GlobalBest);

@@ -119,7 +119,7 @@ namespace sensor_positioning
 
     public override void Update(long deltaTime)
     {
-      _swarm.IterateOnce();
+      _swarm.Iterate();
     }
 
     public override void Render(Context cr, int width, int height)

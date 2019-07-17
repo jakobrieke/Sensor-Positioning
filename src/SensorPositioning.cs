@@ -140,7 +140,7 @@ namespace sensor_positioning
     }
   }
 
-  public class SSP
+  public class StaticSensorPositioning
   {
     /// <summary>The problem environment.</summary>
     public Environment Env;
@@ -337,57 +337,9 @@ namespace sensor_positioning
 
   public class SspObjectiveFct : absObjectiveFunction
   {
-    public readonly Obstacle[] Obstacles;
-    private readonly Sensor[] _sensors;
-    public readonly double FieldWidth;
-    public readonly double FieldHeight;
-    public readonly double ObstacleSize;
-    public readonly double SensorRange;
-    public readonly double SensorFov;
+    public readonly StaticSensorPositioning Raw;
 
-    
-    public SspObjectiveFct(int numberOfSensors, int numberOfObstacles)
-    {
-      _sensors = new Sensor[numberOfSensors];
-      Obstacles = new Obstacle[numberOfObstacles];
-    }
-
-    public override int NumberOfVariable()
-    {
-      return _sensors.Length * 3;
-    }
-
-    public override double F(List<double> x)
-    {
-      for (var i = 0; i < _sensors.Length; i++)
-      {
-        _sensors[i] = new Sensor(x[i * 3], x[i * 3 + 1], x[i * 3 + 2], 
-          SensorRange, SensorFov, ObstacleSize);
-//        _sensors[i].Shadows()
-      }
-      
-      var allObstacles = new Obstacle[Obstacles.Length + _sensors.Length];
-      Obstacles.CopyTo(allObstacles, 0);
-      _sensors.CopyTo(allObstacles, Obstacles.Length - 1);
-      throw new NotImplementedException();
-    }
-
-    public override List<double> Gradient(List<double> x)
-    {
-      throw new NotImplementedException();
-    }
-
-    public override List<List<double>> Hessian(List<double> x)
-    {
-      throw new NotImplementedException();
-    }
-  }
-  
-  public class SspFct : absObjectiveFunction
-  {
-    public readonly SSP Raw;
-
-    public SspFct(SSP raw)
+    public SspObjectiveFct(StaticSensorPositioning raw)
     {
       Raw = raw;
     }

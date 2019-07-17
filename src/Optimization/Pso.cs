@@ -7,15 +7,8 @@ using MersenneTwister;
 using sensor_positioning;
 using static Geometry.Vector;
 
-
 namespace Optimization
 {
-  interface IOptimization {}
-
-  
-  interface IObjective {}
-  
-  
   /// <summary>
   /// A Particle in terms of Particle Swarm Optimization is a point inside a
   /// n-dimensional space with a velocity applied to it which indicates where
@@ -99,7 +92,7 @@ namespace Optimization
   /// function. Also there is a topology defined between the particles which
   /// indicates which particle informs another particle.
   /// </summary>
-  public class Swarm : IOptimization
+  public class Swarm
   {
     /// <summary>
     /// An n dimensional space to move the particles in and update
@@ -208,7 +201,7 @@ namespace Optimization
     /// </param>
     public void Initialize(double[][] startPosition, double[][] startVelocity)
     {
-      Particles = new List<Particle>();
+      Particles = new List<Particle>(startPosition.Length);
 
       for (var i = 0; i < startPosition.Length; i++)
       {
@@ -216,11 +209,12 @@ namespace Optimization
         {
           Position = startPosition[i],
           Velocity = startVelocity[i],
-          PreviousBest = new double[SearchSpace.Dimensions]
+          PreviousBest = new double[SearchSpace.Dimensions],
+          LocalBest = new double[SearchSpace.Dimensions]
         };
 
-        particle.Position.CopyTo(particle.PreviousBest, 0);
         particle.PositionValue = Fitness(particle.Position);
+        particle.Position.CopyTo(particle.PreviousBest, 0);
         particle.PreviousBestValue = particle.PositionValue;
 
         Particles.Add(particle);
@@ -236,6 +230,22 @@ namespace Optimization
       Iteration = 0;
       EvalsDone = 0;
     }
+
+    public void Initialize(double[][] startPosition)
+    {
+      var startVelocity = new double[startPosition.Length][];
+      for (var i = 0; i < startVelocity.Length; i++)
+      {
+        startVelocity[i] = new double[SearchSpace.Dimensions];
+        for (var j = 0; j < SearchSpace.Dimensions; j++)
+        {
+          startVelocity[i][j] = Pso.UniformRand(
+            SearchSpace.Intervals[j][0] - startPosition[i][j],
+            SearchSpace.Intervals[j][1] - startPosition[i][j]);
+        }
+      }
+      Initialize(startPosition, startVelocity);
+    }
     
     /// <summary>
     /// Initialize a swarm with n particles.
@@ -246,44 +256,12 @@ namespace Optimization
     /// <param name="numberOfParticles"></param>
     public void Initialize(int numberOfParticles = 40)
     {
-      Particles = new List<Particle>();
-
+      var startPosition = new double[numberOfParticles][];
       for (var i = 0; i < numberOfParticles; i++)
       {
-        var particle = new Particle
-        {
-          Position = new double[SearchSpace.Dimensions],
-          Velocity = new double[SearchSpace.Dimensions],
-          PreviousBest = new double[SearchSpace.Dimensions],
-          LocalBest = new double[SearchSpace.Dimensions]
-        };
-
-        for (var j = 0; j < SearchSpace.Dimensions; j++)
-        {
-          particle.Position[j] = Pso.UniformRand(
-            SearchSpace.Intervals[j][0], SearchSpace.Intervals[j][1]);
-
-          particle.Velocity[j] = Pso.UniformRand(
-            SearchSpace.Intervals[j][0] - particle.Position[j],
-            SearchSpace.Intervals[j][1] - particle.Position[j]);
-        }
-
-        particle.PositionValue = Fitness(particle.Position);
-        particle.Position.CopyTo(particle.PreviousBest, 0);
-        particle.PreviousBestValue = particle.PositionValue;
-
-        Particles.Add(particle);
+        startPosition[i] = SearchSpace.RandPos();
       }
-
-      Topology(Particles);
-
-      var best = Pso.GetGlobalBest(this);
-      GlobalBest = best.Item1;
-      GlobalBestValue = best.Item2;
-      GlobalBestChanged = true;
-
-      Iteration = 0;
-      EvalsDone = 0;
+      Initialize(startPosition);
     }
 
     /// <summary>
@@ -293,7 +271,7 @@ namespace Optimization
     /// localBests and increase the the number of evaluations, done
     /// for each particle in the swarm.
     /// </summary>
-    public void IterateOnce()
+    public void Iterate()
     {
       var best = Particles[0];
       foreach (var particle in Particles)
@@ -339,9 +317,9 @@ namespace Optimization
     ///  Run n iterations on an initialized swarm.
     /// </summary>
     /// <param name="maxIterations"></param>
-    public void IterateMaxIterations(int maxIterations)
+    public void Iterate(int maxIterations)
     {
-      for (var i = 0; i < maxIterations; i++) IterateOnce();
+      for (var i = 0; i < maxIterations; i++) Iterate();
     }
 
     /// <summary>
@@ -352,32 +330,16 @@ namespace Optimization
     /// <param name="evals"></param>
     public void IterateMaxEvals(int evals)
     {
-      while (EvalsDone < evals) IterateOnce();
+      while (EvalsDone < evals) Iterate();
     }
 
     /// <summary>
     /// Iterate until a certain minimum is reached.
     /// </summary>
-    /// <param name="value">A minimum that has to be reached.</param>
-    /// <param name="maxIterations">
-    /// Ensures that function terminates even if value could not be reached.
-    /// If set to -1 this 'value' is ignored and the optimization only terminates
-    /// after it reached 'value'.
-    /// Defaults to 10000.</param>
-    public void IterateUntilValue(double value, int maxIterations = 10000)
+    /// <param name="value">A minimum value that has to be reached.</param>
+    public void IterateUntil(double value)
     {
-      if (maxIterations == -1)
-      {
-        while (GlobalBestValue < value) IterateOnce();
-        return;
-      }
-      
-      var i = 0;
-      while (GlobalBestValue < value && i < maxIterations)
-      {
-        IterateOnce();
-        i++;
-      }
+      while (GlobalBestValue < value) Iterate();
     }
   }
 
@@ -386,7 +348,7 @@ namespace Optimization
   {
     /// <summary>
     /// Create a uniform random number inside the interval [left, right].
-    /// The random number generation is based on PCG.
+    /// The random number generation is uses a Mersenne Twister PRNG.
     /// If the left border is greater than the right border they are
     /// automatically switched.
     /// </summary>
@@ -404,8 +366,6 @@ namespace Optimization
       
       var rand = MTRandom.Create();
       return left + rand.NextDouble() * (right - left);
-//      return left > right ? 
-//        PcgRandom.Double(right, left) : PcgRandom.Double(left, right);
     }
 
     /// <summary>
@@ -451,7 +411,7 @@ namespace Optimization
     /// <returns>
     /// The position and the corresponding value.
     /// </returns>
-    public static Tuple<double[], double> GetGlobalBest(Swarm swarm)
+    public static System.Tuple<double[], double> GetGlobalBest(Swarm swarm)
     {
       var min = swarm.Particles[0];
 
@@ -466,9 +426,8 @@ namespace Optimization
       var best = new double[min.PreviousBest.Length];
       min.PreviousBest.CopyTo(best, 0);
       
-      return new Tuple<double[], double>(
-        best,
-        min.PreviousBestValue);
+      return new System.Tuple<double[], double>(
+        best, min.PreviousBestValue);
     }
 
 
@@ -648,11 +607,13 @@ namespace Optimization
     /// <summary>
     /// Set the particles velocity to 0 and their position to the search 
     /// space interval border for each dimension where the particles 
-    ///  position is outside of the interval border.
+    /// position is outside of the interval border.
+    /// See also "Confinements and Biases in Particle Swarm Optimisation" by
+    /// Maurice Clerc 
     /// </summary>
     /// <param name="p"></param>
     /// <param name="sp"></param>
-    public static void ConfinementSpso2006(Particle p, SearchSpace sp)
+    public static void StandardConfinement(Particle p, SearchSpace sp)
     {
       var i = 0;
       foreach (var interval in sp.Intervals)
@@ -672,7 +633,8 @@ namespace Optimization
     }
 
     /// <summary>
-    /// 
+    /// See also "Confinements and Biases in Particle Swarm Optimisation" by
+    /// Maurice Clerc 
     /// </summary>
     /// <param name="p"></param>
     /// <param name="sp"></param>
@@ -696,7 +658,8 @@ namespace Optimization
     }
 
     /// <summary>
-    /// 
+    /// See also "Confinements and Biases in Particle Swarm Optimisation" by
+    /// Maurice Clerc
     /// </summary>
     /// <param name="p"></param>
     /// <param name="sp"></param>
@@ -735,7 +698,7 @@ namespace Optimization
     {
       return new Swarm(sp, fitness,
         RingTopology, swarm => false,
-        UpdateSpso2006, ConfinementSpso2006);
+        UpdateSpso2006, StandardConfinement);
     }
 
     /// <summary>
@@ -749,7 +712,7 @@ namespace Optimization
     {
       return new Swarm(sp, fitness,
         RingTopology, swarm => false,
-        UpdateSpso2007, ConfinementSpso2006);
+        UpdateSpso2007, StandardConfinement);
     }
 
     /// <summary>
@@ -771,25 +734,60 @@ namespace Optimization
   public class SPSO2006 : absOptimization
   {
     private Swarm _swarm;
-    public double[][] Bounds;
 
-    public SPSO2006(absObjectiveFunction objective)
+    public SPSO2006(Swarm swarm, absObjectiveFunction objective)
     {
+      _swarm = swarm;
       ObjectiveFunction = objective;
       Results = new List<clsPoint>();
+    }
+    
+    public static void TestSpso2006()
+    {
+      var ssp = new StaticSensorPositioning();
+      ssp.Init();
+      var sspFct = new SspObjectiveFct(ssp);
+      var swarm = Pso.SwarmSpso2006(ssp.SearchSpace(), ssp.FitnessFct);
+      var pso = new SPSO2006(swarm, sspFct);
+
+      var positions = new[]
+      {
+        new []{0.0, 0, 180}, new []{3.3, 3, 0.0}
+      };
+      var initialPos = new double[positions.Length * 3];
+      for (var i = 0; i < positions.Length; i++)
+      {
+        positions[i].CopyTo(initialPos, i * 3);
+      }
+      pso.InitialPosition = initialPos;
+      
+      pso.Init();
     }
 
     public override void Init()
     {
-      _swarm = Pso.SwarmSpso2006(
-        new SearchSpace(Bounds), 
-        v => ObjectiveFunction.F(v.ToList()));
-      _swarm.Initialize();
+      if (InitialPosition != null)
+      {
+        var startPosition = new double[_swarm.SearchSpace.Dimensions][];
+        for (var i = 0; i < _swarm.SearchSpace.Dimensions; i++)
+        {
+          startPosition[i] = new double[InitialPosition.Length];
+          InitialPosition.CopyTo(startPosition[i], 0);
+        }
+        _swarm.Initialize(startPosition);
+        
+        foreach (var d in InitialPosition)
+        {
+          Console.Write(d + ", ");
+        }
+        Console.WriteLine("\b\b");
+      }
+      else _swarm.Initialize();
     }
 
     public override bool DoIteration(int iterations = 0)
     {
-      _swarm.IterateMaxIterations(iterations);
+      _swarm.Iterate(iterations);
       m_iteration += iterations;
       return true;
     }
@@ -824,8 +822,7 @@ namespace Optimization
 
     public override void Init()
     {
-      
-      var obj = ((SspFct) ObjectiveFunction).Raw;
+      var obj = ((SspObjectiveFct) ObjectiveFunction).Raw;
       _swarm = Pso.SwarmSpso2007(
         new SearchSpace(Bounds), 
         v => ObjectiveFunction.F(v.ToList()));
@@ -834,7 +831,7 @@ namespace Optimization
 
     public override bool DoIteration(int iterations = 0)
     {
-      _swarm.IterateMaxIterations(iterations);
+      _swarm.Iterate(iterations);
       m_iteration += iterations;
       return true;
     }
@@ -879,7 +876,7 @@ namespace Optimization
 
     public override bool DoIteration(int iterations = 0)
     {
-      _swarm.IterateMaxIterations(iterations);
+      _swarm.Iterate(iterations);
       m_iteration += iterations;
       return true;
     }

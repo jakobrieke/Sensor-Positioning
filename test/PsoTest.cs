@@ -43,8 +43,7 @@ namespace Optimization
             return r1 && r2;
         }
         
-        
-        public static bool TestInitialize()
+        public static void TestInitialize()
         {
             var swarm = Pso.SwarmSpso2006(
                 new SearchSpace(2, 100f),
@@ -72,15 +71,14 @@ namespace Optimization
                      swarm.Iteration == 0 &&
                      swarm.EvalsDone == 0;
 
-            return result;
+            if (result == false) Console.WriteLine("Test Initialize failed");
         }
-
         
         private static void TestPso(string title, Swarm swarm, 
             double expectation, int iterations = 100)
         {
             swarm.Initialize();
-            swarm.IterateMaxIterations(iterations);
+            swarm.Iterate(iterations);
             
             Console.Write("Best: " + swarm.GlobalBestValue);
             Console.Write(", Expected: " + expectation + " +- 1, ");
@@ -177,7 +175,7 @@ namespace Optimization
             {
                 var swarm = Pso.SwarmSpso2011(sp, OptimizationFct.HimmelblauFct);
                 swarm.Initialize();
-                swarm.IterateMaxIterations(100);
+                swarm.Iterate(100);
                 
                 foreach (var d in swarm.GlobalBest)
                 {
@@ -198,7 +196,7 @@ namespace Optimization
             for (var i = 0; i < 10000; i++)
             {
                 Console.Write(swarm.GlobalBestValue);
-                swarm.IterateOnce();
+                swarm.Iterate();
                 Console.Read();
             } 
         }
