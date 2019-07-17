@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$#" -lt 4 ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]
+if [ "$#" -lt 3 ] || [ "$1" == "-h" ] #|| [ "$1" == "--help" ]
 then
   echo "Usage"
   echo "> ./run.sh <iterations> <runs> <optimizers>"
@@ -29,11 +29,9 @@ PlayerSensorFOV = 56.3
 PlayerSize = 0.1555
 Optimizer = <Opt>"
 
-PARAMETERS=$@
-
 ITERATIONS=$1
 RUNS=$2
-OPTIMIZERS=("${PARAMETERS[@]:5}")
+OPTIMIZERS=${@:3}
 OUTPUTDIR="simulation-results"
 
 if [ -d $OUTPUTDIR ]
