@@ -1,9 +1,0 @@
-Zoom = 40
-NumberOfSensors = 4
-NumberOfObstacles = 4
-FieldHeight = 9
-FieldWidth = 6
-PlayerSensorRange = 12
-PlayerSensorFOV = 56.3
-PlayerSize = 0.1555
-Optimizer = SPSO-2006
