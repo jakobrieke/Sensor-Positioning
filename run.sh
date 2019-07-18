@@ -11,17 +11,23 @@ then
   exit
 fi
 
-MONO="/Library/Frameworks/Mono.framework/Versions/Current/Commands/mono"
-CHARLIEEXE="/Users/littlebrother/Projects/4-Uni/bachelor/charlie/bin/Debug/net471/charlie.exe"
+# -- Setup charlie command and path to simulation
+
+MONO="charlie"
+SIMULATION="/Users/littlebrother/Projects/4-Uni/bachelor/sensor-positioning/bin/Debug/netstandard2.0/publish//sensor-positioning.dll:sensor_positioning.StaticSpSimulation"
+
+MONOSERVER="/usr/bin/mono"
+CHARLIEEXESERVER="/home/pacosy/student01/charlie-v0.2.3/charlie.exe"
+SIMULATIONSERVER="/home/pacosy/student01/sensor-positioning/SensorPositioning.dll:sensor_positioning.StaticSpSimulation"
+
 CHARLIE="$MONO $CHARLIEEXE"
 
-# Simulation to run
-SIMULATION="/Users/littlebrother/Projects/4-Uni/bachelor/sensor-positioning/bin/Debug/SensorPositioning.dll:sensor_positioning.StaticSpSimulation"
+# -- Setup and run configurations
 
 CONFIGTEMPLATE="Zoom = 85
 DrawSensorLines
 NumberOfSensors = <i>
-NumberOfObstacles = <i>
+NumberOfObstacles = <j>
 FieldHeight = 9
 FieldWidth = 6
 PlayerSensorRange = 12
@@ -36,9 +42,9 @@ OUTPUTDIR="simulation-results"
 
 if [ -d $OUTPUTDIR ]
 then
-  echo "Overwrite existing configurations y/n?" 
+  echo "Overwrite existing output directory y/n?"
   read shouldOverwrite
-  
+
   if [  "$shouldOverwrite" == "y" ]
   then
     rm -fr $OUTPUTDIR
@@ -51,19 +57,23 @@ mkdir $OUTPUTDIR
 
 for optimizer in ${OPTIMIZERS[*]}
 do
-  for i in {1..11}
+  for SENSORCOUNTER in {1..1}
   do
-    RESULT="$CONFIGTEMPLATE"
-    RESULT="${RESULT/<i>/$i}"
-    RESULT="${RESULT/<i>/$i}"
-    RESULT="${RESULT/<Opt>/$optimizer}"
-    
-    CONFIGFILE="$OUTPUTDIR/$optimizer-$i"
-    RESULTDIR="$optimizer-$i"
-    echo "$RESULT" > "$CONFIGFILE"
-    echo "$CONFIGFILE"
+    for OBSTACLECOUNTER in {1..1}
+    do
+      RESULT="$CONFIGTEMPLATE"
+      RESULT="${RESULT/<i>/$SENSORCOUNTER}"
+      RESULT="${RESULT/<j>/$OBSTACLESCOUNTER}"
+      RESULT="${RESULT/<Opt>/$optimizer}"
 
-    LOGFILE="$OUTPUTDIR/$optimizer-$i.log"
-    # $CHARLIE --run $SIMULATION $ITERATIONS $RUNS $CONFIGFILE $RESULTDIR &>$LOGFILE #&
+      FILEBASE="$OUTPUTDIR/$optimizer-s$SENSORCOUNTER-o$OBSTACLECOUNTER"
+      CONFIGFILE="$FILEBASE.config"
+      RESULTDIR="$optimizer-s$SENSORCOUNTER-o$OBSTACLECOUNTER"
+      echo "$RESULT" > "$CONFIGFILE"
+      echo "$FILEBASE"
+
+      LOGFILE="$FILEBASE.log"
+      $CHARLIE --run $SIMULATION $ITERATIONS $RUNS $CONFIGFILE $RESULTDIR &>$LOGFILE &
+    done
   done
 done
