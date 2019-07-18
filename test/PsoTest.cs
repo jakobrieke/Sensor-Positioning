@@ -3,20 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Opt = Optimization.OptimizationFct;
+using NUnit.Framework;
+using Opt = LibOptimization.Optimization.OptimizationFct;
 
-namespace Optimization
+namespace LibOptimization.Optimization
 {
     public static class PsoTest
     {
-        public static void Passed(string title, bool condition)
-        {
-            if (condition) Console.WriteLine(title + " passed");
-            else Console.WriteLine(title + " failed");
-        }
-
-        
-        public static bool TestArgMin()
+        [Test]
+        public static void TestArgMin()
         {
             var updateValue = new Action<Particle>(p =>
                 p.PositionValue = OptimizationFct.SphereFct(p.Position));
@@ -40,9 +35,11 @@ namespace Optimization
             var r2 = Pso.ArgMin(particles).Position
                 .SequenceEqual(new []{1.5, 1.5, 1.5});
 
-            return r1 && r2;
+            Assert.True(r1 && r2);
         }
         
+        
+        [Test]
         public static void TestInitialize()
         {
             var swarm = Pso.SwarmSpso2006(
@@ -71,10 +68,11 @@ namespace Optimization
                      swarm.Iteration == 0 &&
                      swarm.EvalsDone == 0;
 
-            if (result == false) Console.WriteLine("Test Initialize failed");
+            Assert.IsTrue(result, "Test Initialize failed");
         }
         
-        private static void TestPso(string title, Swarm swarm, 
+        [Test]
+        public static void TestPso(string title, Swarm swarm, 
             double expectation, int iterations = 100)
         {
             swarm.Initialize();
@@ -89,8 +87,8 @@ namespace Optimization
             else Console.Write(title + " failed\n"); 
         }
 
-        
-        private static void TestWithSphereFct()
+        [Test]
+        public static void TestWithSphereFct()
         {
             var sp = new SearchSpace(16, 100);
             var swarm2006 = Pso.SwarmSpso2006(sp, OptimizationFct.SphereFct);
@@ -103,7 +101,8 @@ namespace Optimization
             TestPso("SPSO 2011", swarm2011, OptimizationFct.SPHERE_FCT_OPT);
         }
 
-        private static void TestWithStyblinskiTangFct()
+        [Test]
+        public static void TestWithStyblinskiTangFct()
         {
             var sp = new SearchSpace(2, 10);
             var swarm2006 = Pso.SwarmSpso2006(sp, OptimizationFct.StyblinskiTangFct);
@@ -116,7 +115,8 @@ namespace Optimization
             TestPso("SPSO 2011", swarm2011, OptimizationFct.StyblinskiTangOpt(2), 200);
         }
 
-        private static void TestWithMcCormickFct()
+        [Test]
+        public static void TestWithMcCormickFct()
         {
             var sp = new SearchSpace(2, 20);
             var swarm2006 = Pso.SwarmSpso2006(sp, OptimizationFct.McCormickFct);
@@ -129,7 +129,8 @@ namespace Optimization
             TestPso("SPSO 2011", swarm2011, OptimizationFct.MC_CORMICK_FCT_OPT);
         }
        
-        private static void TestWithHoelderTableFct()
+       [Test]
+        public static void TestWithHoelderTableFct()
         {
             var sp = new SearchSpace(2, 10);
             var swarm2006 = Pso.SwarmSpso2006(sp, OptimizationFct.HoelderTableFct);
@@ -142,7 +143,8 @@ namespace Optimization
             TestPso("SPSO 2011", swarm2011, OptimizationFct.HOELDER_TABLE_FCT_OPT, 200);
         }
 
-        private static void TestWithThreeCamelHumpFct()
+        [Test]
+        public static void TestWithThreeCamelHumpFct()
         {
             var sp = new SearchSpace(2, 100);
             var swarm2006 = Pso.SwarmSpso2006(sp, OptimizationFct.ThreeHumpCamelFct);
@@ -155,7 +157,8 @@ namespace Optimization
             TestPso("SPSO 2011", swarm2011, OptimizationFct.THREE_HUMP_CAMEL_FCT_OPT);
         }
 
-        private static void TestWithHimmelblauFct()
+        [Test]
+        public static void TestWithHimmelblauFct()
         {
             var sp = new SearchSpace(2, 100);
             var swarm2006 = Pso.SwarmSpso2006(sp, OptimizationFct.HimmelblauFct);
@@ -168,7 +171,8 @@ namespace Optimization
             TestPso("SPSO 2011", swarm2011, OptimizationFct.HIMMELBLAU_FCT_OPT);
         }
 
-        private static void TestFindsMultipleRoots()
+        [Test]
+        public static void TestFindsMultipleRoots()
         {
             var sp = new SearchSpace(2, 100);
             for (var i = 0; i < 10000; i++)
@@ -185,48 +189,23 @@ namespace Optimization
             }
         }
 
-        private static void DebugPso()
+        [Test]
+        public static void DebugPso()
         {
             var sp = new SearchSpace(10, 100);
-            var swarm = Pso.SwarmSpso2011(sp, OptimizationFct.StyblinskiTangFct);
+            var swarm =
+                Pso.SwarmSpso2011(sp, OptimizationFct.StyblinskiTangFct);
             swarm.Initialize();
-            
-            Console.WriteLine("Optimum: " + OptimizationFct.StyblinskiTangOpt(10));
-            
+
+            Console.WriteLine("Optimum: " +
+                              OptimizationFct.StyblinskiTangOpt(10));
+
             for (var i = 0; i < 10000; i++)
             {
                 Console.Write(swarm.GlobalBestValue);
                 swarm.Iterate();
                 Console.Read();
-            } 
-        }
-        
-        public static void TestAll()
-        {
-//            Passed("Pso.ArgMin", TestArgMin());
-//            Passed("Swarm.Initialize", TestInitialize());
-
-//            TestFindsMultipleRoots();
-
-//            DebugPso();
-            
-            Console.WriteLine();
-            TestWithHimmelblauFct();
-
-            Console.WriteLine();
-            TestWithSphereFct();
-            
-            Console.WriteLine();
-            TestWithStyblinskiTangFct();
-            
-            Console.WriteLine();
-            TestWithMcCormickFct();
-            
-            Console.WriteLine();
-            TestWithHoelderTableFct();
-            
-            Console.WriteLine();
-            TestWithThreeCamelHumpFct();
+            }
         }
     }
 }

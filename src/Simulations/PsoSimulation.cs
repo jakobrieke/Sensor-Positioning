@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using charlie;
 using Cairo;
-using Optimization;
+using LibOptimization.Optimization;
 
 namespace sensor_positioning
 { 

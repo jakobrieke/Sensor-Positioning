@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Geometry;
 using LibOptimization.Optimization;
-using Optimization;
 using Shadows;
 
 namespace sensor_positioning

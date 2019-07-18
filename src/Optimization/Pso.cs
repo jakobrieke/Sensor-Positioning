@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Geometry;
-using LibOptimization.Optimization;
 using MersenneTwister;
 using sensor_positioning;
 using static Geometry.Vector;
 
-namespace Optimization
+namespace LibOptimization.Optimization
 {
   /// <summary>
   /// A Particle in terms of Particle Swarm Optimization is a point inside a
@@ -785,10 +784,10 @@ namespace Optimization
       else _swarm.Initialize();
     }
 
-    public override bool DoIteration(int iterations = 0)
+    public override bool DoIteration(int iteration = 0)
     {
-      _swarm.Iterate(iterations);
-      m_iteration += iterations;
+      _swarm.Iterate(iteration);
+      m_iteration += iteration;
       return true;
     }
 
@@ -829,10 +828,10 @@ namespace Optimization
       _swarm.Initialize();
     }
 
-    public override bool DoIteration(int iterations = 0)
+    public override bool DoIteration(int iteration = 0)
     {
-      _swarm.Iterate(iterations);
-      m_iteration += iterations;
+      _swarm.Iterate(iteration);
+      m_iteration += iteration;
       return true;
     }
 
@@ -874,10 +873,10 @@ namespace Optimization
       _swarm.Initialize();
     }
 
-    public override bool DoIteration(int iterations = 0)
+    public override bool DoIteration(int iteration = 0)
     {
-      _swarm.Iterate(iterations);
-      m_iteration += iterations;
+      _swarm.Iterate(iteration);
+      m_iteration += iteration;
       return true;
     }
 

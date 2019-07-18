@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using LibOptimization.Optimization;
 
-namespace Optimization
+namespace LibOptimization.Optimization
 {
   
   public abstract class Optimizer

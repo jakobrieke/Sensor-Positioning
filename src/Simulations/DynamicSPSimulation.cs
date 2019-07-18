@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Cairo;
 using charlie;
 using Geometry;
-using Optimization;
+using LibOptimization.Optimization;
 
 namespace sensor_positioning
 {

@@ -6,7 +6,6 @@ using charlie;
 using Cairo;
 using Geometry;
 using LibOptimization.Optimization;
-using Optimization;
 
 namespace sensor_positioning
 {
@@ -21,6 +20,7 @@ namespace sensor_positioning
     {
       /* Recent Changes
        *
+       * Translate LibOptimization to C#
        * Add option to hide sensor lines
        * Change colors of sensors and obstacles
        * Add functionality to mark important areas with polygons
@@ -37,7 +37,7 @@ namespace sensor_positioning
        * Test behaviour if punishment factor is added to fitness
        *   -> sensors are getting drawn into the center
        */
-      return "Author: Jakob Rieke; Version v1.4.0; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v1.4.1; Deterministic: No"; 
     }
     
     public override string GetDescr()

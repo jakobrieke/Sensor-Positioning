@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Geometry;
-using Optimization;
+using LibOptimization.Optimization;
 using Action = System.Action;
 using Key = Gdk.Key;
 
