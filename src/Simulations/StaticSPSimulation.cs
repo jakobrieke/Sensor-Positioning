@@ -20,6 +20,9 @@ namespace sensor_positioning
     {
       /* Recent Changes
        *
+       * Fix comma in obstacles not logged correctly
+       * Add option to toggle if changes should be logged or not
+       * Save iterations when global best changes
        * Translate LibOptimization to C#
        * Add option to hide sensor lines
        * Change colors of sensors and obstacles
@@ -37,7 +40,7 @@ namespace sensor_positioning
        * Test behaviour if punishment factor is added to fitness
        *   -> sensors are getting drawn into the center
        */
-      return "Author: Jakob Rieke; Version v1.4.1; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v1.5.0; Deterministic: No"; 
     }
     
     public override string GetDescr()
@@ -49,11 +52,18 @@ namespace sensor_positioning
              "have the same field of view. Note that sensor themselves are " +
              "obstacles since they have a body.";
     }
-
+    
     public override string GetConfig()
     {
+      // Todo: API breaking changes, rename
+      // PlayerSensorRange -> SensorRange
+      // PlayerSensorFOV -> SensorFOV
+      // PlayerSize -> ObstacleSize
       return "Zoom = 80\n" +
-             "# DrawSensorLines\n" +
+             "DrawSensorLines\n" +
+             "LogChanges\n" +
+             "# LogClearText\n" +
+             "# LogRoundedPositions\n" +
              "NumberOfSensors = 1\n" +
              "NumberOfObstacles = 1\n" +
              "FieldHeight = 9\n" +
@@ -63,7 +73,7 @@ namespace sensor_positioning
              "# SensorPositions = [[0, 0, 0.0], [9, 6, 128]]\n" +
              "# If ObstaclePositions is set NumberOfObstacles is\n" +
              "# ignored\n" +
-             "# ObstaclePositions = []\n" +
+             "# ObstaclePositions = [[2, 1]]\n" +
              "# ImpArea01 = [[0, 0], [2, 0], [2, 1], [0, 1]]\n" +
              "# ImpArea02 = [[0, 6], [2, 6], [2, 5], [0, 5]]\n" +
              "# ImpArea03 = [[9, 0], [7, 0], [7, 1], [9, 1]]\n" +
@@ -81,6 +91,10 @@ namespace sensor_positioning
     private SspObjectiveFct _objective;
     private int _zoom;
     private bool _drawSensorLines;
+    private List<Tuple<int, double>> _changesInOptimum;
+    private bool _logChanges;
+    private bool _logClearText;
+    private bool _logRoundedPositions;
 
     private static double[][] ParseDoubleMatrix(string source)
     {
@@ -111,8 +125,8 @@ namespace sensor_positioning
       return result;
     }
     
-    private double[][] GetDoubleMatrix(Dictionary<string, string> model, 
-      string key)
+    private double[][] GetDoubleMatrix(
+      IReadOnlyDictionary<string, string> model, string key)
     {
       return !model.ContainsKey(key) ? null : ParseDoubleMatrix(model[key]);
     }
@@ -139,6 +153,10 @@ namespace sensor_positioning
       // -- Initialize objective
       
       _zoom = GetInt(model, "Zoom", 80);
+      _changesInOptimum = new List<Tuple<int, double>>();
+      _logChanges = model.ContainsKey("LogChanges");
+      _logClearText = model.ContainsKey("LogClearText");
+      _logRoundedPositions = model.ContainsKey("LogRoundedPositions");
       _drawSensorLines = model.ContainsKey("DrawSensorLines");
       
       var possibleOptimizers = new[]
@@ -229,13 +247,22 @@ namespace sensor_positioning
         };
 
       _optimizer.Init();
-      StaticSensorPositioning.PlaceFromVector(_optimizer.Result.ToArray(), _objective.Raw.Sensors);
+      StaticSensorPositioning.PlaceFromVector(_optimizer.Result.ToArray(), 
+        _objective.Raw.Sensors);
     }
 
     public override void Update(long deltaTime)
     {
+      var lastBest = _optimizer.Result.Eval;
       _optimizer.DoIteration(1);
-      StaticSensorPositioning.PlaceFromVector(_optimizer.Result.ToArray(), _objective.Raw.Sensors);
+      
+      if (lastBest > _optimizer.Result.Eval) 
+        _changesInOptimum.Add(new Tuple<int, double>(
+          _optimizer.IterationCount, 
+          lastBest - _optimizer.Result.Eval));
+      
+      StaticSensorPositioning.PlaceFromVector(
+        _optimizer.Result.ToArray(), _objective.Raw.Sensors);
     }
 
     private void DrawCoordinateSystem(Context cr)
@@ -368,9 +395,12 @@ namespace sensor_positioning
       var i = 1;
       foreach (var sensor in _objective.Raw.Sensors)
       {
-        sensorPositions += $"[{sensor.Position.X}," +
-                           $"{sensor.Position.Y},{sensor.Rotation}]";
-
+        sensorPositions += _logRoundedPositions ?
+          $"[{Math.Round(sensor.Position.X, 2)}, " +
+          $"{Math.Round(sensor.Position.Y, 2)}, " +
+          $"{Math.Round(sensor.Rotation, 2)}]" :
+          $"[{sensor.Position.X}, {sensor.Position.Y}, {sensor.Rotation}]";
+        
         if (i++ < _objective.Raw.Sensors.Count) sensorPositions += ", ";
       }
       sensorPositions += "]";
@@ -379,15 +409,37 @@ namespace sensor_positioning
       i = 1;
       foreach (var obstacle in _objective.Raw.Obstacles)
       {
-        obstaclePositions += $"[{obstacle.Position.X}, {obstacle.Position.Y}]";
-
-        if (i++ < _objective.Raw.Sensors.Count) obstaclePositions += ", ";
+        obstaclePositions += _logRoundedPositions ?
+          $"[{Math.Round(obstacle.Position.X, 2)}, " +
+          $"{Math.Round(obstacle.Position.Y, 2)}]" :
+          $"[{obstacle.Position.X}, {obstacle.Position.Y}]";
+        
+        if (i++ < _objective.Raw.Obstacles.Count) obstaclePositions += ", ";
       }
       obstaclePositions += "]";
 
+      var changes = "[";
+      i = 1;
+      foreach (var (iteration, improvement) in _changesInOptimum)
+      {
+        changes += $"[{iteration}, {improvement}]";
+        if (i++ < _changesInOptimum.Count) changes += ", ";
+      }
+      changes += "]";
+
+      if (_logClearText)
+      {
+        return
+          $"sensors: {sensorPositions}\n" +
+          $"obstacles: {obstaclePositions}\n" +
+          (_logChanges ? $"changes: {changes}\n" : "") + 
+          "global-best: " + _optimizer.Result.Eval;
+      }
+      
       return 
         $"<sensors>{sensorPositions}</sensors>\n" +
         $"<obstacles>{obstaclePositions}</obstacles>\n" +
+        (_logChanges ? $"<changes>{changes}</changes>\n" : "") + 
         "<global-best>" + _optimizer.Result.Eval + "</global-best>";
     }
   }
