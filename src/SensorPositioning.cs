@@ -7,61 +7,31 @@ using Shadows;
 
 namespace sensor_positioning
 {
-  public class Environment
-  {
-    public readonly Rectangle Bounds;
-    public readonly List<Obstacle> Obstacles = new List<Obstacle>();
-
-    public Environment(Rectangle bounds)
-    {
-      Bounds = bounds;
-    }
-
-    public Environment(double x, double y, double width, double height)
-    {
-      Bounds = new Rectangle(x, y, x + width, y + height);
-    }
-  }
-
-  public class Obstacle
-  {
-    public Vector2 Position;
-    public readonly double Size;
-    public double Rotation;
-
-    public Obstacle(Vector2 position, double size)
-    {
-      Position = position;
-      Size = size;
-    }
-
-    public Obstacle(Vector2 position, double size, double rotation)
-    {
-      Position = position;
-      Size = size;
-      Rotation = rotation;
-    }
-  }
-
-  public class Sensor : Obstacle
+  public class Sensor
   {
     public readonly double Range;
     public readonly double Fov;
-
-    public Sensor(Vector2 position, double rotation, double range,
-      double fov, double size) : base(position, size)
-    {
-      Range = range;
-      Fov = fov;
-      Rotation = rotation;
-    }
+    public double Rotation;
+    public Vector2 Position;
+    public double Size;
 
     public Sensor(double x, double y, double rotation, double range,
-      double fov, double size) : base(new Vector2(x, y), size)
+      double fov, double size)
     {
       Range = range;
       Fov = fov;
       Rotation = rotation;
+      Position = new Vector2(x, y);
+      Size = size;
+    }
+
+    /// <summary>
+    /// Get a circle of the physical representation of the agent as a circle.
+    /// </summary>
+    /// <returns></returns>
+    public Circle ToCircle()
+    {
+      return new Circle(Position, Size);
     }
 
     /// <summary>
@@ -73,64 +43,6 @@ namespace sensor_positioning
       return new Arc(Position, Range, Fov, Rotation - Fov / 2);
     }
 
-    /// <summary>
-    /// Calculate the shadows for this sensor inside an environment.
-    /// </summary>
-    /// <param name="env"></param>
-    /// <returns></returns>
-    public List<Polygon> Shadows(Environment env)
-    {
-      var obstacles = new List<Circle>();
-      env.Obstacles.ForEach(o =>
-      {
-        if (o != this)
-          obstacles.Add(
-            new Circle(o.Position.X, o.Position.Y, o.Size));
-      });
-
-      return Shadows2D.Shadows(AreaOfActivity(),
-        obstacles, env.Bounds);
-    }
-
-    /// <summary>
-    /// Calculate the shadows for a list of sensors in an environment.
-    /// </summary>
-    /// <param name="sensors"></param>
-    /// <param name="env"></param>
-    /// <returns></returns>
-    public static List<Polygon> Shadows(List<Sensor> sensors, Environment env)
-    {
-      var shadows = sensors.Select(sensor => sensor.Shadows(env)).ToList();
-      var result = shadows[0];
-      for (var i = 1; i < shadows.Count; i++)
-      {
-        result = Polygon.Intersection(result, shadows[i]);
-      }
-
-      return result;
-    }
-
-    /// <summary>
-    /// Calculate the shadow area for a list of sensors in an environment.
-    /// </summary>
-    /// <param name="sensors"></param>
-    /// <param name="env"></param>
-    /// <returns></returns>
-    public static double ShadowArea(List<Sensor> sensors, Environment env)
-    {
-      return Polygon.Area(Shadows(sensors, env));
-    }
-
-    /// <summary>
-    /// Calculate the shadow area for a list of shadows.
-    /// </summary>
-    /// <param name="shadows"></param>
-    /// <returns></returns>
-    public static double ShadowArea(List<Polygon> shadows)
-    {
-      return Polygon.Area(shadows);
-    }
-
     public override string ToString()
     {
       return "Position: " + Position + ", Size: " + Size +
@@ -139,58 +51,58 @@ namespace sensor_positioning
     }
   }
 
-  public class StaticSensorPositioning
+  public class SensorPositionObj : AbsObjectiveFunction
   {
-    /// <summary>The problem environment.</summary>
-    public Environment Env;
-    public readonly List<Sensor> Sensors = new List<Sensor>();
-    public readonly List<Obstacle> Obstacles = new List<Obstacle>();
+    public readonly List<Circle> Obstacles = new List<Circle>();
     public readonly List<Polygon> ImportantAreas = new List<Polygon>();
-    public double FieldWidth = 9;
-    public double FieldHeight = 6;
-    public double SensorRange = 12;
-    public double SensorFov = 56.3;
-    public double ObstacleSize = 0.1555;
+    public readonly Rectangle Field;
+    public readonly double FieldWidth;
+    public readonly double FieldHeight;
+    public readonly double SensorRange;
+    public readonly double SensorFov;
+    public readonly double ObjectSize;
+    private readonly uint _numberOfSensors;
 
-    public void Init(int numberOfSensors = 1, int numberOfObstacles = 1)
+    public SensorPositionObj(
+      uint numberOfSensors, uint numberOfObstacles, 
+      double fieldWidth, double fieldHeight, 
+      double sensorRange, double sensorFov,
+      double objectSize)
     {
-      Env = new Environment(
-        new Rectangle(0, 0, FieldWidth, FieldHeight));
+      _numberOfSensors = numberOfSensors;
+      FieldWidth = fieldWidth;
+      FieldHeight = fieldHeight;
+      Field = new Rectangle(0, 0, 
+        FieldWidth, FieldHeight);
+      SensorRange = sensorRange;
+      SensorFov = sensorFov;
+      ObjectSize = objectSize;
+      SetObstaclesRandom(numberOfObstacles);
+    }
 
+    /// <summary>
+    /// Scatter a number of obstacles randomly over the field without collision.
+    /// </summary>
+    /// <param name="numberOfObstacles"></param>
+    public void SetObstaclesRandom(double numberOfObstacles)
+    {
       Obstacles.Clear();
-      Sensors.Clear();
 
       for (var i = 0; i < numberOfObstacles; i++)
       {
-        var s = new Sensor(0, 0, 0, SensorRange, 
-          SensorFov, ObstacleSize);
-
-        PlaceWithoutCollision(s);
-        Obstacles.Add(s);
-        Env.Obstacles.Add(s);
-      }
-      
-      for (var i = 0; i < numberOfSensors; i++)
-      {
-        var s = new Sensor(0, 0, 0, SensorRange,
-          SensorFov, ObstacleSize);
-
-        PlaceWithoutCollision(s);
-        Sensors.Add(s);
-        Env.Obstacles.Add(s);
+        var obstacle = new Circle(new Vector2(0, 0), ObjectSize);
+        obstacle = PlaceWithoutCollision(obstacle, Obstacles);
+        Obstacles.Add(obstacle);
       }
     }
 
     public void SetObstacles(double[][] positions)
     {
-      Obstacles.ForEach(o => Env.Obstacles.Remove(o));
       Obstacles.Clear();
-        
+
       foreach (var pos in positions)
       {
-        var o = new Sensor(pos[0], pos[1], 0, 0, 0, ObstacleSize);
-        Obstacles.Add(o);
-        Env.Obstacles.Add(o);
+        Obstacles.Add(new Circle(new Vector2(pos[0], pos[1]), ObjectSize));
       }
     }
 
@@ -202,15 +114,19 @@ namespace sensor_positioning
     /// terminate if Env.Field is to small.
     /// The object can also be placed on the edges of the field.
     /// </remarks>
-    /// <param name="o">The object to place.</param>
-    public void PlaceWithoutCollision(Obstacle o)
+    /// <param name="obstacle">The object to place.</param>
+    /// <param name="obstacles"></param>
+    private Circle PlaceWithoutCollision(Circle obstacle, 
+      List<Circle> obstacles)
     {
       var collided = true;
       while (collided)
       {
-        PlaceRandom(o);
-        collided = CheckCollision(o);
+        obstacle = PlaceRandom(obstacle);
+        collided = CheckCollision(obstacle, obstacles);
       }
+
+      return obstacle;
     }
 
     /// <summary>
@@ -220,12 +136,13 @@ namespace sensor_positioning
     /// <remarks>
     /// The object can also be placed on the edges of the field.
     /// </remarks>
-    /// <param name="o"></param>
-    public void PlaceRandom(Obstacle o)
+    /// <param name="obstacle"></param>
+    private Circle PlaceRandom(Circle obstacle)
     {
-      o.Position = new Vector2(
-        MTRandom.Uniform(Env.Bounds.Min.X, Env.Bounds.Max.X), 
-        MTRandom.Uniform(Env.Bounds.Min.Y,Env.Bounds.Max.Y));
+      obstacle.Position = new Vector2(
+        MTRandom.Uniform(0, FieldWidth), 
+        MTRandom.Uniform(0, FieldHeight));
+      return obstacle;
     }
 
     /// <summary>
@@ -234,46 +151,66 @@ namespace sensor_positioning
     /// it won't collide with itself.
     /// </summary>
     /// <param name="o"></param>
+    /// <param name="obstacles"></param>
     /// <returns></returns>
-    public bool CheckCollision(Obstacle o)
+    public bool CheckCollision(Circle o, List<Circle> obstacles)
     {
-      foreach (var o2 in Env.Obstacles)
+      foreach (var o2 in obstacles)
       {
         if (o == o2) continue;
 
         var d = Vector2.Distance(o2.Position, o.Position);
-        if (d < o2.Size + o.Size) return true;
+        if (d < o2.Radius + o.Radius) return true;
       }
 
       return false;
     }
 
     /// <summary>
-    /// Place a list of sensors according 
+    /// Generate a list of sensors from a vector with length % 3 == 0. 
     /// </summary>
-    /// <remarks>
-    /// This will only change the sensors position and rotation, sensors
-    /// won't be added to the environment.
-    /// </remarks>
     /// <param name="vector"></param>
-    /// <param name="sensors"></param>
-    public static void PlaceFromVector(double[] vector, List<Sensor> sensors)
+    public List<Sensor> ToSensors(double[] vector)
     {
+      var sensors = new List<Sensor>();
       for (var i = 0; i < vector.Length; i += 3)
       {
-        sensors[i / 3].Position = new Vector2(vector[i], vector[i + 1]);
-        sensors[i / 3].Rotation = vector[i + 2];
+        var sensor = new Sensor(
+          vector[i], vector[i + 1], vector[i + 2], 
+          SensorRange, SensorFov, ObjectSize);
+        sensors.Add(sensor);
       }
+
+      return sensors;
     }
-  
-    /// <summary></summary>
+
+    /// <summary>
+    /// Get the bodies of a list of sensors.
+    /// The reason to do so is that since agents carrying sensors also have a
+    /// body and therefor represent an obstacle they have to be taken into
+    /// account when calculating the shadow for a list of sensors.
+    /// </summary>
+    /// <returns>
+    /// A list of circles where each circle represents an
+    /// obstacle in the problem environment.
+    /// </returns>
+    public List<Circle> AllObstacles(List<Sensor> sensors)
+    {
+      var allObstacles = sensors.Select(s => s.ToCircle()).ToList();
+      allObstacles.AddRange(Obstacles);
+      return allObstacles;
+    }
+    
+    /// <summary>
+    /// Get the value of F(..) in percent.
+    /// </summary>
     /// <param name="value"></param>
     /// <param name="round"></param>
     /// <returns></returns>
     public double Normalize(double value, bool round = true)
     {
-      if (round) return Math.Round(value / Env.Bounds.Area() * 100, 2);
-      return value / Env.Bounds.Area() * 100;
+      if (round) return Math.Round(value / Field.Area() * 100, 2);
+      return value / Field.Area() * 100;
     }
 
     /// <summary>
@@ -282,12 +219,11 @@ namespace sensor_positioning
     /// <returns></returns>
     public double[][] Intervals()
     {
-      var region = Env.Bounds;
-      var intervals = new double[Sensors.Count * 3][];
+      var intervals = new double[_numberOfSensors * 3][];
       for (var i = 0; i < intervals.Length; i += 3)
       {
-        intervals[i] = new[] {region.Min.X, region.Max.X};
-        intervals[i + 1] = new[] {region.Min.Y, region.Max.Y};
+        intervals[i] = new[] {Field.Min.X, Field.Max.X};
+        intervals[i + 1] = new[] {Field.Min.Y, Field.Max.Y};
         intervals[i + 2] = new[] {0, 360.0};
       }
 
@@ -299,30 +235,58 @@ namespace sensor_positioning
       return new SearchSpace(Intervals());
     }
 
-    public double FitnessFct(double[] vector)
+    public List<Circle> Others(List<Sensor> sensors, Sensor sensor)
     {
-      PlaceFromVector(vector, Sensors);
+      var others = new List<Circle>();
+      others.AddRange(Obstacles);
+        
+      foreach (var s in sensors)
+      {
+        if (s != sensor) others.Add(s.ToCircle());
+      }
+
+      return others;
+    }
+    
+    public List<Polygon> Shadows(List<Sensor> sensors)
+    {
+      var shadows = sensors.Select(sensor => Shadows2D.Shadows(
+        sensor.AreaOfActivity(), Others(sensors, sensor), Field)
+      ).ToList();
+      
+      var result = shadows[0];
+      for (var i = 1; i < shadows.Count; i++)
+      {
+        result = Polygon.Intersection(result, shadows[i]);
+      }
+
+      return result;
+    }
+    
+    public override double F(List<double> vector)
+    {
+      var sensors = ToSensors(vector.ToArray());
+
       var penalty = 0.0;
       
-      foreach (var p in Sensors)
+      foreach (var sensor in sensors)
       {
-        var x = Env.Bounds.Min.X + Env.Bounds.Width() / 2;
-        var y = Env.Bounds.Min.Y + Env.Bounds.Height() / 2;
-        var dist = Vector2.Distance(new Vector2(x, y), p.Position);
+        var x = Field.Min.X + Field.Width() / 2;
+        var y = Field.Min.Y + Field.Height() / 2;
+        var dist = Vector2.Distance(new Vector2(x, y), sensor.Position);
         
-        if (!Env.Bounds.Contains(p.Position, true)) 
+        if (!Field.Contains(sensor.Position, true)) 
           penalty += dist;
-      
-        foreach (var o2 in Env.Obstacles)
-        {
-          if (p == o2) continue;
 
-          var d = Vector2.Distance(o2.Position, p.Position);
-          if (d < o2.Size + p.Size) return Env.Bounds.Area() + d;
+        var body = sensor.ToCircle();
+        foreach (var obstacle in Others(sensors, sensor))
+        {
+          var d = Vector2.Distance(obstacle.Position, sensor.Position);
+          if (d < obstacle.Radius + sensor.Size) return Field.Area() + d;
         }
       }
 
-      var shadows = Sensor.Shadows(Sensors, Env);
+      var shadows = Shadows(sensors);
       var shadowArea = Polygon.Area(shadows);
 
       var importantHidden = Polygon.Intersection(
@@ -332,27 +296,12 @@ namespace sensor_positioning
       
       return penalty + shadowArea - importantArea;
     }
-  }
-
-  public class SspObjectiveFct : AbsObjectiveFunction
-  {
-    public readonly StaticSensorPositioning Raw;
-
-    public SspObjectiveFct(StaticSensorPositioning raw)
-    {
-      Raw = raw;
-    }
-
+    
     public override int NumberOfVariable()
     {
-      return Raw.Intervals().Length;
+      return Intervals().Length;
     }
-
-    public override double F(List<double> x)
-    {
-      return Raw.FitnessFct(x.ToArray());
-    }
-
+    
     public override List<double> Gradient(List<double> x)
     {
       throw new NotImplementedException();

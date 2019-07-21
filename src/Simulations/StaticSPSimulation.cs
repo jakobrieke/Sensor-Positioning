@@ -20,6 +20,7 @@ namespace sensor_positioning
     {
       /* Recent Changes
        *
+       * Restructure SensorPositionObj class
        * Fix comma in obstacles not logged correctly
        * Add option to toggle if changes should be logged or not
        * Save iterations when global best changes
@@ -40,7 +41,7 @@ namespace sensor_positioning
        * Test behaviour if punishment factor is added to fitness
        *   -> sensors are getting drawn into the center
        */
-      return "Author: Jakob Rieke; Version v1.5.0; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v1.5.1; Deterministic: No"; 
     }
     
     public override string GetDescr()
@@ -88,13 +89,14 @@ namespace sensor_positioning
     }
 
     private AbsOptimization _optimizer;
-    private SspObjectiveFct _objective;
+    private SensorPositionObj _objective;
     private int _zoom;
     private bool _drawSensorLines;
     private List<Tuple<int, double>> _changesInOptimum;
     private bool _logChanges;
     private bool _logClearText;
     private bool _logRoundedPositions;
+    private List<Sensor> _sensors;
 
     private static double[][] ParseDoubleMatrix(string source)
     {
@@ -154,6 +156,7 @@ namespace sensor_positioning
       
       _zoom = GetInt(model, "Zoom", 80);
       _changesInOptimum = new List<Tuple<int, double>>();
+      _sensors = new List<Sensor>();
       _logChanges = model.ContainsKey("LogChanges");
       _logClearText = model.ContainsKey("LogClearText");
       _logRoundedPositions = model.ContainsKey("LogRoundedPositions");
@@ -165,19 +168,16 @@ namespace sensor_positioning
       };
       var numberOfSensors = GetInt(model, "NumberOfSensors", 1);
       var numberOfObstacles = GetInt(model, "NumberOfObstacles", 1);
-      var sensorPositions = GetDoubleMatrix(model, "SensorPositions");
-      var obstaclePositions = GetDoubleMatrix(model, "ObstaclePositions");
-      var optimizerName = GetAnyOf(model, "Optimizer", 
-        possibleOptimizers.ToList(), "SPSO-2006");
-
-      var ssp = new StaticSensorPositioning
-      {
-        FieldWidth = GetDouble(model, "FieldHeight", 9),
-        FieldHeight = GetDouble(model, "FieldWidth", 6),
-        SensorRange = GetDouble(model, "PlayerSensorRange", 12),
-        SensorFov = GetDouble(model, "PlayerSensorFOV", 56.3),
-        ObstacleSize = GetDouble(model, "PlayerSize", 0.1555)
-      };
+      
+      _objective = new SensorPositionObj(
+        (uint)numberOfSensors,
+        (uint)numberOfObstacles, 
+        GetDouble(model, "FieldHeight", 9),
+        GetDouble(model, "FieldWidth", 6),
+        GetDouble(model, "PlayerSensorRange", 12),
+        GetDouble(model, "PlayerSensorFOV", 56.3),
+        GetDouble(model, "PlayerSize", 0.1555)
+        );
       
       foreach (var key in model.Keys)
       {
@@ -191,64 +191,66 @@ namespace sensor_positioning
         {
           impArea.Add(new Vector2(row[0], row[1]));
         }
-        ssp.ImportantAreas.Add(impArea);
+        _objective.ImportantAreas.Add(impArea);
       }
-
-      ssp.Init(numberOfSensors, numberOfObstacles);
+      
+      var obstaclePositions = GetDoubleMatrix(model, "ObstaclePositions");
 
       if (obstaclePositions != null)
       {
-        Console.WriteLine("Setting up obstacles from fixed values");
-        ssp.SetObstacles(obstaclePositions);
+        _objective.SetObstacles(obstaclePositions);
       }
-      _objective = new SspObjectiveFct(ssp);
       
       // -- Initialize optimizer
 
+      var optStartPosition = GetDoubleMatrix(model, "SensorPositions");
+      var optimizerName = GetAnyOf(model, "Optimizer", 
+        possibleOptimizers.ToList(), "SPSO-2006");
+      
       if (optimizerName == "SPSO-2006")
       {
-        var swarm = Pso.SwarmSpso2006(ssp.SearchSpace(), ssp.FitnessFct);
+        var swarm = Pso.SwarmSpso2006(_objective.SearchSpace(),
+          x => _objective.F(x.ToList()));
         _optimizer = new SPSO2006(swarm, _objective);
 
-        if (sensorPositions != null)
+        if (optStartPosition != null)
         {
-          var initialPos = new double[sensorPositions.Length * 3];
-          for (var i = 0; i < sensorPositions.Length; i++)
+          var initialPos = new double[optStartPosition.Length * 3];
+          for (var i = 0; i < optStartPosition.Length; i++)
           {
-            sensorPositions[i].CopyTo(initialPos, i * 3);
+            optStartPosition[i].CopyTo(initialPos, i * 3);
           }
           _optimizer.InitialPosition = initialPos;
         }
 //        _optimizer = new SPSO2006(_objective)
 //        {
-//          Bounds = _objective.Raw.Intervals()
+//          Bounds = _objective.Intervals()
 //        };
       }
       else if (optimizerName == "SPSO-2007")
         _optimizer = new SPSO2007(_objective)
         {
-          Bounds = _objective.Raw.Intervals()
+          Bounds = _objective.Intervals()
         };
       else if (optimizerName == "SPSO-2011")
         _optimizer =  new SPSO2011(_objective)
         {
-          Bounds = _objective.Raw.Intervals()
+          Bounds = _objective.Intervals()
         };
       else if (optimizerName == "PSO")
         _optimizer = new clsOptPSO(_objective)
         {
-          InitialPosition = _objective.Raw.SearchSpace().RandPos()
+          InitialPosition = _objective.SearchSpace().RandPos()
         };
       else if (optimizerName == "ADE")
         _optimizer = new clsOptDEJADE(_objective)
         {
-          LowerBounds = _objective.Raw.Intervals().Select(i => i[0]).ToArray(),
-          UpperBounds = _objective.Raw.Intervals().Select(i => i[1]).ToArray()
+          LowerBounds = _objective.Intervals().Select(i => i[0]).ToArray(),
+          UpperBounds = _objective.Intervals().Select(i => i[1]).ToArray()
         };
 
       _optimizer.Init();
-      StaticSensorPositioning.PlaceFromVector(_optimizer.Result.ToArray(), 
-        _objective.Raw.Sensors);
+      _sensors = _objective.ToSensors(_optimizer.Result.ToArray());
     }
 
     public override void Update(long deltaTime)
@@ -261,14 +263,13 @@ namespace sensor_positioning
           _optimizer.IterationCount, 
           lastBest - _optimizer.Result.Eval));
       
-      StaticSensorPositioning.PlaceFromVector(
-        _optimizer.Result.ToArray(), _objective.Raw.Sensors);
+      _sensors = _objective.ToSensors(_optimizer.Result.ToArray());
     }
 
     private void DrawCoordinateSystem(Context cr)
     {
-      var width = _objective.Raw.Env.Bounds.Max.X * _zoom;
-      var height = _objective.Raw.Env.Bounds.Max.Y * _zoom;
+      var width = _objective.FieldWidth * _zoom;
+      var height = _objective.FieldHeight * _zoom;
       
       cr.SetSourceRGB(.8, .8, .8);
       cr.Rectangle(0, 0, width, height);
@@ -311,7 +312,7 @@ namespace sensor_positioning
     {
       // Pattern types: Linear, Radial, Solid, Surface
       cr.SetSourceRGBA(0, 0, 0, 0.3);
-      foreach (var area in _objective.Raw.ImportantAreas)
+      foreach (var area in _objective.ImportantAreas)
       {
         DrawPolygon(cr, area);
         cr.LineWidth = 4;
@@ -321,7 +322,7 @@ namespace sensor_positioning
     
     private void DrawSensors(Context cr)
     {
-      var shadows = Sensor.Shadows(_objective.Raw.Sensors, _objective.Raw.Env);
+      var shadows = _objective.Shadows(_sensors);
       cr.SetSourceRGBA(0, 0, 0, 0.7);
       
       foreach (var polygon in shadows)
@@ -331,7 +332,7 @@ namespace sensor_positioning
         cr.Fill();
       }
       
-      foreach (var sensor in _objective.Raw.Sensors)
+      foreach (var sensor in _sensors)
       {
         if (_drawSensorLines)
         {
@@ -341,17 +342,7 @@ namespace sensor_positioning
           DrawPolygon(cr, sensor.AreaOfActivity().ToPolygon());
           cr.Stroke();
         }
-        
-//        cr.SetSourceRGB(0.495, 0.118, 0.248);
-//        cr.LineWidth = 4;
-//        var rot = (sensor.Rotation - 28) * Math.PI / 180;
-//        cr.Arc(sensor.Position.X * _zoom,
-//          sensor.Position.Y * _zoom, 
-//          sensor.Size * _zoom,
-//          rot,
-//          rot + sensor.Fov * Math.PI / 180);
-//        cr.Stroke();
-        
+
         cr.SetSourceRGB(0.753, 0.274, 0.275);
         cr.Arc(
           sensor.Position.X * _zoom,
@@ -364,13 +355,13 @@ namespace sensor_positioning
 
     private void DrawObstacles(Context cr)
     {
-      foreach (var obstacle in _objective.Raw.Obstacles)
+      foreach (var obstacle in _objective.Obstacles)
       {
         cr.SetSourceRGB(0.159, 0.695, 0.775);
         cr.Arc(
           obstacle.Position.X * _zoom,
           obstacle.Position.Y * _zoom,
-          obstacle.Size * _zoom, 0, 2 * Math.PI);
+          obstacle.Radius * _zoom, 0, 2 * Math.PI);
         cr.ClosePath();
       }
 
@@ -380,8 +371,8 @@ namespace sensor_positioning
     public override void Render(Context cr, int width, int height)
     {
       cr.Translate(
-        (width - _objective.Raw.FieldWidth * _zoom) / 2, 
-        (width - _objective.Raw.FieldHeight * _zoom) / 2);
+        (width - _objective.FieldWidth * _zoom) / 2, 
+        (width - _objective.FieldHeight * _zoom) / 2);
       
       DrawCoordinateSystem(cr);
       DrawImportantArea(cr);
@@ -393,7 +384,7 @@ namespace sensor_positioning
     {
       var sensorPositions = "[";
       var i = 1;
-      foreach (var sensor in _objective.Raw.Sensors)
+      foreach (var sensor in _sensors)
       {
         sensorPositions += _logRoundedPositions ?
           $"[{Math.Round(sensor.Position.X, 2)}, " +
@@ -401,20 +392,20 @@ namespace sensor_positioning
           $"{Math.Round(sensor.Rotation, 2)}]" :
           $"[{sensor.Position.X}, {sensor.Position.Y}, {sensor.Rotation}]";
         
-        if (i++ < _objective.Raw.Sensors.Count) sensorPositions += ", ";
+        if (i++ < _sensors.Count) sensorPositions += ", ";
       }
       sensorPositions += "]";
       
       var obstaclePositions = "[";
       i = 1;
-      foreach (var obstacle in _objective.Raw.Obstacles)
+      foreach (var obstacle in _objective.Obstacles)
       {
         obstaclePositions += _logRoundedPositions ?
           $"[{Math.Round(obstacle.Position.X, 2)}, " +
           $"{Math.Round(obstacle.Position.Y, 2)}]" :
           $"[{obstacle.Position.X}, {obstacle.Position.Y}]";
         
-        if (i++ < _objective.Raw.Obstacles.Count) obstaclePositions += ", ";
+        if (i++ < _objective.Obstacles.Count) obstaclePositions += ", ";
       }
       obstaclePositions += "]";
 

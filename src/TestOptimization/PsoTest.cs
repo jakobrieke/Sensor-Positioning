@@ -95,12 +95,12 @@ namespace LibOptimization.Optimization
     [Test]
     public static void TestSpso2006WithSSP()
     {
-      var ssp = new StaticSensorPositioning();
-      ssp.Init();
+      var ssp = new SensorPositionObj(1, 1, 
+        9, 6, 12, 56, 0.1555);
 
-      var sspFct = new SspObjectiveFct(ssp);
-      var swarm = Pso.SwarmSpso2006(ssp.SearchSpace(), ssp.FitnessFct);
-      var pso = new SPSO2006(swarm, sspFct);
+      var swarm = Pso.SwarmSpso2006(ssp.SearchSpace(), 
+        x => ssp.F(x.ToList()));
+      var pso = new SPSO2006(swarm, ssp);
 
       var positions = new[]
       {

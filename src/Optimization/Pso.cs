@@ -833,7 +833,7 @@ namespace LibOptimization.Optimization
 
     public override void Init()
     {
-      var obj = ((SspObjectiveFct) ObjectiveFunction).Raw;
+      var obj = (SensorPositionObj) ObjectiveFunction;
       _swarm = Pso.SwarmSpso2007(
         new SearchSpace(Bounds), 
         v => ObjectiveFunction.F(v.ToList()));

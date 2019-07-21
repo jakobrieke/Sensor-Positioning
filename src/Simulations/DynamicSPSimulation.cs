@@ -7,20 +7,6 @@ using LibOptimization.Optimization;
 
 namespace sensor_positioning
 {
-  public class MovingObstacle : Obstacle
-  {
-    public double Velocity;
-    
-    public MovingObstacle(Vector2 position, double size) : base(position, size)
-    {
-    }
-
-    public MovingObstacle(Vector2 position, 
-      double size, double rotation) : base(position, size, rotation)
-    {
-    }
-  }
-  
   public class DynamicSpSimulation : AbstractSimulation
   {
     public override string GetTitle()
@@ -42,10 +28,9 @@ namespace sensor_positioning
              "FieldWidth = 6\n";
     }
 
-    private List<MovingObstacle> _obstacles;
-    private Environment _env;
+    private List<Circle> _obstacles;
     
-    public bool CheckCollision(Obstacle o)
+    public bool CheckCollision(Circle o)
     {
       foreach (var o2 in _obstacles)
       {
@@ -82,7 +67,6 @@ namespace sensor_positioning
       var sizeTeamB = GetInt(model, "SizeTeamB", 1);
       var velocity = GetDouble(model, "ObstacleVelocity", 0.1);
       
-      _env = new Environment(0, 0, fieldWidth, fieldHeight);
       _obstacles = new List<MovingObstacle>(sizeTeamB);
 
       for (var i = 0; i < sizeTeamB; i++)
