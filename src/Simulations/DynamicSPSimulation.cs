@@ -61,8 +61,8 @@ namespace sensor_positioning
     public void PlaceRandom(Obstacle o)
     {
       o.Position = new Vector2(
-        Pso.UniformRand(_env.Bounds.Min.X,_env.Bounds.Max.X), 
-        Pso.UniformRand(_env.Bounds.Min.Y,_env.Bounds.Max.Y));
+        MTRandom.Uniform(_env.Bounds.Min.X,_env.Bounds.Max.X), 
+        MTRandom.Uniform(_env.Bounds.Min.Y,_env.Bounds.Max.Y));
     }
     
     public void PlaceWithoutCollision(Obstacle o)
@@ -90,7 +90,7 @@ namespace sensor_positioning
         var obstacle = new MovingObstacle(Vector2.Zero, 0.1555)
         {
           Velocity = velocity,
-          Rotation = Pso.UniformRand(0, 360)
+          Rotation = MTRandom.Uniform(0, 360)
         };
         PlaceWithoutCollision(obstacle);
         _obstacles.Add(obstacle);

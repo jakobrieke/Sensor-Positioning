@@ -224,8 +224,8 @@ namespace sensor_positioning
     public void PlaceRandom(Obstacle o)
     {
       o.Position = new Vector2(
-        Pso.UniformRand(Env.Bounds.Min.X, Env.Bounds.Max.X), 
-        Pso.UniformRand(Env.Bounds.Min.Y,Env.Bounds.Max.Y));
+        MTRandom.Uniform(Env.Bounds.Min.X, Env.Bounds.Max.X), 
+        MTRandom.Uniform(Env.Bounds.Min.Y,Env.Bounds.Max.Y));
     }
 
     /// <summary>
@@ -334,7 +334,7 @@ namespace sensor_positioning
     }
   }
 
-  public class SspObjectiveFct : absObjectiveFunction
+  public class SspObjectiveFct : AbsObjectiveFunction
   {
     public readonly StaticSensorPositioning Raw;
 

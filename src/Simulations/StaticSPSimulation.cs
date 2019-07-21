@@ -77,7 +77,7 @@ namespace sensor_positioning
              "Optimizer = SPSO-2006";
     }
 
-    private absOptimization _optimizer;
+    private AbsOptimization _optimizer;
     private SspObjectiveFct _objective;
     private int _zoom;
     private bool _drawSensorLines;

@@ -37,7 +37,7 @@ namespace LibOptimization.Optimization
     public abstract int GetDimension();
   }
 
-  public class LibOptObjective : absObjectiveFunction
+  public class LibOptObjective : AbsObjectiveFunction
   {
     private ObjectiveFunc _func;
     
@@ -114,14 +114,6 @@ namespace LibOptimization.Optimization
     public override double GetBest()
     {
       throw new System.NotImplementedException();
-    }
-  }
-
-  public class TestOptimization
-  {
-    public static void Test()
-    {
-      
     }
   }
 }
