@@ -658,8 +658,7 @@ namespace Geometry
       };
     }
   }
-
-
+  
   public struct Circle : IGeometryObject
   {
     public Vector2 Position;
@@ -780,6 +779,16 @@ namespace Geometry
       result.Add(result[0]);
 
       return result;
+    }
+    
+    public static bool operator ==(Circle c1, Circle c2)
+    {
+      return c1.Position == c2.Position && c1.Radius == c2.Radius;
+    }
+
+    public static bool operator !=(Circle c1, Circle c2)
+    {
+      return !(c1 == c2);
     }
   }
 
