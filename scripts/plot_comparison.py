@@ -14,11 +14,12 @@ Load a list of results from folders structured like:
 where each .log file is a structured XML file like:
 
 - simulation
+  - software
+  - system
+  - datetime
   - title
   - meta
-  - datetime
-  - system
-  - model
+  - configuration
   - iteration (i="1, 2, 3, ...")
     - sensors
     - obstacles
@@ -121,6 +122,8 @@ def retrieve_results(sim_data_directory: str):
     total_time = total_time / 1000
     average_time = total_time / sim_count
 
+    print(sim_data_directory)
+    print(str(average_start_areas) + " -> " + str(average_final_areas))
     return {
         "sim_count": sim_count,
         "start_areas": start_areas,
@@ -148,18 +151,38 @@ def get_title(directory: str):
     return result.replace('pso', 'PSO')
 
 
-def get_algorithm(elem: str):
-    return elem[:elem.rfind('-')]
+def get_alg_and_group_size(directory: str):
+    """
+    Parses a string like "ADE-s1-o1" or "SPSO-2006-s4-o2" to a list
+    like ["ADE", 1, 1] or ["SPSO-2006", 4, 2]
+    :param directory: A string like "SPSO-2006-s4-o2".
+    :return: A list of three elements [algorithm name, sensor group size,
+    obstacle group size]
+    """
+    buffer = directory.split("-")
+    alg = directory[:-(len(buffer[-1]) + len(buffer[-1]) + 2)]
+    return [
+        alg,
+        int(buffer[-2].replace("s", "")),
+        int(buffer[-1].replace("o", ""))]
 
 
-def get_group_size(elem: str):
-    return int(elem.split('-')[-1])
+def get_algorithm(directory: str):
+    return get_alg_and_group_size(directory)[0]
+
+
+def get_group_size(directory: str):
+    return get_alg_and_group_size(directory)[1:]
+
+
+def get_sensor_group_size(directory: str):
+    return get_alg_and_group_size(directory)[1]
 
 
 def plot_results(results: dict):
 
     # -- Sort results
-    sorted_keys = sorted(results, key=get_group_size)
+    sorted_keys = sorted(results, key=get_sensor_group_size)
     sorted_results = {}
     for key in sorted_keys:
         sorted_results[key] = results[key]
@@ -226,6 +249,8 @@ if __name__ == "__main__":
     simResults = {}
 
     for directory in simDataDirectories:
+        if not os.path.isdir(directory):
+            continue
         result = retrieve_results(path.join(CWD, directory))
         title = get_title(directory)
         simResults[title] = result['final_areas']
