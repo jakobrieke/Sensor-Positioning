@@ -469,23 +469,20 @@ namespace LOMath
       var ret = new LoVector(source);
       for (var i = 0; i < ret.Count; i++)
       {
-        ret[i] = System.Math.Pow(source[i], dest);
+        ret[i] = Math.Pow(source[i], dest);
       }
 
       return ret;
     }
 
-//    /// <summary>
-//    /// Type convert
-//    /// </summary>
-//    /// <param name="ai_ar"></param>
-//    /// <returns></returns>
-//    /// <remarks>
-//    /// double() -> clsShoddyVector
-//    /// </remarks>
-//    public clsEasyVector operator CType(ByVal ai_ar() As double)
-//    {
-//      return new clsEasyVector(ai_ar);
-//    }
+    /// <summary>
+    /// Explicitly convert an array of doubles to a a LoVector. 
+    /// </summary>
+    /// <param name="vector"></param>
+    /// <returns></returns>
+    public static explicit operator LoVector(double[] vector)
+    {
+      return new LoVector(vector);
+    }
   }
 }

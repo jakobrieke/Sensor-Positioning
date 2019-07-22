@@ -135,6 +135,11 @@ namespace Geometry
       return new Vector2(v.X * factor, v.Y * factor);
     }
 
+    public static Vector2 operator *(Vector2 v1, Vector2 v2)
+    {
+      return new Vector2(v1.X * v2.X, v1.Y * v2.Y);
+    }
+
     public static Vector2 operator +(Vector2 v1, Vector2 v2)
     {
       return new Vector2(v1.X + v2.X, v1.Y + v2.Y);
@@ -179,18 +184,6 @@ namespace Geometry
       return Math.Asin((a.X - b.X) / Distance(a, b)) * 180 / Math.PI + 90;
     }
 
-    public IntPoint ToIntPoint()
-    {
-      return new IntPoint(
-        Math.Round(X / Defs.Precision), 
-        Math.Round(Y / Defs.Precision));
-    }
-
-    public static Vector2 FromIntPoint(IntPoint point)
-    {
-      return new Vector2(point.X * Defs.Precision, point.Y * Defs.Precision);
-    }
-
     /// <summary>
     /// Move the vector by a given distance and angle where the angle is
     /// measured anticlockwise from east.
@@ -206,6 +199,28 @@ namespace Geometry
       return new Vector2(
         Math.Cos(angle) * distance + X,
         Math.Sin(angle) * distance + Y);
+    }
+    
+    public static implicit operator double[](Vector2 v)
+    {
+      return new [] {v.X, v.Y};
+    }
+
+    public static implicit operator Vector2(double[] array)
+    {
+      return new Vector2(array[0], array[1]);
+    }
+    
+    public static explicit operator IntPoint(Vector2 v)
+    {
+      return new IntPoint(
+        Math.Round(v.X / Defs.Precision), 
+        Math.Round(v.Y / Defs.Precision));
+    }
+
+    public static explicit operator Vector2(IntPoint p)
+    {
+      return new Vector2(p.X * Defs.Precision, p.Y * Defs.Precision);
     }
   }
 
@@ -339,16 +354,6 @@ namespace Geometry
       return string.Join("; ", this);
     }
 
-    public override bool Equals(object obj)
-    {
-      return base.Equals(obj);
-    }
-
-    public override int GetHashCode()
-    {
-      return base.GetHashCode();
-    }
-  
     /// <summary>
     /// Calculate the area of any polygon (Convex, Concave, Self-Intersecting).
     /// </summary>
@@ -527,7 +532,7 @@ namespace Geometry
     /// <returns></returns>
     public static List<IntPoint> ToIntPoint(Polygon polygon)
     {
-      return polygon.Select(vertex => vertex.ToIntPoint()).ToList();
+      return polygon.Select(vertex => (IntPoint) vertex).ToList();
     }
 
     /// <summary>
@@ -538,7 +543,7 @@ namespace Geometry
     public static Polygon FromIntPoint(List<IntPoint> polygon)
     {
       return new Polygon(polygon.Select(vertex => 
-        Vector2.FromIntPoint(vertex)).ToList());
+        (Vector2) vertex).ToList());
     }
   }
   
