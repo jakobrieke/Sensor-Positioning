@@ -44,7 +44,7 @@ namespace LibOptimization.Optimization
         public LoFireFly(AbsObjectiveFunction ai_func)
         {
             this.m_func = ai_func;
-            this.AddRange(new double[ai_func.NumberOfVariable() - 1 + 1]); // ok
+            this.AddRange(new double[ai_func.Dimension() - 1 + 1]); // ok
             this.m_evaluateValue = this.m_func.F(this);
             this.Intensity = 1 / (this.m_evaluateValue + 0.0001);
         }
@@ -163,7 +163,7 @@ namespace LibOptimization.Optimization
         ///         ''' <remarks></remarks>
         public void InitValue(double ai_range, System.Random ai_rand)
         {
-            for (int i = 0; i <= this.m_func.NumberOfVariable() - 1; i++)
+            for (int i = 0; i <= this.m_func.Dimension() - 1; i++)
                 this.Add(Math.Abs(2.0 * ai_range) * ai_rand.NextDouble() - ai_range);
         }
 

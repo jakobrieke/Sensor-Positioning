@@ -12,8 +12,7 @@ namespace LibOptimization.Optimization
   {
     // TODO Change to default(_) if this is not a reference type
     private AbsObjectiveFunction m_func;
-
-    private double m_evaluateValue;
+    private double _evaluatedValue;
 
     /// <summary>
     /// Default constructor
@@ -24,13 +23,13 @@ namespace LibOptimization.Optimization
     /// <summary>
     /// copy constructor
     /// </summary>
-    /// <param name="ai_vertex"></param>
+    /// <param name="point"></param>
     /// <remarks></remarks>
-    public LoPoint(LoPoint ai_vertex)
+    public LoPoint(LoPoint point)
     {
-      m_func = ai_vertex.GetFunc();
-      AddRange(ai_vertex);
-      m_evaluateValue = ai_vertex.Eval;
+      m_func = point.GetFunc();
+      AddRange(point);
+      _evaluatedValue = point.Eval;
     }
 
     /// <summary>
@@ -41,8 +40,8 @@ namespace LibOptimization.Optimization
     public LoPoint(AbsObjectiveFunction ai_func)
     {
       m_func = ai_func;
-      AddRange(new double[ai_func.NumberOfVariable()]);
-      m_evaluateValue = m_func.F(this);
+      AddRange(new double[ai_func.Dimension()]);
+      _evaluatedValue = m_func.F(this);
     }
 
     /// <summary>
@@ -56,7 +55,7 @@ namespace LibOptimization.Optimization
     {
       m_func = ai_func;
       AddRange(ai_vars);
-      m_evaluateValue = m_func.F(this);
+      _evaluatedValue = m_func.F(this);
     }
 
     /// <summary>
@@ -69,7 +68,7 @@ namespace LibOptimization.Optimization
     {
       m_func = ai_func;
       AddRange(ai_vars);
-      m_evaluateValue = m_func.F(this);
+      _evaluatedValue = m_func.F(this);
     }
 
     /// <summary>
@@ -118,7 +117,7 @@ namespace LibOptimization.Optimization
     /// <remarks></remarks>
     public void ReEvaluate()
     {
-      m_evaluateValue = m_func.F(this);
+      _evaluatedValue = m_func.F(this);
     }
 
     /// <summary>
@@ -137,7 +136,7 @@ namespace LibOptimization.Optimization
     /// <value></value>
     /// <returns></returns>
     /// <remarks></remarks>
-    public double Eval => m_evaluateValue;
+    public double Eval => _evaluatedValue;
 
     /// <summary>
     /// Init
@@ -147,7 +146,7 @@ namespace LibOptimization.Optimization
     /// <remarks></remarks>
     public void InitValue(double ai_range, Random ai_rand)
     {
-      for (var i = 0; i <= m_func.NumberOfVariable() - 1; i++)
+      for (var i = 0; i <= m_func.Dimension() - 1; i++)
       {
         Add(Math.Abs(2.0 * ai_range) * ai_rand.NextDouble() - ai_range);
       }
@@ -174,7 +173,7 @@ namespace LibOptimization.Optimization
       {
         this[i] = ai_point[i];
       }
-      m_evaluateValue = ai_point.Eval;
+      _evaluatedValue = ai_point.Eval;
     }
   }
 }

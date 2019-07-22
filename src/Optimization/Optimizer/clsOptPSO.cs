@@ -142,7 +142,7 @@ namespace LibOptimization.Optimization
     /// <param name="iteration"></param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public override bool DoIteration(int iteration = 0)
+    public override bool Iterate(int iteration = 0)
     {
       // Check Last Error
       if (IsRecentError() || Iteration <= _iteration) return true;
@@ -180,7 +180,7 @@ namespace LibOptimization.Optimization
           }
 
           // Update the velocity 
-          for (var i = 0; i < _func.NumberOfVariable(); i++)
+          for (var i = 0; i < _func.Dimension(); i++)
           {
             var r1 = _rand.NextDouble();
             var r2 = _rand.NextDouble();

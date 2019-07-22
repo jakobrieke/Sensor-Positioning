@@ -139,9 +139,9 @@ namespace LibOptimization.Optimization
                 // bound check
                 if (UpperBounds != null && LowerBounds != null)
                 {
-                    if (UpperBounds.Length != this._func.NumberOfVariable())
+                    if (UpperBounds.Length != this._func.Dimension())
                         throw new Exception("UpperBounds.Length is different");
-                    if (LowerBounds.Length != this._func.NumberOfVariable())
+                    if (LowerBounds.Length != this._func.Dimension())
                         throw new Exception("LowerBounds.Length is different");
                 }
 
@@ -180,7 +180,7 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
@@ -224,21 +224,21 @@ namespace LibOptimization.Optimization
 
                     // Mutation and Crossover
                     var child = new LoPoint(this._func);
-                    var j = this._rand.Next() % this._func.NumberOfVariable();
-                    var D = this._func.NumberOfVariable() - 1;
+                    var j = this._rand.Next() % this._func.Dimension();
+                    var D = this._func.Dimension() - 1;
 
                     switch (this.DEStrategy)
                     {
                         case EnumDEStrategyType.DE_best_1_bin:
                             {
                                 // DE/best/1/bin
-                                for (var k = 0; k <= this._func.NumberOfVariable() - 1; k++)
+                                for (var k = 0; k <= this._func.Dimension() - 1; k++)
                                 {
                                     if (this._rand.NextDouble() < this.CrossOverRatio || k == D)
                                         child[j] = best[j] + this.F * (p1[j] - p2[j]);
                                     else
                                         child[j] = xi[k];
-                                    j = (j + 1) % this._func.NumberOfVariable(); // next
+                                    j = (j + 1) % this._func.Dimension(); // next
                                 }
 
                                 break;
@@ -247,13 +247,13 @@ namespace LibOptimization.Optimization
                         case EnumDEStrategyType.DE_best_2_bin:
                             {
                                 // DE/best/2/bin
-                                for (var k = 0; k <= this._func.NumberOfVariable() - 1; k++)
+                                for (var k = 0; k <= this._func.Dimension() - 1; k++)
                                 {
                                     if (this._rand.NextDouble() < this.CrossOverRatio || k == D)
                                         child[j] = best[j] + this.F * (p1[j] + p2[j] - p3[j] - p4[j]);
                                     else
                                         child[j] = xi[k];
-                                    j = (j + 1) % this._func.NumberOfVariable(); // next
+                                    j = (j + 1) % this._func.Dimension(); // next
                                 }
 
                                 break;
@@ -262,13 +262,13 @@ namespace LibOptimization.Optimization
                         case EnumDEStrategyType.DE_current_to_Best_1_bin:
                             {
                                 // DE/current-to-best/1/bin
-                                for (var k = 0; k <= this._func.NumberOfVariable() - 1; k++)
+                                for (var k = 0; k <= this._func.Dimension() - 1; k++)
                                 {
                                     if (this._rand.NextDouble() < this.CrossOverRatio || k == D)
                                         child[j] = xi[j] + this.F * (best[j] - p1[j]) + this.F * (p2[j] - p3[j]);
                                     else
                                         child[j] = xi[k];
-                                    j = (j + 1) % this._func.NumberOfVariable(); // next
+                                    j = (j + 1) % this._func.Dimension(); // next
                                 }
 
                                 break;
@@ -277,13 +277,13 @@ namespace LibOptimization.Optimization
                         case EnumDEStrategyType.DE_current_to_Best_2_bin:
                             {
                                 // DE/current-to-best/2/bin
-                                for (var k = 0; k <= this._func.NumberOfVariable() - 1; k++)
+                                for (var k = 0; k <= this._func.Dimension() - 1; k++)
                                 {
                                     if (this._rand.NextDouble() < this.CrossOverRatio || k == D)
                                         child[j] = xi[j] + this.F * (best[j] - p1[j]) + this.F * (p2[j] - p3[j]) + this.F * (p4[j] - p5[j]);
                                     else
                                         child[j] = xi[k];
-                                    j = (j + 1) % this._func.NumberOfVariable(); // next
+                                    j = (j + 1) % this._func.Dimension(); // next
                                 }
 
                                 break;
@@ -292,13 +292,13 @@ namespace LibOptimization.Optimization
                         case EnumDEStrategyType.DE_current_to_rand_1_bin:
                             {
                                 // DE/current-to-rand/1/bin
-                                for (var k = 0; k <= this._func.NumberOfVariable() - 1; k++)
+                                for (var k = 0; k <= this._func.Dimension() - 1; k++)
                                 {
                                     if (this._rand.NextDouble() < this.CrossOverRatio || k == D)
                                         child[j] = xi[j] + this.F * (p2[j] - p3[j]);
                                     else
                                         child[j] = xi[k];
-                                    j = (j + 1) % this._func.NumberOfVariable(); // next
+                                    j = (j + 1) % this._func.Dimension(); // next
                                 }
 
                                 break;
@@ -307,13 +307,13 @@ namespace LibOptimization.Optimization
                         case EnumDEStrategyType.DE_rand_1_bin:
                             {
                                 // DE/rand/1/bin
-                                for (var k = 0; k <= this._func.NumberOfVariable() - 1; k++)
+                                for (var k = 0; k <= this._func.Dimension() - 1; k++)
                                 {
                                     if (this._rand.NextDouble() < this.CrossOverRatio || k == D)
                                         child[j] = p1[j] + this.F * (p2[j] - p3[j]);
                                     else
                                         child[j] = xi[k];
-                                    j = (j + 1) % this._func.NumberOfVariable(); // next
+                                    j = (j + 1) % this._func.Dimension(); // next
                                 }
 
                                 break;
@@ -322,13 +322,13 @@ namespace LibOptimization.Optimization
                         case EnumDEStrategyType.DE_rand_2_bin:
                             {
                                 // DE/rand/2/bin
-                                for (var k = 0; k <= this._func.NumberOfVariable() - 1; k++)
+                                for (var k = 0; k <= this._func.Dimension() - 1; k++)
                                 {
                                     if (this._rand.NextDouble() < this.CrossOverRatio || k == D)
                                         child[j] = p1[j] + this.F * (p2[j] + p3[j] - p4[j] - p5[j]);
                                     else
                                         child[j] = xi[k];
-                                    j = (j + 1) % this._func.NumberOfVariable(); // next
+                                    j = (j + 1) % this._func.Dimension(); // next
                                 }
 
                                 break;

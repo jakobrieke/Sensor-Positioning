@@ -65,8 +65,8 @@ namespace LibOptimization.Optimization
         {
             this._func = ai_func;
 
-            this.PopulationSize = this._func.NumberOfVariable() * 33;
-            this.ChildrenSize = this._func.NumberOfVariable() * 10;
+            this.PopulationSize = this._func.Dimension() * 33;
+            this.ChildrenSize = this._func.Dimension() * 10;
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
@@ -137,7 +137,7 @@ namespace LibOptimization.Optimization
 
                 // SPX with JGG
                 // Parent is n+1
-                List<KeyValuePair<int, LoPoint>> parents = this.SelectParent(this.m_parents, this._func.NumberOfVariable() + 1);
+                List<KeyValuePair<int, LoPoint>> parents = this.SelectParent(this.m_parents, this._func.Dimension() + 1);
 
                 // Crossover
                 List<LoPoint> children = this.CrossOverSPX(this.ChildrenSize, parents);
@@ -185,14 +185,14 @@ namespace LibOptimization.Optimization
         private List<LoPoint> CrossOverSPX(int ai_childSize, List<KeyValuePair<int, LoPoint>> ai_parents)
         {
             // Calc Centroid
-            var xg = new LoVector(base._func.NumberOfVariable());
+            var xg = new LoVector(base._func.Dimension());
             foreach (var p in ai_parents)
                 xg += p.Value;
             xg /= (double)ai_parents.Count; // sum(xi)/(n+k)
 
             // SPX
             var retChilds = new List<LoPoint>();
-            var alpha = Math.Sqrt(base._func.NumberOfVariable() + 2); // expantion rate
+            var alpha = Math.Sqrt(base._func.Dimension() + 2); // expantion rate
             for (var i = 0; i <= ai_childSize - 1; i++)
             {
                 var cVector = new List<LoVector>();
@@ -203,7 +203,7 @@ namespace LibOptimization.Optimization
                     pVector.Add(xg + alpha * (xi.Value - xg));
 
                     if (k == 0)
-                        cVector.Add(new LoVector(base._func.NumberOfVariable())); // all zero
+                        cVector.Add(new LoVector(base._func.Dimension())); // all zero
                     else
                     {
                         var rk = Math.Pow(_rand.NextDouble(), (1 / (double)k));

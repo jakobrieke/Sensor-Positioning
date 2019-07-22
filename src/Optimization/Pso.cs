@@ -476,6 +476,25 @@ namespace LibOptimization.Optimization
         i++;
       }
     }
+    
+    public static void Bounce(Particle p, SearchSpace sp)
+    {
+      var i = 0;
+      foreach (var interval in sp.Intervals)
+      {
+        if (p.Position[i] < interval[0])
+        {
+          p.Position[i] = interval[0];
+          p.Velocity[i] *= -1;
+        }
+        else if (p.Position[i] > interval[1])
+        {
+          p.Position[i] = interval[1];
+          p.Velocity[i] *= -1;
+        }
+        i++;
+      }
+    }
 
     /// <summary>
     /// See also "Confinements and Biases in Particle Swarm Optimisation" by
@@ -796,7 +815,7 @@ namespace LibOptimization.Optimization
       else _swarm.Initialize();
     }
 
-    public override bool DoIteration(int iteration = 0)
+    public override bool Iterate(int iteration = 0)
     {
       _swarm.Iterate(iteration);
       _iteration += iteration;
@@ -840,7 +859,7 @@ namespace LibOptimization.Optimization
       _swarm.Initialize();
     }
 
-    public override bool DoIteration(int iteration = 0)
+    public override bool Iterate(int iteration = 0)
     {
       _swarm.Iterate(iteration);
       _iteration += iteration;
@@ -885,7 +904,7 @@ namespace LibOptimization.Optimization
       _swarm.Initialize();
     }
 
-    public override bool DoIteration(int iteration = 0)
+    public override bool Iterate(int iteration = 0)
     {
       _swarm.Iterate(iteration);
       _iteration += iteration;
@@ -906,5 +925,108 @@ namespace LibOptimization.Optimization
       get => _swarm.Iteration;
       set {}
     }
+  }
+  
+  public class MinimalParticle
+  {
+    public double[] Position;
+    public double[] LastPosition;
+    public double[] PreviousBest;
+    public double[] Velocity;
+  }
+  
+  public class MinimalPso : AbsOptimization
+  {
+    public double W = 0.729; 
+    public double C1 = 1.49445;
+    private double[] _globalBest;
+    private List<MinimalParticle> _particles;
+    public SearchSpace SearchSpace;
+
+    public MinimalPso(AbsObjectiveFunction obj)
+    {
+      ObjectiveFunction = obj;
+    }
+
+    public override void Init()
+    {
+      Init(40);
+    }
+
+    public void Init(int swarmSize)
+    {
+      _particles = new List<MinimalParticle>(swarmSize);
+
+      var bestVal = double.PositiveInfinity;
+      double[] best = null;
+      
+      for (var i = 0; i < swarmSize; i++)
+      {
+        var p = new MinimalParticle
+        {
+          Position = SearchSpace.RandPos(),
+          Velocity = SearchSpace.RandPos(),
+          LastPosition = new double[SearchSpace.Dimensions],
+          PreviousBest = new double[SearchSpace.Dimensions]
+        };
+        p.Position.CopyTo(p.LastPosition, 0);
+        p.Position.CopyTo(p.PreviousBest, 0);
+        _particles.Add(p);
+
+        var partVal = ObjectiveFunction.F(p.Position.ToList());
+        if (partVal < bestVal)
+        {
+          bestVal = partVal; 
+          best = p.Position;
+        }
+      }
+      _globalBest = new double[SearchSpace.Dimensions];
+      best.CopyTo(_globalBest, 0);
+    }
+
+    public override bool Iterate(int iteration = 0)
+    {
+      var bestVal = ObjectiveFunction.F(_globalBest.ToList());
+      double[] best = null;
+      
+      foreach (var p in _particles)
+      {
+        p.Position.CopyTo(p.LastPosition, 0);
+        
+        for (var i = 0; i < p.Velocity.Length; i++)
+        {
+          p.Velocity[i] = 
+            W * p.Velocity[i] + 
+            MTRandom.Uniform(0, C1) * 
+            (p.PreviousBest[i] - p.Position[i]) + 
+            MTRandom.Uniform(0, C1) * 
+            (_globalBest[i] - p.Position[i]);
+          p.Position[i] += p.Velocity[i];
+        }
+
+        var partVal = ObjectiveFunction.F(p.Position.ToList());
+        var preVal = ObjectiveFunction.F(p.PreviousBest.ToList());
+
+        if (partVal < preVal) p.Position.CopyTo(p.PreviousBest, 0);
+        if (partVal < bestVal)
+        {
+          bestVal = partVal;
+          best = p.Position;
+        }
+      }
+      
+      best.CopyTo(_globalBest, 0);
+
+      return false;
+    }
+
+    public override LoPoint Result => new LoPoint(ObjectiveFunction, _globalBest);
+    public override List<LoPoint> Results { get; }
+    public override bool IsRecentError()
+    {
+      return false;
+    }
+
+    public override int Iteration { get; set; }
   }
 }

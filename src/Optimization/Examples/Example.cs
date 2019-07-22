@@ -19,7 +19,7 @@ namespace LibOptimization.Examples
     public override double F(List<double> x)
     {
       var ret = 0.0;
-      for (var i = 0; i < NumberOfVariable(); i++)
+      for (var i = 0; i < Dimension(); i++)
       {
         // When even one variable has a negative value, use the
         // recent large evaluation value
@@ -58,7 +58,7 @@ namespace LibOptimization.Examples
       return null;
     }
 
-    public override int NumberOfVariable()
+    public override int Dimension()
     {
       return 5;
     }
@@ -77,18 +77,18 @@ namespace LibOptimization.Examples
         opt.Init();
         opt.Count = 0;
         clsUtil.DebugValue(opt);
-        opt.DoIteration(3);
+        opt.Iterate(3);
         clsUtil.DebugValue(opt);
-        opt.DoIteration(3);
+        opt.Iterate(3);
         clsUtil.DebugValue(opt);
-        opt.DoIteration();
+        opt.Iterate();
         clsUtil.DebugValue(opt);
         //
         Console.WriteLine("=========================");
         opt.Init();
         opt.Count = 0;
         clsUtil.DebugValue(opt);
-        opt.DoIteration();
+        opt.Iterate();
         clsUtil.DebugValue(opt);
         //return;
       }
@@ -103,7 +103,7 @@ namespace LibOptimization.Examples
         opt.Init();
 
         //Optimization
-        opt.DoIteration();
+        opt.Iterate();
 
         //Check Error
         if (opt.IsRecentError())
@@ -122,7 +122,7 @@ namespace LibOptimization.Examples
         opt.Init();
         clsUtil.DebugValue(opt);
 
-        while (opt.DoIteration(100) == false)
+        while (opt.Iterate(100) == false)
         {
           clsUtil.DebugValue(opt, ai_isOutValue: false);
         }
@@ -143,7 +143,7 @@ namespace LibOptimization.Examples
         clsUtil.DebugValue(opt);
 
         //do optimization!
-        while (opt.DoIteration(100) == false)
+        while (opt.Iterate(100) == false)
         {
           var eval = opt.Result.Eval;
 
@@ -174,7 +174,7 @@ namespace LibOptimization.Examples
         clsUtil.DebugValue(opt);
 
         //do optimization!
-        while (opt.DoIteration(100) == false)
+        while (opt.Iterate(100) == false)
         {
           var eval = opt.Result.Eval;
 
@@ -217,7 +217,7 @@ namespace LibOptimization.Examples
         clsUtil.DebugValue(opt);
 
         // Do optimization!
-        while (opt.DoIteration(100) == false)
+        while (opt.Iterate(100) == false)
         {
           var eval = opt.Result.Eval;
 

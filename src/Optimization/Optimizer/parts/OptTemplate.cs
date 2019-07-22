@@ -90,7 +90,7 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (IsRecentError() == true)

@@ -75,8 +75,8 @@ namespace LibOptimization.Optimization
         {
             this._func = ai_func;
 
-            this.PopulationSize = this._func.NumberOfVariable() * 33;
-            this.ChildrenSize = this._func.NumberOfVariable() * 10;
+            this.PopulationSize = this._func.Dimension() * 33;
+            this.ChildrenSize = this._func.Dimension() * 10;
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
@@ -310,20 +310,20 @@ namespace LibOptimization.Optimization
             List<LoPoint> children = new List<LoPoint>(ChildrenSize);
             var g = (p1 + p2) / 2.0;
             var sd1 = Math.Pow((ALPHA * length), 2);
-            var sd2 = Math.Pow((BETA * d2 / Math.Sqrt(ObjectiveFunction.NumberOfVariable())), 2);
+            var sd2 = Math.Pow((BETA * d2 / Math.Sqrt(ObjectiveFunction.Dimension())), 2);
             var e = diffVectorP2P1 / (double)length;
-            var t = new LoVector(ObjectiveFunction.NumberOfVariable());
+            var t = new LoVector(ObjectiveFunction.Dimension());
             for (int genChild = 0; genChild <= System.Convert.ToInt32(ChildrenSize / (double)2 - 1); genChild++)
             {
-                for (int i = 0; i <= ObjectiveFunction.NumberOfVariable() - 1; i++)
+                for (int i = 0; i <= ObjectiveFunction.Dimension() - 1; i++)
                     t[i] = clsUtil.NormRand(0, sd2);
                 t = t - (t.InnerProduct(e)) * e;
 
                 // child
-                double[] child1 = new double[ObjectiveFunction.NumberOfVariable() - 1 + 1];
-                double[] child2 = new double[ObjectiveFunction.NumberOfVariable() - 1 + 1];
+                double[] child1 = new double[ObjectiveFunction.Dimension() - 1 + 1];
+                double[] child2 = new double[ObjectiveFunction.Dimension() - 1 + 1];
                 var ndRand = clsUtil.NormRand(0, sd1);
-                for (int i = 0; i <= ObjectiveFunction.NumberOfVariable() - 1; i++)
+                for (int i = 0; i <= ObjectiveFunction.Dimension() - 1; i++)
                 {
                     var temp = t[i] + ndRand * e[i];
                     child1[i] = g[i] + temp;
@@ -334,7 +334,7 @@ namespace LibOptimization.Optimization
                 var temp1 = new LoPoint(ObjectiveFunction, child1);
                 if (clsUtil.CheckOverflow(temp1) == true)
                 {
-                    for (int i = 0; i <= ObjectiveFunction.NumberOfVariable() - 1; i++)
+                    for (int i = 0; i <= ObjectiveFunction.Dimension() - 1; i++)
                         // temp1(i) = Util.Util.NormRand(g(i), 0.1)
                         temp1[i] = clsUtil.GenRandomRange(
                             this.InitialValueRangeLower, 
@@ -344,7 +344,7 @@ namespace LibOptimization.Optimization
                 var temp2 = new LoPoint(ObjectiveFunction, child2);
                 if (clsUtil.CheckOverflow(temp2) == true)
                 {
-                    for (int i = 0; i <= ObjectiveFunction.NumberOfVariable() - 1; i++)
+                    for (int i = 0; i <= ObjectiveFunction.Dimension() - 1; i++)
                         temp2[i] = clsUtil.GenRandomRange(
                             this.InitialValueRangeLower, 
                             this.InitialValueRangeUpper);

@@ -40,7 +40,7 @@ namespace sensor_positioning
       Console.WriteLine("Sensor Range: " + obj.SensorRange);
       Console.WriteLine("Sensor FOV: " + obj.SensorFov);
       Console.WriteLine("Object Size: " + obj.ObjectSize);
-      Console.WriteLine("Sensors: " + obj.NumberOfVariable() / 3);
+      Console.WriteLine("Sensors: " + obj.Dimension() / 3);
       Console.WriteLine("Obstacles: " + obj.Obstacles.Count);
       foreach (var ob in obj.Obstacles)
       {

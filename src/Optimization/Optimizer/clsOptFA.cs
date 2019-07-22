@@ -119,7 +119,7 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
@@ -156,7 +156,7 @@ namespace LibOptimization.Optimization
                         {
                             double r = (this.m_fireflies[i] - this.m_fireflies[j]).NormL1();
                             double beta = this.Beta0 * Math.Exp(-this.Gamma * r * r); // attractiveness
-                            for (int k = 0; k <= this._func.NumberOfVariable() - 1; k++)
+                            for (int k = 0; k <= this._func.Dimension() - 1; k++)
                             {
                                 double newPos = this.m_fireflies[i][k];
                                 newPos += beta * (this.m_fireflies[j][k] - this.m_fireflies[i][k]); // attraction

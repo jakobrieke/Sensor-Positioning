@@ -107,7 +107,7 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
@@ -259,7 +259,7 @@ namespace LibOptimization.Optimization
                     parentsPoint.Add(ai_parents[randIndex[i]]);
 
                 // calc g
-                LoVector g = new LoVector(this._func.NumberOfVariable());
+                LoVector g = new LoVector(this._func.Dimension());
                 for (int i = 0; i <= ai_pickParentNo - 1; i++)
                     g += parentsPoint[i];
                 g /= (double)ai_pickParentNo;
@@ -274,7 +274,7 @@ namespace LibOptimization.Optimization
                 List<LoVector> diff = new List<LoVector>();
                 for (int i = 1; i <= ai_pickParentNo - 1; i++)
                 {
-                    diff.Add(new LoVector(this._func.NumberOfVariable()));
+                    diff.Add(new LoVector(this._func.Dimension()));
                     diff[i - 1] = parentsPoint[i] - parentsPoint[0];
                     if (diff[i - 1].NormL2() < EPS)
                     {
@@ -282,7 +282,7 @@ namespace LibOptimization.Optimization
                 }
 
                 // orthogonal directions -> Vector D
-                LoVector DD = new LoVector(this._func.NumberOfVariable());
+                LoVector DD = new LoVector(this._func.Dimension());
                 for (int i = 0; i <= ai_pickParentNo - 2; i++)
                 {
                     double temp1 = diff[i].InnerProduct(d);
@@ -293,12 +293,12 @@ namespace LibOptimization.Optimization
 
                 // Average vector D
                 double meanD = DD.Average();
-                LoVector tempV1 = new LoVector(this._func.NumberOfVariable());
-                for (int i = 0; i <= this._func.NumberOfVariable() - 1; i++)
+                LoVector tempV1 = new LoVector(this._func.Dimension());
+                for (int i = 0; i <= this._func.Dimension() - 1; i++)
                     tempV1[i] = clsUtil.NormRand(0.0, meanD * Eta);
                 double tempInnerP = tempV1.InnerProduct(d);
                 double tempNRand = clsUtil.NormRand(0.0, Zeta);
-                for (int i = 0; i <= this._func.NumberOfVariable() - 1; i++)
+                for (int i = 0; i <= this._func.Dimension() - 1; i++)
                 {
                     tempV1[i] = tempV1[i] - tempInnerP * DD[i] / Math.Pow(dist, 2.0);
                     tempV1[i] += tempNRand * d[i];

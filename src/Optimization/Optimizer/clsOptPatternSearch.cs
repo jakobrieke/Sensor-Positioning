@@ -65,7 +65,7 @@ namespace LibOptimization.Optimization
                 this.m_base = null;
 
                 // init position
-                if (InitialPosition != null && InitialPosition.Length == _func.NumberOfVariable())
+                if (InitialPosition != null && InitialPosition.Length == _func.Dimension())
                     this.m_base = new LoPoint(this._func, InitialPosition);
                 else
                 {
@@ -97,7 +97,7 @@ namespace LibOptimization.Optimization
                 this.m_stepLength = this.StepLength;
                 this.m_base = null;
 
-                if (ai_initPoint.Length != this._func.NumberOfVariable())
+                if (ai_initPoint.Length != this._func.Dimension())
                 {
                     this._error.SetError(true, clsError.ErrorType.ERR_INIT, "");
                     return;
@@ -122,7 +122,7 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
@@ -177,7 +177,7 @@ namespace LibOptimization.Optimization
         public LoPoint MakeExploratoryMoves(LoPoint ai_base, double ai_stepLength)
         {
             List<LoPoint> explorePoint = new List<LoPoint>();
-            for (int i = 0; i <= this._func.NumberOfVariable() - 1; i++)
+            for (int i = 0; i <= this._func.Dimension() - 1; i++)
             {
                 LoPoint tempPlus = new LoPoint(ai_base);
                 tempPlus[i] += ai_stepLength;

@@ -183,7 +183,7 @@ namespace Util
       {
         Console.WriteLine(
           "TargetFunction:" + ai_opt.ObjectiveFunction.GetType().Name + 
-          " Dimension:" + ai_opt.ObjectiveFunction.NumberOfVariable());
+          " Dimension:" + ai_opt.ObjectiveFunction.Dimension());
         Console.WriteLine("OptimizeMethod:" + ai_opt.GetType().Name);
         Console.WriteLine("Eval          :" + $"{ai_opt.Result.Eval}");
         Console.WriteLine("IterationCount:" + $"{ai_opt.IterationCount}");
@@ -303,12 +303,12 @@ namespace Util
     public static double[] GenRandomPosition(AbsObjectiveFunction obj,
       double[] initPosition, double lower, double upper)
     {
-      var result = new double[obj.NumberOfVariable()];
+      var result = new double[obj.Dimension()];
       
-      if (initPosition != null && initPosition.Length == obj.NumberOfVariable())
+      if (initPosition != null && initPosition.Length == obj.Dimension())
       {
         // using InitialPosition
-        for (var j = 0; j <= obj.NumberOfVariable() - 1; j++)
+        for (var j = 0; j <= obj.Dimension() - 1; j++)
         {
           result[j] = GenRandomRange(lower, upper) + initPosition[j];
         }
@@ -316,7 +316,7 @@ namespace Util
       else
       {
         // Not using InitialPosition
-        for (var j = 0; j < obj.NumberOfVariable(); j++)
+        for (var j = 0; j < obj.Dimension(); j++)
         {
           result[j] = GenRandomRange(lower, upper);
         }
@@ -553,14 +553,14 @@ namespace Util
       var func = pupulation[0].GetFunc();
 
       if (initialPosition == null ||
-          initialPosition.Length != func.NumberOfVariable()) return;
+          initialPosition.Length != func.Dimension()) return;
       
       var index = Convert.ToInt32(pupulation.Count / (double) 10);
       if (index < 1) index = 1;
       
       for (var i = 0; i <= index - 1; i++)
       {
-        for (var j = 0; j <= func.NumberOfVariable() - 1; j++)
+        for (var j = 0; j <= func.Dimension() - 1; j++)
         {
           pupulation[i][j] = initialPosition[j];
         }

@@ -88,9 +88,9 @@ namespace LibOptimization.Optimization
                 // bound check
                 if (UpperBounds != null && LowerBounds != null)
                 {
-                    if (UpperBounds.Length != this._func.NumberOfVariable())
+                    if (UpperBounds.Length != this._func.Dimension())
                         throw new Exception("UpperBounds.Length is different");
-                    if (LowerBounds.Length != this._func.NumberOfVariable())
+                    if (LowerBounds.Length != this._func.Dimension())
                         throw new Exception("LowerBounds.Length is different");
                 }
 
@@ -119,7 +119,7 @@ namespace LibOptimization.Optimization
 
                 // specify ES parameters
                 _successMutate.Clear();
-                for (int i = 0; i <= (this._func.NumberOfVariable() * 10) - 1; i++)
+                for (int i = 0; i <= (this._func.Dimension() * 10) - 1; i++)
                     _successMutate.Enqueue(0);
                 // init variance
                 _variance = clsUtil.GenRandomRange(0.1, 5);
@@ -136,14 +136,14 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
                 return true;
 
             // for 1/5 rule
-            var n = this._func.NumberOfVariable() * 10.0;
+            var n = this._func.Dimension() * 10.0;
 
             // Do Iterate
             if (this.Iteration <= _iteration)

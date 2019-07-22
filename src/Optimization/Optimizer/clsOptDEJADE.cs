@@ -104,9 +104,9 @@ namespace LibOptimization.Optimization
         // bound check
         if (UpperBounds != null && LowerBounds != null)
         {
-          if (UpperBounds.Length != _func.NumberOfVariable())
+          if (UpperBounds.Length != _func.Dimension())
             throw new Exception("UpperBounds.Length is different");
-          if (LowerBounds.Length != _func.NumberOfVariable())
+          if (LowerBounds.Length != _func.Dimension())
             throw new Exception("LowerBounds.Length is different");
         }
 
@@ -147,7 +147,7 @@ namespace LibOptimization.Optimization
     /// <param name="iteration">Iteration count. When you set zero, use the default value.</param>
     /// <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
     /// <remarks></remarks>
-    public override bool DoIteration(int iteration = 0)
+    public override bool Iterate(int iteration = 0)
     {
       // Check Last Error
       if (IsRecentError())
@@ -243,17 +243,17 @@ namespace LibOptimization.Optimization
 
           // Mutation and Crossover
           var child = new LoPoint(ObjectiveFunction);
-          var j = Random.Next() % ObjectiveFunction.NumberOfVariable();
-          var D = ObjectiveFunction.NumberOfVariable() - 1;
+          var j = Random.Next() % ObjectiveFunction.Dimension();
+          var D = ObjectiveFunction.Dimension() - 1;
 
           // crossover
-          for (var k = 0; k <= ObjectiveFunction.NumberOfVariable() - 1; k++)
+          for (var k = 0; k <= ObjectiveFunction.Dimension() - 1; k++)
           {
             if (Random.NextDouble() < CR || k == D)
               child[j] = xi[j] + F * (pbest[j] - xi[j]) + F * (p1[j] - p2[j]);
             else
               child[j] = xi[k];
-            j = (j + 1) % ObjectiveFunction.NumberOfVariable(); // next
+            j = (j + 1) % ObjectiveFunction.Dimension(); // next
           }
 
           child.ReEvaluate(); // Evaluate child

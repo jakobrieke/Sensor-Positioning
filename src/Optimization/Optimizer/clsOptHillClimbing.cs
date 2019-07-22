@@ -5,18 +5,18 @@ using Util;
 namespace LibOptimization.Optimization
 {
     /// <summary>
-    ///     ''' Hill-Climbing algorithm(山登り法)
-    ///     ''' </summary>
-    ///     ''' <remarks>
-    ///     ''' Features:
-    ///     '''  -Randomized algorithm for optimization.
-    ///     ''' 
-    ///     ''' Reffrence:
-    ///     ''' https://en.wikipedia.org/wiki/Hill_climbing
-    ///     ''' 
-    ///     ''' Implment:
-    ///     ''' N.Tomi(tomi.nori+github at gmail.com)
-    ///     ''' </remarks>
+    /// Hill-Climbing algorithm(山登り法)
+    /// </summary>
+    /// <remarks>
+    /// Features:
+    ///  -Randomized algorithm for optimization.
+    /// 
+    /// Reffrence:
+    /// https://en.wikipedia.org/wiki/Hill_climbing
+    /// 
+    /// Implment:
+    /// N.Tomi(tomi.nori+github at gmail.com)
+    /// </remarks>
     public class clsOptHillClimbing : AbsOptimization
     {
         // ----------------------------------------------------------------
@@ -44,20 +44,20 @@ namespace LibOptimization.Optimization
         public int NeighborSize { get; set; } = 50;
 
         /// <summary>
-        ///         ''' Constructor
-        ///         ''' </summary>
-        ///         ''' <param name="ai_func">Objective Function</param>
-        ///         ''' <remarks>
-        ///         ''' </remarks>
+        /// Constructor
+        /// </summary>
+        /// <param name="ai_func">Objective Function</param>
+        /// <remarks>
+        /// </remarks>
         public clsOptHillClimbing(AbsObjectiveFunction ai_func)
         {
             this._func = ai_func;
         }
 
         /// <summary>
-        ///         ''' Init
-        ///         ''' </summary>
-        ///         ''' <remarks></remarks>
+        /// Init
+        /// </summary>
+        /// <remarks></remarks>
         public override void Init()
         {
             try
@@ -68,7 +68,7 @@ namespace LibOptimization.Optimization
                 this._error.Clear();
 
                 // init initial position
-                if (InitialPosition != null && InitialPosition.Length == _func.NumberOfVariable())
+                if (InitialPosition != null && InitialPosition.Length == _func.Dimension())
                     this._populations.Add(new LoPoint(this._func, InitialPosition));
                 else
                 {
@@ -85,12 +85,12 @@ namespace LibOptimization.Optimization
         public int Count = 0;
 
         /// <summary>
-        ///         ''' Do Iteration
-        ///         ''' </summary>
-        ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
-        ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
-        ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        /// Do Iteration
+        /// </summary>
+        /// <param name="iteration">Iteration count. When you set zero, use the default value.</param>
+        /// <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
+        /// <remarks></remarks>
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
@@ -101,13 +101,13 @@ namespace LibOptimization.Optimization
                 return true;
             else
                 iteration = iteration == 0 ? Iteration - _iteration - 1 : Math.Min(iteration, Iteration - _iteration) - 1;
-            for (int iterate = 0; iterate <= iteration; iterate++)
+            for (var iterate = 0; iterate <= iteration; iterate++)
             {
                 // Counting generation
                 _iteration += 1;
 
                 // neighbor function
-                var nextPoint = Neighbor(_populations[0]);
+                var nextPoint = Neighbour(_populations[0]);
 
                 // limit solution space
                 clsUtil.LimitSolutionSpace(nextPoint, LowerBounds, UpperBounds);
@@ -121,10 +121,10 @@ namespace LibOptimization.Optimization
         }
 
         /// <summary>
-        ///         ''' Best result
-        ///         ''' </summary>
-        ///         ''' <returns>Best point class</returns>
-        ///         ''' <remarks></remarks>
+        /// Best result
+        /// </summary>
+        /// <returns>Best point class</returns>
+        /// <remarks></remarks>
         public override LoPoint Result
         {
             get
@@ -134,23 +134,23 @@ namespace LibOptimization.Optimization
         }
 
         /// <summary>
-        ///         ''' Get recent error
-        ///         ''' </summary>
-        ///         ''' <returns></returns>
-        ///         ''' <remarks></remarks>
+        /// Get recent error
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks></remarks>
         public override bool IsRecentError()
         {
             return this._error.IsError();
         }
 
         /// <summary>
-        ///         ''' All Result
-        ///         ''' </summary>
-        ///         ''' <value></value>
-        ///         ''' <returns></returns>
-        ///         ''' <remarks>
-        ///         ''' for Debug
-        ///         ''' </remarks>
+        /// All Result
+        /// </summary>
+        /// <value></value>
+        /// <returns></returns>
+        /// <remarks>
+        /// for Debug
+        /// </remarks>
         public override List<LoPoint> Results
         {
             get
@@ -160,11 +160,11 @@ namespace LibOptimization.Optimization
         }
 
         /// <summary>
-        ///         ''' Neighbor function for local search
-        ///         ''' </summary>
-        ///         ''' <param name="base"></param>
-        ///         ''' <returns></returns>
-        private LoPoint Neighbor(LoPoint @base)
+        /// Neighbor function for local search
+        /// </summary>
+        /// <param name="base"></param>
+        /// <returns></returns>
+        private LoPoint Neighbour(LoPoint @base)
         {
             List<LoPoint> ret = new List<LoPoint>();
             for (int k = 0; k <= this.NeighborSize - 1; k++)

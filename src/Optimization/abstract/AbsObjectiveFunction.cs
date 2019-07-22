@@ -13,7 +13,7 @@ namespace LibOptimization.Optimization
         /// </summary>
         /// <returns></returns>
         /// <remarks></remarks>
-        public abstract int NumberOfVariable();
+        public abstract int Dimension();
 
         /// <summary>
         /// Evaluate
@@ -58,7 +58,7 @@ namespace LibOptimization.Optimization
             double h = 0.0000000001)
         {
             var df = new List<double>();
-            for (var i = 0; i <= NumberOfVariable() - 1; i++)
+            for (var i = 0; i <= Dimension() - 1; i++)
             {
                 // Center difference
                 var tempX1 = new List<double>(x);

@@ -65,7 +65,7 @@ namespace LibOptimization.Optimization
                 this.m_point.Clear();
 
                 // init initial position
-                if (InitialPosition != null && InitialPosition.Length == _func.NumberOfVariable())
+                if (InitialPosition != null && InitialPosition.Length == _func.Dimension())
                     this.m_point = new LoPoint(this._func, InitialPosition);
                 else
                 {
@@ -91,7 +91,7 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration"></param>
         ///         ''' <returns></returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)

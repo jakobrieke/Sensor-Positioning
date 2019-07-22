@@ -76,7 +76,7 @@ public class TestOptimization
     
     for (var i = 0; i < 1; i++)
     {
-      opt.DoIteration();
+      opt.Iterate();
     }
     
 //    Console.WriteLine();
@@ -99,7 +99,7 @@ public class TestOptimization
     Assert.False(errorFlg);
 
     // Check iterate
-    opt.DoIteration();
+    opt.Iterate();
     errorFlg = opt.IsRecentError();
     Assert.False(errorFlg);
 
@@ -117,7 +117,7 @@ public class TestOptimization
         opt.InitialValueRangeLower /= 2;
         opt.InitialValueRangeUpper /= 2;
         opt.Init();
-        opt.DoIteration();
+        opt.Iterate();
       }
       else
       {
@@ -314,7 +314,7 @@ public class TestOptimization
           Assert.False(errorFlg);
 
           // check iterate
-          opt.DoIteration();
+          opt.Iterate();
           errorFlg = opt.IsRecentError();
           Assert.False(errorFlg);
 
@@ -334,7 +334,7 @@ public class TestOptimization
               opt.InitialValueRangeLower = opt.InitialValueRangeLower / 2;
               opt.InitialValueRangeUpper = opt.InitialValueRangeUpper / 2;
               opt.Init();
-              opt.DoIteration();
+              opt.Iterate();
             }
             else
             {
@@ -377,7 +377,7 @@ public class TestOptimization
         // 1st
         opt.Init();
         opt.Iteration = 1;
-        opt.DoIteration();
+        opt.Iterate();
 
         // 2nd
         var recentCount = opt.IterationCount;
@@ -392,7 +392,7 @@ public class TestOptimization
             $"fail {opt.GetType().Name} : 2nd try init iteration count");
 
         // do optimize
-        opt.DoIteration();
+        opt.Iterate();
         if (opt.IterationCount == 0)
           Assert.Fail(
             $"fail {opt.GetType().Name} : 2nd try DoIteration");
@@ -465,7 +465,7 @@ public class TestOptimization
     Assert.False(errorFlg);
 
     // check iterate
-    opt.DoIteration();
+    opt.Iterate();
     errorFlg = opt.IsRecentError();
     Assert.False(errorFlg);
 
@@ -509,7 +509,7 @@ public class TestOptimization
       throw new NotImplementedException();
     }
 
-    public override int NumberOfVariable()
+    public override int Dimension()
     {
       return 2;
     }
@@ -532,7 +532,7 @@ public class TestOptimization
         opt.InitialPosition = new double[] {100, 100};
         opt.Iteration = 2;
         opt.Init();
-        opt.DoIteration();
+        opt.Iterate();
         if (opt.IterationCount != opt.Iteration)
           Assert.Fail(
             $"{opt.GetType().Name} : IterationCount : {opt.IterationCount}");
@@ -550,7 +550,7 @@ public class TestOptimization
         opt.InitialPosition = new double[] {100, 100};
         opt.Iteration = 3;
         opt.Init();
-        while ((opt.DoIteration(1) == false))
+        while ((opt.Iterate(1) == false))
         {
         }
 
@@ -570,7 +570,7 @@ public class TestOptimization
         opt.InitialPosition = new double[] {100, 100};
         opt.Iteration = 3;
         opt.Init();
-        while ((opt.DoIteration(2) == false))
+        while ((opt.Iterate(2) == false))
         {
         }
 

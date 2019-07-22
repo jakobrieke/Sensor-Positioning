@@ -50,7 +50,7 @@ namespace BenchmarkFunction
       throw new NotImplementedException();
     }
 
-    public override int NumberOfVariable()
+    public override int Dimension()
     {
       return 2;
     }

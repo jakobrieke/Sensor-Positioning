@@ -57,7 +57,7 @@ namespace BenchmarkFunction
             return null;
         }
 
-        public override int NumberOfVariable()
+        public override int Dimension()
         {
             return dimension;
         }

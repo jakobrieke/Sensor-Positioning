@@ -120,7 +120,7 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration"></param>
         ///         ''' <returns></returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
@@ -149,7 +149,7 @@ namespace LibOptimization.Optimization
                 foreach (var particle in this.m_swarm)
                 {
                     // update a velocity 
-                    for (int i = 0; i <= this._func.NumberOfVariable() - 1; i++)
+                    for (int i = 0; i <= this._func.Dimension() - 1; i++)
                     {
                         var r1 = this._rand.NextDouble();
                         var r2 = this._rand.NextDouble();

@@ -46,7 +46,7 @@ namespace LibOptimization.Optimization
       _func = func;
     }
 
-    public override int NumberOfVariable()
+    public override int Dimension()
     {
       return _func.GetDimension();
     }

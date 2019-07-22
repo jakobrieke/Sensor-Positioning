@@ -81,7 +81,7 @@ namespace LibOptimization.Optimization
         /// False:Do not Stopping Criterion
         /// </returns>
         /// <remarks></remarks>
-        public abstract bool DoIteration(int iteration = 0);
+        public abstract bool Iterate(int iteration = 0);
 
         /// <summary>
         /// Result

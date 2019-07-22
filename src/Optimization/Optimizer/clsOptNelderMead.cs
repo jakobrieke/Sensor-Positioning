@@ -71,7 +71,7 @@ namespace LibOptimization.Optimization
 
                 // initial position
                 double[][] tempSimplex = null;
-                tempSimplex = new double[base._func.NumberOfVariable() + 1][];
+                tempSimplex = new double[base._func.Dimension() + 1][];
                 for (int i = 0; i <= tempSimplex.Length - 1; i++)
                     tempSimplex[i] = clsUtil.GenRandomPosition(this._func, InitialPosition, this.InitialValueRangeLower, this.InitialValueRangeUpper);
 
@@ -100,7 +100,7 @@ namespace LibOptimization.Optimization
                 this.m_points.Clear();
 
                 // Check number of variable
-                if (this._func.NumberOfVariable() < 2)
+                if (this._func.Dimension() < 2)
                 {
                     this._error.SetError(true, clsError.ErrorType.ERR_INIT);
                     return;
@@ -108,14 +108,14 @@ namespace LibOptimization.Optimization
 
                 // Check Simplex
                 // MEMO:Target function variable is the same as vertex of simplex.
-                if (ai_initPoint.Length != (base._func.NumberOfVariable() + 1))
+                if (ai_initPoint.Length != (base._func.Dimension() + 1))
                 {
                     this._error.SetError(true, clsError.ErrorType.ERR_INIT);
                     return;
                 }
 
                 // Generate vertex
-                for (int i = 0; i <= _func.NumberOfVariable(); i++)
+                for (int i = 0; i <= _func.Dimension(); i++)
                     this.m_points.Add(new LoPoint(base._func, new List<double>(ai_initPoint[i])));
 
                 // Sort Evaluate
@@ -133,7 +133,7 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)

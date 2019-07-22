@@ -70,7 +70,7 @@ namespace LibOptimization.Optimization
 
         // initial position
         double[][] tempSimplex = null;
-        tempSimplex = new double[_func.NumberOfVariable() + 1][];
+        tempSimplex = new double[_func.Dimension() + 1][];
         
         for (var i = 0; i <= tempSimplex.Length - 1; i++)
         {
@@ -104,7 +104,7 @@ namespace LibOptimization.Optimization
         m_points.Clear();
 
         // Check number of variable
-        if (_func.NumberOfVariable() < 2)
+        if (_func.Dimension() < 2)
         {
           _error.SetError(true, clsError.ErrorType.ERR_INIT);
           return;
@@ -112,14 +112,14 @@ namespace LibOptimization.Optimization
 
         // Check Simplex
         // MEMO:Target function variable is the same as vertex of simplex.
-        if (initPoint.Length != (_func.NumberOfVariable() + 1))
+        if (initPoint.Length != (_func.Dimension() + 1))
         {
           _error.SetError(true, clsError.ErrorType.ERR_INIT);
           return;
         }
 
         // Generate vertex
-        for (int i = 0; i <= _func.NumberOfVariable(); i++)
+        for (int i = 0; i <= _func.Dimension(); i++)
           m_points.Add(new LoPoint(_func,
             new List<double>(initPoint[i])));
 
@@ -142,7 +142,7 @@ namespace LibOptimization.Optimization
     /// False: Do not Stopping Criterion
     /// </returns>
     /// <remarks></remarks>
-    public override bool DoIteration(int iteration = 0)
+    public override bool Iterate(int iteration = 0)
     {
       // Check Last Error
       if (IsRecentError())

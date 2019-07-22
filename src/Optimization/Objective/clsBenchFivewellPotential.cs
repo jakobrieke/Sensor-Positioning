@@ -37,7 +37,7 @@ namespace BenchmarkFunction
             if (x == null)
                 return 0;
 
-            if (this.NumberOfVariable() != x.Count)
+            if (this.Dimension() != x.Count)
                 return 0;
 
             double ret = 0.0;
@@ -56,7 +56,7 @@ namespace BenchmarkFunction
             throw new NotImplementedException();
         }
 
-        public override int NumberOfVariable()
+        public override int Dimension()
         {
             return 2;
         }

@@ -256,7 +256,7 @@ namespace sensor_positioning
     public override void Update(long deltaTime)
     {
       var lastBest = _optimizer.Result.Eval;
-      _optimizer.DoIteration(1);
+      _optimizer.Iterate(1);
       
       if (lastBest > _optimizer.Result.Eval) 
         _changesInOptimum.Add(new Tuple<int, double>(

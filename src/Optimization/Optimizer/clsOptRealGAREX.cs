@@ -69,12 +69,12 @@ namespace LibOptimization.Optimization
         public clsOptRealGAREX(AbsObjectiveFunction ai_func)
         {
             this._func = ai_func;
-            this.ParentSize = this._func.NumberOfVariable() + 1; // n+k
+            this.ParentSize = this._func.Dimension() + 1; // n+k
 
             // Me.PopulationSize = Me.m_func.NumberOfVariable() * 8
             // Me.ChildrenSize = Me.m_func.NumberOfVariable() * 6 '6-8 * n
-            this.PopulationSize = System.Convert.ToInt32(50 * Math.Log(this._func.NumberOfVariable()) + 10);
-            this.ChildrenSize = System.Convert.ToInt32(30 * Math.Log(this._func.NumberOfVariable()) + 10);
+            this.PopulationSize = System.Convert.ToInt32(50 * Math.Log(this._func.Dimension()) + 10);
+            this.ChildrenSize = System.Convert.ToInt32(30 * Math.Log(this._func.Dimension()) + 10);
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
@@ -197,7 +197,7 @@ namespace LibOptimization.Optimization
         private List<LoPoint> CrossOverREX(RexRandomMode ai_randomMode, int ai_childNum, List<KeyValuePair<int, LoPoint>> ai_parents)
         {
             // Calc Centroid
-            LoVector xg = new LoVector(base._func.NumberOfVariable());
+            LoVector xg = new LoVector(base._func.Dimension());
             foreach (KeyValuePair<int, LoPoint> p in ai_parents)
                 xg += p.Value;
             xg /= (double)ai_parents.Count; // sum(xi)/(n+k)
@@ -212,7 +212,7 @@ namespace LibOptimization.Optimization
             for (int i = 0; i <= ai_childNum; i++)
             {
                 // cross over
-                LoVector childV = new LoVector(base._func.NumberOfVariable());
+                LoVector childV = new LoVector(base._func.Dimension());
                 // sum( rand * (xi-xg) )
                 foreach (KeyValuePair<int, LoPoint> xi in ai_parents)
                 {

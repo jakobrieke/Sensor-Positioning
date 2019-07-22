@@ -47,7 +47,7 @@ namespace LibOptimization.Optimization
         {
             this._func = ai_func;
 
-            this.m_vect = new LoVector(ai_func.NumberOfVariable());
+            this.m_vect = new LoVector(ai_func.Dimension());
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace LibOptimization.Optimization
                 this._error.Clear();
 
                 // init initial position
-                if (InitialPosition != null && InitialPosition.Length == _func.NumberOfVariable())
+                if (InitialPosition != null && InitialPosition.Length == _func.Dimension())
                     this.m_vect = new LoVector(InitialPosition);
                 else
                 {
@@ -84,14 +84,14 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
                 return true;
 
             // Do Iterate
-            LoVector grad = new LoVector(base._func.NumberOfVariable(), LoVector.VectorDirection.Col);
+            LoVector grad = new LoVector(base._func.Dimension(), LoVector.VectorDirection.Col);
             LoMatrix h = new LoMatrix();
             if (this.Iteration <= _iteration)
                 return true;

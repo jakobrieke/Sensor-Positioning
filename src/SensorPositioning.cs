@@ -297,7 +297,7 @@ namespace sensor_positioning
       return penalty + shadowArea - importantArea;
     }
     
-    public override int NumberOfVariable()
+    public override int Dimension()
     {
       return Intervals().Length;
     }

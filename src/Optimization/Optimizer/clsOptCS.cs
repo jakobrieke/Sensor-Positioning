@@ -114,7 +114,7 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (IsRecentError())
@@ -154,7 +154,7 @@ namespace LibOptimization.Optimization
                 {
                     var s = m_nests[i];
                     var newNest = new LoPoint(_func);
-                    for (var j = 0; j <= _func.NumberOfVariable() - 1; j++)
+                    for (var j = 0; j <= _func.Dimension() - 1; j++)
                     {
                         var u = clsUtil.NormRand() * sigma;
                         var v = Math.Abs(clsUtil.NormRand());
@@ -186,7 +186,7 @@ namespace LibOptimization.Optimization
                 for (var i = 0; i <= PopulationSize - 1; i++)
                 {
                     var newNest = new LoPoint(_func);
-                    for (var j = 0; j <= _func.NumberOfVariable() - 1; j++)
+                    for (var j = 0; j <= _func.Dimension() - 1; j++)
                     {
                         if (_rand.NextDouble() > PA)
                             newNest[j] = m_nests[i][j] + _rand.NextDouble() * (m_nests[randPerm1[i]][j] - m_nests[randPerm2[i]][j]);

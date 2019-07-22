@@ -60,8 +60,8 @@ namespace LibOptimization.Optimization
         {
             this._func = ai_func;
 
-            this.PopulationSize = this._func.NumberOfVariable() * 50;
-            this.ChildrenSize = this._func.NumberOfVariable() * 20;
+            this.PopulationSize = this._func.Dimension() * 50;
+            this.ChildrenSize = this._func.Dimension() * 20;
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace LibOptimization.Optimization
         ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool DoIteration(int iteration = 0)
+        public override bool Iterate(int iteration = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
@@ -143,7 +143,7 @@ namespace LibOptimization.Optimization
                 for (int numChild = 0; numChild <= this.ChildrenSize - 1; numChild++)
                 {
                     children.Add(new LoPoint(this._func));
-                    for (int i = 0; i <= this._func.NumberOfVariable() - 1; i++)
+                    for (int i = 0; i <= this._func.Dimension() - 1; i++)
                     {
                         double range = Math.Abs(p1[i] - p2[i]);
                         double min = 0;

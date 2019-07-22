@@ -121,7 +121,7 @@ namespace BenchmarkFunction
             return hesse;
         }
 
-        public override int NumberOfVariable()
+        public override int Dimension()
         {
             return this.dimension;
         }
