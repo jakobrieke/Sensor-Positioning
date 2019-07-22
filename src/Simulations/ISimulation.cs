@@ -10,7 +10,7 @@ namespace charlie
     string GetDescr();
     string GetMeta();
     string GetConfig();
-    void Init(Dictionary<string, string> model);
+    void Init(Dictionary<string, string> config);
     void End();
     void Update(long deltaTime);
     byte[] Render(int width, int height);
@@ -65,7 +65,7 @@ namespace charlie
       return int.TryParse(config[key], out var x) ? x : backup;
     }
     
-    public abstract void Init(Dictionary<string, string> model);
+    public abstract void Init(Dictionary<string, string> config);
     
     public void End()
     {

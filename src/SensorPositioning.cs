@@ -62,6 +62,17 @@ namespace sensor_positioning
     public readonly double SensorFov;
     public readonly double ObjectSize;
     private readonly uint _numberOfSensors;
+    /// <summary>
+    /// If StartPosition is set to a value != null the distance is included
+    /// into the result of the objective function.
+    /// </summary>
+    public List<Sensor> StartPosition;
+    /// <summary>
+    /// The weight by which the distance to the start position is taken into
+    /// account.
+    /// </summary>
+    public double StartPositionDistanceWeight = 0.5;
+    public double StartPositionRotationWeight = 0.5;
 
     public SensorPositionObj(
       uint numberOfSensors, uint numberOfObstacles, 
@@ -271,14 +282,13 @@ namespace sensor_positioning
       
       foreach (var sensor in sensors)
       {
-        var x = Field.Min.X + Field.Width() / 2;
-        var y = Field.Min.Y + Field.Height() / 2;
+        var x = Field.Min.X + FieldWidth / 2;
+        var y = Field.Min.Y + FieldHeight / 2;
         var dist = Vector2.Distance(new Vector2(x, y), sensor.Position);
         
         if (!Field.Contains(sensor.Position, true)) 
           penalty += dist;
 
-        var body = sensor.ToCircle();
         foreach (var obstacle in Others(sensors, sensor))
         {
           var d = Vector2.Distance(obstacle.Position, sensor.Position);
@@ -293,6 +303,23 @@ namespace sensor_positioning
         ImportantAreas, shadows);
       var importantArea = Polygon.Area(ImportantAreas) - 
                           Polygon.Area(importantHidden);
+
+      if (StartPosition != null)
+      {
+        if (StartPosition.Count != sensors.Count) throw new Exception(
+          "StartPosition and vector should have the same length " +
+          $"{StartPosition.Count} != {sensors.Count}");
+
+        for (var i = 0; i < StartPosition.Count; i++)
+        {
+          var d = Vector2.Distance(StartPosition[i].Position,
+            sensors[i].Position);
+          var rotDiff = Math.Abs(
+            StartPosition[i].Rotation - sensors[i].Rotation);
+          penalty += rotDiff * StartPositionRotationWeight + 
+                     d * StartPositionDistanceWeight;
+        }
+      }
       
       return penalty + shadowArea - importantArea;
     }

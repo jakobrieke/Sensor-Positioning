@@ -90,12 +90,12 @@ namespace sensor_positioning
         possibleValues[value] : possibleValues[backup];
     }
     
-    public override void Init(Dictionary<string, string> model)
+    public override void Init(Dictionary<string, string> config)
     {
-      _xOffset = GetInt(model, "XOffset", 200);
-      _yOffset = GetInt(model, "YOffset", 200);
-      _size = GetInt(model, "SearchSpaceSize", 400);
-      _rasterSize = GetInt(model, "RasterSize", 100);
+      _xOffset = GetInt(config, "XOffset", 200);
+      _yOffset = GetInt(config, "YOffset", 200);
+      _size = GetInt(config, "SearchSpaceSize", 400);
+      _rasterSize = GetInt(config, "RasterSize", 100);
       _gridSize = _size / _rasterSize;
       
       var possibleValues = new Dictionary<string,
@@ -107,8 +107,8 @@ namespace sensor_positioning
         {"ThreeHumpCamel", OptimizationFct.ThreeHumpCamelFct},
         {"HoelderTable", OptimizationFct.HoelderTableFct}
       };
-      var fct = GetAnyOf(model, "Function", possibleValues, "HimmelblauFct");
-      var swarmSize = GetInt(model, "SwarmSize", 40);
+      var fct = GetAnyOf(config, "Function", possibleValues, "HimmelblauFct");
+      var swarmSize = GetInt(config, "SwarmSize", 40);
       
       var sp = new SearchSpace(2, _size / 2);
       _swarm = Pso.SwarmSpso2006(sp, fct);
