@@ -20,6 +20,8 @@ namespace sensor_positioning
     {
       /* Recent Changes
        *
+       * v1.7.0
+       * Add option to initialize and iterate the optimizer every simulation
        * v1.6.0
        * Change default Configuration
        * Add experimental optimizer MPSO
@@ -53,7 +55,7 @@ namespace sensor_positioning
        * Test behaviour if punishment factor is added to fitness
        *   -> sensors are getting drawn into the center
        */
-      return "Author: Jakob Rieke; Version v1.6.0; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v1.7.0; Deterministic: No"; 
     }
     
     public override string GetDescr()
@@ -87,19 +89,23 @@ namespace sensor_positioning
         "# If ObstaclePositions is set NumberOfObstacles is\n" +
         "# ignored\n" +
         "# ObstaclePositions = [[2, 1]]\n" +
+        "# ObstacleVelocity = [0.05, 0.07]\n" +
         "# ImpArea01 = [[0, 0], [2, 0], [2, 1], [0, 1]]\n" +
         "# ImpArea02 = [[0, 6], [2, 6], [2, 5], [0, 5]]\n" +
         "# ImpArea03 = [[9, 0], [7, 0], [7, 1], [9, 1]]\n" +
         "# ImpArea04 = [[9, 6], [9, 5], [7, 5], [7, 6]]\n" +
         "StartPositionDistanceWeight = 0\n" +
         "StartPositionRotationWeight = 0\n" +
-        "# ObstacleVelocity = [0.05, 0.07]\n" +
         "\n" +
         "# -- Optimizer configuration\n" +
         "# The function used to optimize the problem,\n" +
         "# possible values are:\n" +
         "# PSO, SPSO-2006, SPSO-2007, SPSO-2011, ADE\n" +
         "Optimizer = SPSO-2006\n" +
+        "# InitializeEachUpdate\n" +
+        "# If InitializeEachUpdate is not set,\n" +
+        "# Updates per iteration is always 1\n" +
+        "UpdatesPerIteration = 30\n" +
         "\n" +
         "# -- Rendering configuration\n" +
         "Zoom = 80\n" +
@@ -107,7 +113,7 @@ namespace sensor_positioning
         "# DrawStartPositions\n" +
         "\n" +
         "# -- Logging configuration\n" +
-        "LogChanges\n" +
+        "# LogChanges\n" +
         "# LogClearText\n" +
         "# LogRoundedPositions";
     }
@@ -127,6 +133,11 @@ namespace sensor_positioning
     private List<Sensor> _sensors;
     private Vector2 _obstacleVelocity;
     private List<Vector2> _obstacleVelocities;
+    /// <summary>
+    /// Indicates if the optimizer should be initialized again each update.
+    /// </summary>
+    private bool _initEachUpdate;
+    private uint _updatesPerIteration;
 
 
     private static double[][] ParseMatrix(string source)
@@ -325,12 +336,17 @@ namespace sensor_positioning
       
       _optimizer.Init();
       _sensors = _objective.ToSensors(_optimizer.Result.ToArray());
-
       _objective.StartPosition = _sensors;
+
+      _initEachUpdate = config.ContainsKey("InitializeEachUpdate");
+      _updatesPerIteration = (uint) GetInt(config, 
+        "UpdatesPerIteration", 30); 
     }
 
     public override void Update(long deltaTime)
     {
+      // -- Update obstacles
+      
       for (var i = 0; i < _objective.Obstacles.Count; i++)
       {
         var o = _objective.Obstacles[i];
@@ -350,13 +366,33 @@ namespace sensor_positioning
         _objective.Obstacles[i] = new Circle(p.Position, o.Radius);
       }
       
+      // -- Update optimizer
+
       var lastBest = _optimizer.Result.Eval;
-      _optimizer.Iterate(1);
       
-      if (lastBest > _optimizer.Result.Eval) 
-        _changes.Add(new Tuple<int, double>(
-          _optimizer.IterationCount, 
-          lastBest - _optimizer.Result.Eval));
+      if (_initEachUpdate)
+      {
+        _optimizer.Init();
+        _objective.StartPosition = _objective.ToSensors(
+          _optimizer.Result.ToArray());
+        _optimizer.Iterate((int) _updatesPerIteration);
+
+        if (_logChanges) 
+        {
+          _changes.Add(new Tuple<int, double>(
+            _optimizer.IterationCount, lastBest - _optimizer.Result.Eval));
+        }
+      }
+      else
+      {
+        _optimizer.Iterate(1);
+      
+        if (_logChanges && lastBest > _optimizer.Result.Eval) 
+        {
+          _changes.Add(new Tuple<int, double>(
+            _optimizer.IterationCount, lastBest - _optimizer.Result.Eval));
+        }
+      }
       
       _sensors = _objective.ToSensors(_optimizer.Result.ToArray());
     }
