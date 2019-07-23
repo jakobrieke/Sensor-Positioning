@@ -20,6 +20,8 @@ namespace sensor_positioning
     {
       /* Recent Changes
        *
+       * v1.7.1
+       * Tiny code optimizations
        * v1.7.0
        * Add option to initialize and iterate the optimizer every simulation
        * v1.6.0
@@ -55,7 +57,7 @@ namespace sensor_positioning
        * Test behaviour if punishment factor is added to fitness
        *   -> sensors are getting drawn into the center
        */
-      return "Author: Jakob Rieke; Version v1.7.0; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v1.7.1; Deterministic: No"; 
     }
     
     public override string GetDescr()

@@ -277,32 +277,34 @@ namespace sensor_positioning
     public override double F(List<double> vector)
     {
       var sensors = ToSensors(vector.ToArray());
-
-      var penalty = 0.0;
       
-      foreach (var sensor in sensors)
+      var penalty = sensors.Sum(sensor =>
       {
         var x = Field.Min.X + FieldWidth / 2;
         var y = Field.Min.Y + FieldHeight / 2;
         var dist = Vector2.Distance(new Vector2(x, y), sensor.Position);
-        
-        if (!Field.Contains(sensor.Position, true)) 
-          penalty += dist;
+
+        if (!Field.Contains(sensor.Position, true))
+          return dist;
 
         foreach (var obstacle in Others(sensors, sensor))
         {
           var d = Vector2.Distance(obstacle.Position, sensor.Position);
           if (d < obstacle.Radius + sensor.Size) return Field.Area() + d;
         }
-      }
+
+        return 0;
+      });
 
       var shadows = Shadows(sensors);
       var shadowArea = Polygon.Area(shadows);
 
-      var importantHidden = Polygon.Intersection(
-        ImportantAreas, shadows);
-      var importantArea = Polygon.Area(ImportantAreas) - 
-                          Polygon.Area(importantHidden);
+      if (ImportantAreas.Count > 0)
+      {
+        var importantHidden = Polygon.Intersection(
+          ImportantAreas, shadows);
+        penalty -= Polygon.Area(ImportantAreas) - Polygon.Area(importantHidden);
+      }
 
       if (StartPosition != null)
       {
@@ -321,7 +323,7 @@ namespace sensor_positioning
         }
       }
       
-      return penalty + shadowArea - importantArea;
+      return penalty + shadowArea;
     }
     
     public override int Dimension()
