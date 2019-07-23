@@ -261,7 +261,7 @@ namespace sensor_positioning
     
     public List<Polygon> Shadows(List<Sensor> sensors)
     {
-      var shadows = sensors.Select(sensor => Shadows2D.Shadows(
+      var shadows = sensors.AsParallel().Select(sensor => Shadows2D.Shadows(
         sensor.AreaOfActivity(), Others(sensors, sensor), Field)
       ).ToList();
       

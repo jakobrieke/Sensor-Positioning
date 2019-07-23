@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using charlie;
@@ -20,6 +21,8 @@ namespace sensor_positioning
     {
       /* Recent Changes
        *
+       * v1.7.2
+       * Parallelize function SensorPositioning.Shadows(sensors)
        * v1.7.1
        * Tiny code optimizations
        * v1.7.0
@@ -104,9 +107,9 @@ namespace sensor_positioning
         "# possible values are:\n" +
         "# PSO, SPSO-2006, SPSO-2007, SPSO-2011, ADE\n" +
         "Optimizer = SPSO-2006\n" +
-        "# InitializeEachUpdate\n" +
         "# If InitializeEachUpdate is not set,\n" +
         "# Updates per iteration is always 1\n" +
+        "# InitializeEachUpdate\n" +
         "UpdatesPerIteration = 30\n" +
         "\n" +
         "# -- Rendering configuration\n" +
@@ -117,7 +120,7 @@ namespace sensor_positioning
         "# -- Logging configuration\n" +
         "# LogChanges\n" +
         "# LogClearText\n" +
-        "# LogRoundedPositions";
+        "LogRoundedPositions";
     }
 
     private AbsOptimization _optimizer;
