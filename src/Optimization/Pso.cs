@@ -785,11 +785,11 @@ namespace LibOptimization.Optimization
   
   public class SPSO2006 : AbsOptimization
   {
-    private Swarm _swarm;
+    public readonly Swarm Swarm;
     
     public SPSO2006(Swarm swarm, AbsObjectiveFunction objective)
     {
-      _swarm = swarm;
+      Swarm = swarm;
       ObjectiveFunction = objective;
       Results = new List<LoPoint>();
     }
@@ -798,13 +798,13 @@ namespace LibOptimization.Optimization
     {
       if (InitialPosition != null)
       {
-        var startPosition = new double[_swarm.SearchSpace.Dimensions][];
-        for (var i = 0; i < _swarm.SearchSpace.Dimensions; i++)
+        var startPosition = new double[Swarm.SearchSpace.Dimensions][];
+        for (var i = 0; i < Swarm.SearchSpace.Dimensions; i++)
         {
           startPosition[i] = new double[InitialPosition.Length];
           InitialPosition.CopyTo(startPosition[i], 0);
         }
-        _swarm.Initialize(startPosition);
+        Swarm.Initialize(startPosition);
         
         foreach (var d in InitialPosition)
         {
@@ -812,12 +812,12 @@ namespace LibOptimization.Optimization
         }
         Console.WriteLine("\b\b");
       }
-      else _swarm.Initialize();
+      else Swarm.Initialize();
     }
 
     public override bool Iterate(int iteration = 0)
     {
-      _swarm.Iterate(iteration);
+      Swarm.Iterate(iteration);
       _iteration += iteration;
       return true;
     }
@@ -828,13 +828,13 @@ namespace LibOptimization.Optimization
     }
 
     public override LoPoint Result => 
-      new LoPoint(ObjectiveFunction, _swarm.GlobalBest);
+      new LoPoint(ObjectiveFunction, Swarm.GlobalBest);
     
     public override List<LoPoint> Results { get; }
     
     public override int Iteration 
     {
-      get => _swarm.Iteration;
+      get => Swarm.Iteration;
       set {}
     }
   }

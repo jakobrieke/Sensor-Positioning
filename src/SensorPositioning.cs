@@ -53,6 +53,7 @@ namespace sensor_positioning
 
   public class SensorPositionObj : AbsObjectiveFunction
   {
+    public uint Evaluations { get; private set; }
     public readonly List<Circle> Obstacles = new List<Circle>();
     public readonly List<Polygon> ImportantAreas = new List<Polygon>();
     public readonly Rectangle Field;
@@ -322,7 +323,8 @@ namespace sensor_positioning
                      d * StartPositionDistanceWeight;
         }
       }
-      
+
+      Evaluations++;
       return penalty + shadowArea;
     }
     

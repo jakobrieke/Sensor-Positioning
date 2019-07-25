@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using charlie;
@@ -21,6 +20,11 @@ namespace sensor_positioning
     {
       /* Recent Changes
        *
+       * v1.8.0
+       * Disable usage of convergence criterion for PSO and ADE
+       * Add objective evaluation count to logging
+       * Add an option to use a dynamic local search space on SPSO-2006
+       * Fix that start position is not updated correctly 
        * v1.7.2
        * Parallelize function SensorPositioning.Shadows(sensors)
        * v1.7.1
@@ -79,6 +83,7 @@ namespace sensor_positioning
       // PlayerSensorRange -> SensorRange
       // PlayerSensorFOV -> SensorFOV
       // PlayerSize -> ObstacleSize
+      // ImportantAreas -> InterestingAreas
       return
         "# -- Problem configuration\n" +
         "NumberOfSensors = 1\n" +
@@ -94,7 +99,7 @@ namespace sensor_positioning
         "# If ObstaclePositions is set NumberOfObstacles is\n" +
         "# ignored\n" +
         "# ObstaclePositions = [[2, 1]]\n" +
-        "# ObstacleVelocity = [0.05, 0.07]\n" +
+        "# ObstacleVelocity = [0.1, 0.1]\n" +
         "# ImpArea01 = [[0, 0], [2, 0], [2, 1], [0, 1]]\n" +
         "# ImpArea02 = [[0, 6], [2, 6], [2, 5], [0, 5]]\n" +
         "# ImpArea03 = [[9, 0], [7, 0], [7, 1], [9, 1]]\n" +
@@ -107,19 +112,26 @@ namespace sensor_positioning
         "# possible values are:\n" +
         "# PSO, SPSO-2006, SPSO-2007, SPSO-2011, ADE\n" +
         "Optimizer = SPSO-2006\n" +
-        "# If InitializeEachUpdate is not set,\n" +
-        "# Updates per iteration is always 1\n" +
+        "# If InitializeEachUpdate is not set, Updates\n" +
+        "# per iteration is always one\n" +
         "# InitializeEachUpdate\n" +
         "UpdatesPerIteration = 30\n" +
+        "# If enabled the search space for SPSO-2006 is\n" +
+        "# restricted to a rectangle around each of the\n" +
+        "# sensors last positions" +
+        "DynamicSearchSpaceRange = [0.1, 0.1]\n" +
         "\n" +
         "# -- Rendering configuration\n" +
         "Zoom = 80\n" +
         "DrawSensorLines\n" +
+        "# Draws the start position for the optimization\n" +
+        "# Changes over time if InitializeEachUpdate is set\n" +
         "# DrawStartPositions\n" +
         "\n" +
         "# -- Logging configuration\n" +
         "# LogChanges\n" +
         "# LogClearText\n" +
+        "# LogEvaluations\n" +
         "LogRoundedPositions";
     }
 
@@ -134,6 +146,7 @@ namespace sensor_positioning
     private List<Tuple<int, double>> _changes;
     private bool _logChanges;
     private bool _logClearText;
+    private bool _logEvaluations;
     private bool _logRoundedPositions;
     private List<Sensor> _sensors;
     private Vector2 _obstacleVelocity;
@@ -143,6 +156,7 @@ namespace sensor_positioning
     /// </summary>
     private bool _initEachUpdate;
     private uint _updatesPerIteration;
+    private Vector2 _dynamicSearchSpaceRange;
 
 
     private static double[][] ParseMatrix(string source)
@@ -230,6 +244,8 @@ namespace sensor_positioning
       _logChanges = config.ContainsKey("LogChanges");
       _logClearText = config.ContainsKey("LogClearText");
       _logRoundedPositions = config.ContainsKey("LogRoundedPositions");
+      _logEvaluations = config.ContainsKey("LogEvaluations");
+      
       _drawSensorLines = config.ContainsKey("DrawSensorLines");
       _drawStartPositions = config.ContainsKey("DrawStartPositions");
       
@@ -285,6 +301,7 @@ namespace sensor_positioning
 //      var optStartPosition = GetDoubleMatrix(model, "SensorPositions");
       var optimizerName = config.ContainsKey("Optimizer") ? 
         config["Optimizer"] : null;
+      
       if (optimizerName == "SPSO-2006")
       {
         var swarm = Pso.SwarmSpso2006(_objective.SearchSpace(),
@@ -307,7 +324,6 @@ namespace sensor_positioning
       }
       else if (optimizerName == "MPSO")
       {
-        Console.WriteLine("Using minimal pso");
         _optimizer = new MinimalPso(_objective)
         {
           SearchSpace = _objective.SearchSpace()
@@ -326,17 +342,19 @@ namespace sensor_positioning
       else if (optimizerName == "PSO")
         _optimizer = new clsOptPSO(_objective)
         {
+          IsUseCriterion = false,
           InitialPosition = _objective.SearchSpace().RandPos()
         };
       else if (optimizerName == "ADE")
         _optimizer = new clsOptDEJADE(_objective)
         {
+          IsUseCriterion = false,
           LowerBounds = _objective.Intervals().Select(i => i[0]).ToArray(),
           UpperBounds = _objective.Intervals().Select(i => i[1]).ToArray()
         };
       else
       {
-        throw new Exception($"Optimizer {optimizerName} is not an option");
+        throw new Exception($"Optimizer {optimizerName} is not supported");
       }
       
       _optimizer.Init();
@@ -345,7 +363,9 @@ namespace sensor_positioning
 
       _initEachUpdate = config.ContainsKey("InitializeEachUpdate");
       _updatesPerIteration = (uint) GetInt(config, 
-        "UpdatesPerIteration", 30); 
+        "UpdatesPerIteration", 30);
+      _dynamicSearchSpaceRange =
+        GetVector(config, "DynamicSearchSpaceRange") ?? Vector2.Zero;
     }
 
     public override void Update(long deltaTime)
@@ -377,9 +397,32 @@ namespace sensor_positioning
       
       if (_initEachUpdate)
       {
+        _objective.StartPosition = _sensors;
+        
+        if (_optimizer.GetType() == typeof(SPSO2006) 
+            && _dynamicSearchSpaceRange != Vector2.Zero)
+        {
+          var pso = (SPSO2006) _optimizer;
+          var intervals = pso.Swarm.SearchSpace.Intervals;
+          for (var i = 0; i < intervals.Length; i += 3)
+          {
+            var pos = _sensors[i / 3].Position;
+//            var rot = _sensors[i / 3].Rotation;
+            intervals[i] = new []
+            {
+              pos.X - _dynamicSearchSpaceRange.X, 
+              pos.X + _dynamicSearchSpaceRange.X
+            }; // x
+            intervals[i + 1] = new []
+            {
+              pos.Y - _dynamicSearchSpaceRange.Y, 
+              pos.Y + _dynamicSearchSpaceRange.Y
+            }; // y
+            intervals[i + 2] = new []{0.0, 360}; // rotation
+          }
+        }
+        
         _optimizer.Init();
-        _objective.StartPosition = _objective.ToSensors(
-          _optimizer.Result.ToArray());
         _optimizer.Iterate((int) _updatesPerIteration);
 
         if (_logChanges) 
@@ -584,6 +627,9 @@ namespace sensor_positioning
         $"<sensors>{sensorPositions}</sensors>\n" +
         $"<obstacles>{obstaclePositions}</obstacles>\n" +
         (_logChanges ? $"<changes>{changes}</changes>\n" : "") + 
+        (_logEvaluations ? 
+          $"<objective-evaluations>{_objective.Evaluations}" +
+          "</objective-evaluations>\n" : "") +
         "<global-best>" + _optimizer.Result.Eval + "</global-best>";
     }
   }
