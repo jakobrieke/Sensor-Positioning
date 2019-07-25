@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Geometry;
 using LibOptimization.Optimization;
-using Shadows;
 
 namespace sensor_positioning
 {
-  public class Sensor
+  public class Agent
   {
     public readonly double Range;
     public readonly double Fov;
@@ -15,7 +14,7 @@ namespace sensor_positioning
     public Vector2 Position;
     public double Size;
 
-    public Sensor(double x, double y, double rotation, double range,
+    public Agent(double x, double y, double rotation, double range,
       double fov, double size)
     {
       Range = range;
@@ -67,7 +66,7 @@ namespace sensor_positioning
     /// If StartPosition is set to a value != null the distance is included
     /// into the result of the objective function.
     /// </summary>
-    public List<Sensor> StartPosition;
+    public List<Agent> StartPosition;
     /// <summary>
     /// The weight by which the distance to the start position is taken into
     /// account.
@@ -182,12 +181,12 @@ namespace sensor_positioning
     /// Generate a list of sensors from a vector with length % 3 == 0. 
     /// </summary>
     /// <param name="vector"></param>
-    public List<Sensor> ToSensors(double[] vector)
+    public List<Agent> ToAgents(double[] vector)
     {
-      var sensors = new List<Sensor>();
+      var sensors = new List<Agent>();
       for (var i = 0; i < vector.Length; i += 3)
       {
-        var sensor = new Sensor(
+        var sensor = new Agent(
           vector[i], vector[i + 1], vector[i + 2], 
           SensorRange, SensorFov, ObjectSize);
         sensors.Add(sensor);
@@ -206,9 +205,9 @@ namespace sensor_positioning
     /// A list of circles where each circle represents an
     /// obstacle in the problem environment.
     /// </returns>
-    public List<Circle> AllObstacles(List<Sensor> sensors)
+    public List<Circle> AllObstacles(List<Agent> agents)
     {
-      var allObstacles = sensors.Select(s => s.ToCircle()).ToList();
+      var allObstacles = agents.Select(s => s.ToCircle()).ToList();
       allObstacles.AddRange(Obstacles);
       return allObstacles;
     }
@@ -247,23 +246,23 @@ namespace sensor_positioning
       return new SearchSpace(Intervals());
     }
 
-    public List<Circle> Others(List<Sensor> sensors, Sensor sensor)
+    public List<Circle> Others(List<Agent> agents, Agent agent)
     {
       var others = new List<Circle>();
       others.AddRange(Obstacles);
         
-      foreach (var s in sensors)
+      foreach (var s in agents)
       {
-        if (s != sensor) others.Add(s.ToCircle());
+        if (s != agent) others.Add(s.ToCircle());
       }
 
       return others;
     }
     
-    public List<Polygon> Shadows(List<Sensor> sensors)
+    public List<Polygon> NotPerceptible(List<Agent> agents)
     {
-      var shadows = sensors.AsParallel().Select(sensor => Shadows2D.Shadows(
-        sensor.AreaOfActivity(), Others(sensors, sensor), Field)
+      var shadows = agents.AsParallel().Select(sensor => Sensors2D.NotPerceptible(
+        sensor.AreaOfActivity(), Others(agents, sensor), Field)
       ).ToList();
       
       var result = shadows[0];
@@ -277,9 +276,9 @@ namespace sensor_positioning
     
     public override double F(List<double> vector)
     {
-      var sensors = ToSensors(vector.ToArray());
+      var agents = ToAgents(vector.ToArray());
       
-      var penalty = sensors.Sum(sensor =>
+      var penalty = agents.Sum(sensor =>
       {
         var x = Field.Min.X + FieldWidth / 2;
         var y = Field.Min.Y + FieldHeight / 2;
@@ -288,7 +287,7 @@ namespace sensor_positioning
         if (!Field.Contains(sensor.Position, true))
           return dist;
 
-        foreach (var obstacle in Others(sensors, sensor))
+        foreach (var obstacle in Others(agents, sensor))
         {
           var d = Vector2.Distance(obstacle.Position, sensor.Position);
           if (d < obstacle.Radius + sensor.Size) return Field.Area() + d;
@@ -297,35 +296,35 @@ namespace sensor_positioning
         return 0;
       });
 
-      var shadows = Shadows(sensors);
-      var shadowArea = Polygon.Area(shadows);
+      var notPerceptible = NotPerceptible(agents);
+      var notPerceptibleArea = Polygon.Area(notPerceptible);
 
       if (ImportantAreas.Count > 0)
       {
         var importantHidden = Polygon.Intersection(
-          ImportantAreas, shadows);
+          ImportantAreas, notPerceptible);
         penalty -= Polygon.Area(ImportantAreas) - Polygon.Area(importantHidden);
       }
 
       if (StartPosition != null)
       {
-        if (StartPosition.Count != sensors.Count) throw new Exception(
+        if (StartPosition.Count != agents.Count) throw new Exception(
           "StartPosition and vector should have the same length " +
-          $"{StartPosition.Count} != {sensors.Count}");
+          $"{StartPosition.Count} != {agents.Count}");
 
         for (var i = 0; i < StartPosition.Count; i++)
         {
           var d = Vector2.Distance(StartPosition[i].Position,
-            sensors[i].Position);
+            agents[i].Position);
           var rotDiff = Math.Abs(
-            StartPosition[i].Rotation - sensors[i].Rotation);
+            StartPosition[i].Rotation - agents[i].Rotation);
           penalty += rotDiff * StartPositionRotationWeight + 
                      d * StartPositionDistanceWeight;
         }
       }
 
       Evaluations++;
-      return penalty + shadowArea;
+      return penalty + notPerceptibleArea;
     }
     
     public override int Dimension()

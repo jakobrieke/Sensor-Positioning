@@ -20,6 +20,10 @@ namespace sensor_positioning
     {
       /* Recent Changes
        *
+       * v1.9.0
+       * Add option to hide grid
+       * Increase objective performance by removing unnecessary call to check
+       *   if a sensor is inside the given boundaries
        * v1.8.0
        * Disable usage of convergence criterion for PSO and ADE
        * Add objective evaluation count to logging
@@ -64,7 +68,7 @@ namespace sensor_positioning
        * Test behaviour if punishment factor is added to fitness
        *   -> sensors are getting drawn into the center
        */
-      return "Author: Jakob Rieke; Version v1.7.1; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v1.9.0; Deterministic: No"; 
     }
     
     public override string GetDescr()
@@ -93,9 +97,6 @@ namespace sensor_positioning
         "PlayerSensorRange = 12\n" +
         "PlayerSensorFOV = 56.3\n" +
         "PlayerSize = 0.1555\n" +
-//        "# If SensorPositions is set NumberOfSensors is\n" +
-//        "# ignored\n" +
-//        "# SensorPositions = [[0, 0, 0.0], [9, 6, 128]]\n" +
         "# If ObstaclePositions is set NumberOfObstacles is\n" +
         "# ignored\n" +
         "# ObstaclePositions = [[2, 1]]\n" +
@@ -123,6 +124,7 @@ namespace sensor_positioning
         "\n" +
         "# -- Rendering configuration\n" +
         "Zoom = 80\n" +
+        "DrawGrid\n" +
         "DrawSensorLines\n" +
         "# Draws the start position for the optimization\n" +
         "# Changes over time if InitializeEachUpdate is set\n" +
@@ -140,6 +142,7 @@ namespace sensor_positioning
     private int _zoom;
     private bool _drawSensorLines;
     private bool _drawStartPositions;
+    private bool _drawGrid;
     /// <summary>
     /// A list of all changes in the optimum found by the optimizer.
     /// </summary>
@@ -148,7 +151,7 @@ namespace sensor_positioning
     private bool _logClearText;
     private bool _logEvaluations;
     private bool _logRoundedPositions;
-    private List<Sensor> _sensors;
+    private List<Agent> _sensors;
     private Vector2 _obstacleVelocity;
     private List<Vector2> _obstacleVelocities;
     /// <summary>
@@ -240,7 +243,7 @@ namespace sensor_positioning
       
       _zoom = GetInt(config, "Zoom", 80);
       _changes = new List<Tuple<int, double>>();
-      _sensors = new List<Sensor>();
+      _sensors = new List<Agent>();
       _logChanges = config.ContainsKey("LogChanges");
       _logClearText = config.ContainsKey("LogClearText");
       _logRoundedPositions = config.ContainsKey("LogRoundedPositions");
@@ -248,6 +251,7 @@ namespace sensor_positioning
       
       _drawSensorLines = config.ContainsKey("DrawSensorLines");
       _drawStartPositions = config.ContainsKey("DrawStartPositions");
+      _drawGrid = config.ContainsKey("DrawGrid");
       
       var numberOfSensors = GetInt(config, "NumberOfSensors", 1);
       var numberOfObstacles = GetInt(config, "NumberOfObstacles", 1);
@@ -298,7 +302,6 @@ namespace sensor_positioning
       
       // -- Initialize optimizer
 
-//      var optStartPosition = GetDoubleMatrix(model, "SensorPositions");
       var optimizerName = config.ContainsKey("Optimizer") ? 
         config["Optimizer"] : null;
       
@@ -307,20 +310,7 @@ namespace sensor_positioning
         var swarm = Pso.SwarmSpso2006(_objective.SearchSpace(),
           x => _objective.F(x.ToList()));
         _optimizer = new SPSO2006(swarm, _objective);
-
-//        if (optStartPosition != null)
-//        {
-//          var initialPos = new double[optStartPosition.Length * 3];
-//          for (var i = 0; i < optStartPosition.Length; i++)
-//          {
-//            optStartPosition[i].CopyTo(initialPos, i * 3);
-//          }
-//          _optimizer.InitialPosition = initialPos;
-//        }
-//        _optimizer = new SPSO2006(_objective)
-//        {
-//          Bounds = _objective.Intervals()
-//        };
+        
       }
       else if (optimizerName == "MPSO")
       {
@@ -358,7 +348,7 @@ namespace sensor_positioning
       }
       
       _optimizer.Init();
-      _sensors = _objective.ToSensors(_optimizer.Result.ToArray());
+      _sensors = _objective.ToAgents(_optimizer.Result.ToArray());
       _objective.StartPosition = _sensors;
 
       _initEachUpdate = config.ContainsKey("InitializeEachUpdate");
@@ -442,7 +432,7 @@ namespace sensor_positioning
         }
       }
       
-      _sensors = _objective.ToSensors(_optimizer.Result.ToArray());
+      _sensors = _objective.ToAgents(_optimizer.Result.ToArray());
     }
 
     private void DrawCoordinateSystem(Context cr)
@@ -455,6 +445,8 @@ namespace sensor_positioning
       cr.ClosePath();
       cr.Fill();
 
+      if (!_drawGrid) return;
+      
       cr.SetSourceRGBA(0, 0, 0, 0.2);
       cr.LineWidth = .5;
       for (var i = 0.0; i < width; i += width / 10)
@@ -501,7 +493,7 @@ namespace sensor_positioning
     
     private void DrawSensors(Context cr)
     {
-      var shadows = _objective.Shadows(_sensors);
+      var shadows = _objective.NotPerceptible(_sensors);
       cr.SetSourceRGBA(0, 0, 0, 0.7);
       
       foreach (var polygon in shadows)
