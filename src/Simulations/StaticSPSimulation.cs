@@ -239,19 +239,20 @@ namespace sensor_positioning
     
     public override void Init(Dictionary<string, string> config)
     {
-      // -- Initialize objective
+      Sensors2D.SensorArcPrecision = 2;
       
-      _zoom = GetInt(config, "Zoom", 80);
       _changes = new List<Tuple<int, double>>();
       _sensors = new List<Agent>();
       _logChanges = config.ContainsKey("LogChanges");
       _logClearText = config.ContainsKey("LogClearText");
       _logRoundedPositions = config.ContainsKey("LogRoundedPositions");
       _logEvaluations = config.ContainsKey("LogEvaluations");
-      
+      _zoom = GetInt(config, "Zoom", 80);
       _drawSensorLines = config.ContainsKey("DrawSensorLines");
       _drawStartPositions = config.ContainsKey("DrawStartPositions");
       _drawGrid = config.ContainsKey("DrawGrid");
+      
+      // -- Initialize objective
       
       var numberOfSensors = GetInt(config, "NumberOfSensors", 1);
       var numberOfObstacles = GetInt(config, "NumberOfObstacles", 1);

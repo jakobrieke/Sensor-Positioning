@@ -8,6 +8,11 @@ namespace sensor_positioning
   public static class Sensors2D
   {
     /// <summary>
+    /// The precision with which a sensor arc is converted into a polygon.
+    /// </summary>
+    public static int SensorArcPrecision = 10;
+    
+    /// <summary>
     /// Calculate the area that is blocked trough an obstacle.
     /// </summary>
     /// <remarks>The position has to be inside the bounds.</remarks>
@@ -57,14 +62,35 @@ namespace sensor_positioning
         : CalcBlockedArea(position, obstacle, bounds);
     }
 
-//    public static List<Polygon> Perceptible(
-//      Arc sensor, List<Circle> obstacles, Rectangle bounds)
-//    {
-//      
-//    }
+    /// <summary>
+    /// Calculate the area perceptible by a sensor.
+    /// </summary>
+    /// <param name="sensor"></param>
+    /// <param name="obstacles"></param>
+    /// <returns></returns>
+    public static Polygon Perceptible(Arc sensor, List<Circle> obstacles)
+    {
+      var result = sensor.ToPolygon(SensorArcPrecision);
+      var bounds = new Rectangle(
+        sensor.Position.X - sensor.Radius,
+        sensor.Position.Y - sensor.Radius,
+        sensor.Position.X + sensor.Radius, 
+        sensor.Position.Y + sensor.Radius);
+      
+      foreach (var obstacle in obstacles)
+      {
+        if (!bounds.Contains(obstacle.Position)) continue;
+        
+        // The perceptible area is always a non self intersecting polygon
+        result = Polygon.Difference(
+          result, CalcBlockedArea(sensor.Position, obstacle, bounds))[0];
+      }
+
+      return result;
+    }
     
     /// <summary>
-    /// Calculate the area not perceptible to a sensor.
+    /// Calculate the area that is not perceptible by sensor.
     /// </summary>
     /// <param name="sensor"></param>
     /// <param name="obstacles"></param>
@@ -72,7 +98,7 @@ namespace sensor_positioning
     /// <returns>
     /// An intersection of not perceptible areas of all sensors.
     /// </returns>
-    public static List<Polygon> NotPerceptible(
+    public static List<Polygon> Imperceptible(
       Arc sensor, List<Circle> obstacles, Rectangle bounds)
     {
       if (!bounds.Contains(sensor.Position, true))
@@ -87,29 +113,11 @@ namespace sensor_positioning
       }
 
       // Add the area outside of the sensors area of activity
-      polygons.AddRange(
-        Polygon.Difference(bounds.ToPolygon(), sensor.ToPolygon()));
+      polygons.AddRange(Polygon.Difference(
+        bounds.ToPolygon(), 
+        sensor.ToPolygon(SensorArcPrecision)));
 
       return Polygon.Union(polygons);
-    }
-
-
-    /// <summary>
-    /// Calculate the area not perceptible to a group of sensors.
-    /// </summary>
-    /// <param name="sensors"></param>
-    /// <param name="obstacles"></param>
-    /// <param name="bounds"></param>
-    /// <returns></returns>
-    public static List<List<Polygon>> NotPerceptible(
-      List<Arc> sensors, List<Circle> obstacles, Rectangle bounds)
-    {
-      var baseShadows = new List<List<Polygon>>();
-
-      sensors.ForEach(light => baseShadows.Add(
-        NotPerceptible(light, obstacles, bounds)));
-
-      return baseShadows;
     }
   }
 }
