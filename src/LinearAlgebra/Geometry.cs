@@ -492,14 +492,47 @@ namespace Geometry
       return result;
     }
 
+    public static List<Polygon> Difference(
+      List<Polygon> polygons1,
+      List<Polygon> polygons2, bool closed = true)
+    {
+      var clipper = new Clipper();
+
+      foreach (var shadow in polygons1)
+      {
+        clipper.AddPath(ToIntPoint(shadow),
+          PolyType.ptSubject, closed);
+      }
+
+      foreach (var shadow in polygons2)
+      {
+        clipper.AddPath(ToIntPoint(shadow),
+          PolyType.ptClip, closed);
+      }
+
+      var solution = new List<List<IntPoint>>();
+
+      clipper.Execute(ClipType.ctDifference, solution,
+        PolyFillType.pftNonZero);
+
+      var result = new List<Polygon>();
+      foreach (var path in solution)
+      {
+        var polygon = FromIntPoint(path);
+        polygon.Add(polygon[0]);
+        result.Add(polygon);
+      }
+
+      return result;
+    }
+    
     /// <summary>
     /// 
     /// </summary>
     /// <param name="polygon1"></param>
     /// <param name="polygon2"></param>
     /// <returns></returns>
-    public static List<Polygon> Difference(Polygon polygon1,
-      Polygon polygon2)
+    public static List<Polygon> Difference(Polygon polygon1, Polygon polygon2)
     {
       var clipper = new Clipper();
       clipper.AddPath(ToIntPoint(polygon1),
@@ -811,7 +844,7 @@ namespace Geometry
     {
       Position = position;
       Radius = radius;
-      Angle = angle % 360;
+      Angle = angle;
       Rotation = rotation;
     }
 
@@ -820,7 +853,7 @@ namespace Geometry
     {
       Position = new Vector2(x, y);
       Radius = radius;
-      Angle = angle % 360;
+      Angle = angle;
       Rotation = rotation % 360;
     }
 
@@ -830,6 +863,7 @@ namespace Geometry
       return Position + "; " + Angle + "; " + Rotation + "; " + Radius;
     }
 
+    // Todo: Fix method for Angle > 360°
     /// <summary>
     /// Return a polygon representation of the arc.
     /// </summary>
