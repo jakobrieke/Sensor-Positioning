@@ -261,14 +261,14 @@ namespace sensor_positioning
     
     public List<Polygon> NotPerceptible(List<Agent> agents)
     {
-      var shadows = agents.AsParallel().Select(sensor => Sensors2D.NotPerceptible(
+      var area = agents.AsParallel().Select(sensor => Sensors2D.Imperceptible(
         sensor.AreaOfActivity(), Others(agents, sensor), Field)
       ).ToList();
       
-      var result = shadows[0];
-      for (var i = 1; i < shadows.Count; i++)
+      var result = area[0];
+      for (var i = 1; i < area.Count; i++)
       {
-        result = Polygon.Intersection(result, shadows[i]);
+        result = Polygon.Intersection(result, area[i]);
       }
 
       return result;
