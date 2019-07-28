@@ -8,7 +8,7 @@ using Rectangle = Geometry.Rectangle;
 
 namespace sensor_positioning.Simulations
 {
-  public class PerceptibleArea : AbstractSimulation
+  public class PerceptibleAreaSim : AbstractSimulation
   {
     private double _zoom = 80;
     private Arc _s1;

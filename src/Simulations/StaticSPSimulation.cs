@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using charlie;
 using Cairo;
 using Geometry;
@@ -164,23 +163,6 @@ namespace sensor_positioning
     private uint _updatesPerIteration;
     private Vector2 _dynamicSearchSpaceRange;
 
-    public static void TestParseDoubleMatrix()
-    {
-      const string text = "[[0.0, 0, 0], [0.0, 0, 0], [0.0, 0, 0, 0.0, 0, 0]]";
-      var matrix = ParseMatrix(text);
-      var matrixString = "";
-      foreach (var row in matrix)
-      {
-        foreach(var cell in row)
-        {
-          matrixString += cell + ", ";
-        }
-        matrixString = matrixString.Substring(0, 
-                         matrixString.Length - 2) + "\n";
-      }
-      Console.Write(matrixString);
-    }
-    
     public override void Init(Dictionary<string, string> config)
     {
       Sensors2D.SensorArcPrecision = 2;
@@ -341,7 +323,7 @@ namespace sensor_positioning
     {
       var lastBest = _optimizer.Result.Eval;
       _objective.StartPosition = _sensors;
-        
+      
       if (_optimizer.GetType() == typeof(SPSO2006) 
           && _dynamicSearchSpaceRange != Vector2.Zero)
       {
@@ -364,7 +346,7 @@ namespace sensor_positioning
           intervals[i + 2] = new []{0.0, 360}; // rotation
         }
       }
-        
+      
       _optimizer.Init();
       _optimizer.Iterate((int) _updatesPerIteration);
 

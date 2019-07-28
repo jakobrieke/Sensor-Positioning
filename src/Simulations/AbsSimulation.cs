@@ -162,4 +162,24 @@ namespace charlie
       return null;
     }
   }
+
+  public static class TestAbstractSimulation
+  {
+    public static void TestParseDoubleMatrix()
+    {
+      const string text = "[[0.0, 0, 0], [0.0, 0, 0], [0.0, 0, 0, 0.0, 0, 0]]";
+      var matrix = AbstractSimulation.ParseMatrix(text);
+      var matrixString = "";
+      foreach (var row in matrix)
+      {
+        foreach(var cell in row)
+        {
+          matrixString += cell + ", ";
+        }
+        matrixString = matrixString.Substring(0, 
+                         matrixString.Length - 2) + "\n";
+      }
+      Console.Write(matrixString);
+    }
+  }
 }
