@@ -8,6 +8,59 @@ using LibOptimization.Optimization;
 
 namespace sensor_positioning
 {
+  /* Recent Changes
+   *
+   * v1.9.1
+   * Fix error in default configuration
+   * Split Update() into multiple methods
+   * v1.9.0
+   * Add option to hide grid
+   * Increase objective performance by removing unnecessary call to check
+   *   if a sensor is inside the given boundaries
+   * v1.8.0
+   * Disable usage of convergence criterion for PSO and ADE
+   * Add objective evaluation count to logging
+   * Add an option to use a dynamic local search space on SPSO-2006
+   * Fix that start position is not updated correctly 
+   * v1.7.2
+   * Parallelize function SensorPositioning.Shadows(sensors)
+   * v1.7.1
+   * Tiny code optimizations
+   * v1.7.0
+   * Add option to initialize and iterate the optimizer every simulation
+   * v1.6.0
+   * Change default Configuration
+   * Add experimental optimizer MinimalPSO
+   * Remove deprecated list of possible optimizers
+   * Add velocity to obstacles
+   * Remove sensor position option from config since it's not working
+   * Add option to draw start positions
+   * Add penalty for distance and rotation to sensor start position
+   * v1.5.1
+   * Restructure SensorPositionObj class
+   * v1.5.0
+   * Fix comma in obstacles not logged correctly
+   * Add option to toggle if changes should be logged or not
+   * Save iterations when global best changes
+   * v1.4.1
+   * Translate LibOptimization to C#
+   * v1.4.0
+   * Add option to hide sensor lines
+   * Change colors of sensors and obstacles
+   * Add functionality to mark important areas with polygons
+   *   -> important areas reduce the fitness function value by their area
+   * Change config attribute names "SizeTeamA", "SizeTeamB"
+   * Add option to set fixed positions for obstacles
+   * Change rendering color to red for sensor area
+   * Fix 'sometimes worse best' in PSO implementation
+   * Test standard PSO 2006 without neighbourhood -> did not work
+   * Fix standard PSO 2007 & 2006 implementation
+   * Render field centered to render area
+   * Test behaviour if fitness does not return +infinity when two sensors
+   *   overlap -> optimization with LibOptimization.PSO is better
+   * Add punishment factor is added to fitness so that sensors are
+   *   getting drawn into the field
+   */
   public class StaticSpSimulation : AbstractSimulation
   {
     public override string GetTitle()
@@ -17,59 +70,6 @@ namespace sensor_positioning
 
     public override string GetMeta()
     {
-      /* Recent Changes
-       *
-       * v1.9.1
-       * Fix error in default configuration
-       * Split Update() into multiple methods
-       * v1.9.0
-       * Add option to hide grid
-       * Increase objective performance by removing unnecessary call to check
-       *   if a sensor is inside the given boundaries
-       * v1.8.0
-       * Disable usage of convergence criterion for PSO and ADE
-       * Add objective evaluation count to logging
-       * Add an option to use a dynamic local search space on SPSO-2006
-       * Fix that start position is not updated correctly 
-       * v1.7.2
-       * Parallelize function SensorPositioning.Shadows(sensors)
-       * v1.7.1
-       * Tiny code optimizations
-       * v1.7.0
-       * Add option to initialize and iterate the optimizer every simulation
-       * v1.6.0
-       * Change default Configuration
-       * Add experimental optimizer MinimalPSO
-       * Remove deprecated list of possible optimizers
-       * Add velocity to obstacles
-       * Remove sensor position option from config since it's not working
-       * Add option to draw start positions
-       * Add penalty for distance and rotation to sensor start position
-       * v1.5.1
-       * Restructure SensorPositionObj class
-       * v1.5.0
-       * Fix comma in obstacles not logged correctly
-       * Add option to toggle if changes should be logged or not
-       * Save iterations when global best changes
-       * v1.4.1
-       * Translate LibOptimization to C#
-       * v1.4.0
-       * Add option to hide sensor lines
-       * Change colors of sensors and obstacles
-       * Add functionality to mark important areas with polygons
-       *   -> important areas reduce the fitness function value by their area
-       * Change config attribute names "SizeTeamA", "SizeTeamB"
-       * Add option to set fixed positions for obstacles
-       * Change rendering color to red for sensor area
-       * Fix 'sometimes worse best' in PSO implementation
-       * Test standard PSO 2006 without neighbourhood -> did not work
-       * Fix standard PSO 2007 & 2006 implementation
-       * Render field centered to render area
-       * Test behaviour if fitness does not return +infinity when two sensors
-       *   overlap -> optimization with LibOptimization.PSO is better
-       * Test behaviour if punishment factor is added to fitness
-       *   -> sensors are getting drawn into the center
-       */
       return "Author: Jakob Rieke; Version v1.9.1; Deterministic: No"; 
     }
     
