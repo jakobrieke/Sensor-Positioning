@@ -333,9 +333,6 @@ namespace Geometry
 
     public Polygon(IEnumerable<Vector2> collection) : base(collection) {}
 
-    public Polygon(int capacity) : base(capacity) {}
-
-    
     public static bool operator ==(Polygon p1, Polygon p2)
     {
       if (p1 is null && p2 is null) return true;
@@ -555,7 +552,7 @@ namespace Geometry
     /// <returns></returns>
     public static double Area(List<Polygon> polygons)
     {
-      return polygons.Sum(polygon => Area(polygon));
+      return polygons.Sum(Area);
     }
 
     /// <summary>
@@ -563,7 +560,7 @@ namespace Geometry
     /// </summary>
     /// <param name="polygon"></param>
     /// <returns></returns>
-    public static List<IntPoint> ToIntPoint(Polygon polygon)
+    private static List<IntPoint> ToIntPoint(Polygon polygon)
     {
       return polygon.Select(vertex => (IntPoint) vertex).ToList();
     }
@@ -573,7 +570,7 @@ namespace Geometry
     /// </summary>
     /// <param name="polygon"></param>
     /// <returns></returns>
-    public static Polygon FromIntPoint(List<IntPoint> polygon)
+    private static Polygon FromIntPoint(List<IntPoint> polygon)
     {
       return new Polygon(polygon.Select(vertex => 
         (Vector2) vertex).ToList());
