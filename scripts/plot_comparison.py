@@ -20,11 +20,14 @@ where each .log file is a structured XML file like:
   - title
   - meta
   - configuration
-  - iteration (i="1, 2, 3, ...")
+  - iteration (i="1")
     - sensors
     - obstacles
     - global-best
     - ?change
+  - iteration (i="5")
+    - ...
+  - iteration (i="...")
   - elapsed-time
   - average-time
 
