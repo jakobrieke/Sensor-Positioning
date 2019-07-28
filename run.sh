@@ -11,34 +11,54 @@ then
   exit
 fi
 
-# -- Setup charlie command and path to simulation
-
-MONO="charlie"
-SIMULATION="/Users/littlebrother/Projects/4-Uni/bachelor/sensor-positioning/bin/Debug/netstandard2.0/publish//sensor-positioning.dll:sensor_positioning.StaticSpSimulation"
-
-MONOSERVER="/usr/bin/mono"
-CHARLIEEXESERVER="/home/pacosy/student01/charlie-v0.2.3/charlie.exe"
-SIMULATIONSERVER="/home/pacosy/student01/sensor-positioning/SensorPositioning.dll:sensor_positioning.StaticSpSimulation"
-
+MONO="/usr/bin/mono"
+CHARLIEEXE="/home/pacosy/student01/charlie-v0.2.3/charlie.exe"
 CHARLIE="$MONO $CHARLIEEXE"
 
-# -- Setup and run configurations
+# Simulation to run
+SIMULATION="/home/pacosy/student01/sim-build-1.7.2/sensor-positioning.dll:sensor_positioning.StaticSpSimulation"
 
-CONFIGTEMPLATE="Zoom = 85
-DrawSensorLines
+CONFIGTEMPLATE="
+# -- Problem configuration
 NumberOfSensors = <i>
 NumberOfObstacles = <j>
-FieldHeight = 9
-FieldWidth = 6
+FieldHeight = 6
+FieldWidth = 9
 PlayerSensorRange = 12
 PlayerSensorFOV = 56.3
 PlayerSize = 0.1555
-Optimizer = <Opt>"
+# ObstaclePositions = [[2, 1]]
+ObstacleVelocity = [0.1, 0.1]
+StartPositionDistanceWeight = 0
+StartPositionRotationWeight = 0
+
+# -- Optimizer configuration
+# The function used to optimize the problem,
+# possible values are:
+# PSO, SPSO-2006, SPSO-2007, SPSO-2011, ADE
+Optimizer = <Opt>
+InitializeEachUpdate
+UpdatesPerIteration = 30
+# DynamicSearchSpaceRange = [0.1, 0.1]
+
+# -- Rendering configuration
+Zoom = 80
+DrawGrid
+DrawSensorLines
+DrawStartPositions
+
+# -- Logging configuration
+LogChanges
+# LogClearText
+LogEvaluations
+LogRoundedPositions"
 
 ITERATIONS=$1
 RUNS=$2
+SensorCount=(1 2 3)
+ObstacleCount=(1 2 3)
 OPTIMIZERS=${@:3}
-OUTPUTDIR="simulation-results"
+OUTPUTDIR="sim-logs"
 
 if [ -d $OUTPUTDIR ]
 then
@@ -57,18 +77,18 @@ mkdir $OUTPUTDIR
 
 for optimizer in ${OPTIMIZERS[*]}
 do
-  for SENSORCOUNTER in {1..1}
+  for i in ${SensorCount[*]}
   do
-    for OBSTACLECOUNTER in {1..1}
+    for j in ${ObstacleCount[*]}
     do
       RESULT="$CONFIGTEMPLATE"
-      RESULT="${RESULT/<i>/$SENSORCOUNTER}"
-      RESULT="${RESULT/<j>/$OBSTACLESCOUNTER}"
+      RESULT="${RESULT/<i>/$i}"
+      RESULT="${RESULT/<j>/$j}"
       RESULT="${RESULT/<Opt>/$optimizer}"
 
-      FILEBASE="$OUTPUTDIR/$optimizer-s$SENSORCOUNTER-o$OBSTACLECOUNTER"
+      FILEBASE="$OUTPUTDIR/$optimizer-s$i-o$j"
       CONFIGFILE="$FILEBASE.config"
-      RESULTDIR="$optimizer-s$SENSORCOUNTER-o$OBSTACLECOUNTER"
+      RESULTDIR="$optimizer-i$ITERATIONS-s$i-o$j"
       echo "$RESULT" > "$CONFIGFILE"
       echo "$FILEBASE"
 
