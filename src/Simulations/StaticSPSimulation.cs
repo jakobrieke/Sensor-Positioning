@@ -164,65 +164,6 @@ namespace sensor_positioning
     private uint _updatesPerIteration;
     private Vector2 _dynamicSearchSpaceRange;
 
-
-    private static double[][] ParseMatrix(string source)
-    {
-      if (string.IsNullOrEmpty(source)) return null;
-      
-      source = source.Replace(" ", "");
-      source = source.Substring(1, source.Length - 2);
-
-      if (source == "") return new double[0][];
-      
-      var positions = Regex.Split(source, "],");
-      var result = new double[positions.Length][];
-      
-      for (var i = 0; i < positions.Length; i++)
-      {
-        var pos = positions[i]
-          .Replace("]", "")
-          .Replace("[", "")
-          .Split(',');
-        result[i] = new double[pos.Length];
-        
-        for (var j = 0; j < pos.Length; j++)
-        {
-          if (float.TryParse(pos[j], out var number)) result[i][j] = number;
-          else return null;
-        }
-      }
-      return result;
-    }
-    
-    private static double[][] GetMatrix(
-      IReadOnlyDictionary<string, string> config, string key)
-    {
-      return config.ContainsKey(key) ? ParseMatrix(config[key]) : null;
-    }
-
-    private static double[] ParseVector(string source)
-    {
-      var pos = source
-        .Replace("]", "")
-        .Replace("[", "")
-        .Split(',');
-      var result = new double[pos.Length];
-        
-      for (var i = 0; i < pos.Length; i++)
-      {
-        if (float.TryParse(pos[i], out var number)) result[i] = number;
-        else return null;
-      }
-
-      return result;
-    }
-
-    private static double[] GetVector(
-      IReadOnlyDictionary<string, string> config, string key)
-    {
-      return config.ContainsKey(key) ? ParseVector(config[key]) : null;
-    }
-    
     public static void TestParseDoubleMatrix()
     {
       const string text = "[[0.0, 0, 0], [0.0, 0, 0], [0.0, 0, 0, 0.0, 0, 0]]";
