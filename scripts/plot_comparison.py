@@ -24,6 +24,7 @@ where each .log file is a structured XML file like:
     - sensors
     - obstacles
     - global-best
+    - ?change
   - elapsed-time
   - average-time
 
