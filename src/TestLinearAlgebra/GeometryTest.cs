@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Geometry;
+using NUnit.Framework;
 
-
+[TestFixture]
 public static class Vector2Test
 {
+  [Test]
   public static void TestGradient()
   {
     Console.WriteLine("Test Vector2.Gradient()");
@@ -32,6 +34,7 @@ public static class Vector2Test
       var r = Vector2.Gradient(v1, test);
       Console.WriteLine("Got: " + r + ", Expected: " + tests[test]);
     }
+    Assert.IsTrue(false);
   }
 }
 
