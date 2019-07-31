@@ -55,6 +55,7 @@ namespace sensor_positioning
     public uint Evaluations { get; private set; }
     public readonly List<Circle> Obstacles = new List<Circle>();
     public readonly List<Polygon> InterestingAreas = new List<Polygon>();
+    public readonly List<Polygon> KnownAreas = new List<Polygon>();
     public readonly Rectangle Field;
     public readonly double FieldWidth;
     public readonly double FieldHeight;
@@ -297,6 +298,11 @@ namespace sensor_positioning
       });
 
       var notPerceptible = NotPerceptible(agents);
+      if (KnownAreas.Count > 0)
+      {
+        notPerceptible = Polygon.Difference(
+          notPerceptible, KnownAreas);
+      }
       var notPerceptibleArea = Polygon.Area(notPerceptible);
 
       if (InterestingAreas.Count > 0)
