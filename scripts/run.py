@@ -49,6 +49,15 @@ sim_path = path.join(
     script_dir,
     "sensor-positioning.dll:sensor_positioning.StaticSpSimulation")
 
+
+def exec_charlie(iterations: int, runs: int, config_file: str, 
+                 result_dir_name: str):
+    command = [
+        charlie_executable, "--run", sim_path, str(iterations), str(runs),
+        config_file, result_dir_name, "&> /dev/null"]
+    Popen(command)
+
+
 # -- Static configurations
 
 static_configurations = [
@@ -141,10 +150,7 @@ for config in static_configurations:
     config_file_handler.write(config_text)
     config_file_handler.close()
 
-    command = [
-        charlie_executable, "--run", sim_path, str(iterations), str(runs),
-        config_file, result_dir_name, "&> /dev/null"]
-    p = Popen(command)
+    exec_charlie(iterations, runs, config_file, result_dir_name)
 
 # -- Dynamic configurations
 
@@ -176,7 +182,4 @@ for config in dynamic_configurations:
     config_file_handler.write(config_text)
     config_file_handler.close()
 
-    command = [
-        charlie_executable, "--run", sim_path, str(iterations), str(runs),
-        config_file, result_dir_name, "&> /dev/null"]
-    p = Popen(command)
+    exec_charlie(iterations, runs, config_file, result_dir_name)
