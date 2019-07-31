@@ -175,7 +175,13 @@ namespace Geometry
       return Math.Sqrt(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2));
     }
 
-    public static double Gradient(Vector2 a, Vector2 b)
+    /// <summary>
+    /// Calculate the angle from a to b between two vectors.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns>An angle in degrees</returns>
+    public static double Angle(Vector2 a, Vector2 b)
     {
       if (b.Y < a.Y)
       {

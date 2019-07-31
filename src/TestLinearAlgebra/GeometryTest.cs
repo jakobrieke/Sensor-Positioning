@@ -8,10 +8,8 @@ using NUnit.Framework;
 public static class Vector2Test
 {
   [Test]
-  public static void TestGradient()
+  public static void TestAngle()
   {
-    Console.WriteLine("Test Vector2.Gradient()");
-
     var v1 = new Vector2(0, 0);
     var tests = new Dictionary<Vector2, double>
     {
@@ -26,15 +24,14 @@ public static class Vector2Test
       {new Vector2(1, -1), 315},
       {new Vector2(.5, Math.Sqrt(3) / 2), 60},
       {new Vector2(-.5, -Math.Sqrt(3) / 2), 240},
-      {new Vector2(Math.Sqrt(3) / 2, -.5), 330},
+      {new Vector2(Math.Sqrt(3) / 2, -.5), 330}
     };
 
-    foreach (var test in tests.Keys)
-    {
-      var r = Vector2.Gradient(v1, test);
-      Console.WriteLine("Got: " + r + ", Expected: " + tests[test]);
+    foreach (var value in tests.Keys)
+    { 
+      var r = Vector2.Angle(v1, value);
+      Assert.IsTrue(Math.Abs(r - tests[value]) < 0.0000000001);
     }
-    Assert.IsTrue(false);
   }
 }
 
@@ -370,7 +367,7 @@ public static class VectorTest
 
   public static void TestAll()
   {
-    Vector2Test.TestGradient();
+    Vector2Test.TestAngle();
     CircleTest.TestExternalTangents();
     CircleTest.TestToPolygon();
     ArcTest.TestToPolygon();

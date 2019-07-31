@@ -35,7 +35,7 @@ namespace sensor_positioning
       s1 = new Segment(tangs[0].End, s1.End);
       s2 = new Segment(tangs[1].End, s2.End);
 
-      var angle = Vector2.Gradient(position, obstacle.Position);
+      var angle = Vector2.Angle(position, obstacle.Position);
       var result = new Polygon {
         s1.Start, s1.End,
         s1.End.Move(angle, d), s2.End.Move(angle, d),
