@@ -268,12 +268,14 @@ namespace sensor_positioning
       else if (optimizerName == "PSO")
         _optimizer = new clsOptPSO(_objective)
         {
+          SwarmSize = 40,
           IsUseCriterion = false,
           InitialPosition = _objective.SearchSpace().RandPos()
         };
       else if (optimizerName == "ADE")
         _optimizer = new OptJADE(_objective)
         {
+          PopulationSize = 20,
           IsUseCriterion = false,
           LowerBounds = _objective.Intervals().Select(i => i[0]).ToArray(),
           UpperBounds = _objective.Intervals().Select(i => i[1]).ToArray()
