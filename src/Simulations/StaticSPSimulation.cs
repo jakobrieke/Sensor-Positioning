@@ -90,7 +90,7 @@ namespace sensor_positioning
              "obstacles since they have a body.\n" +
              "\n" +
              "Known bugs:\n" +
-             "- ";
+             "- Perceptible area is rendered black if polygon is not open";
     }
     
     public override string GetConfig()
