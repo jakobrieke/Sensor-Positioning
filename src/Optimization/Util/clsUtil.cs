@@ -436,8 +436,8 @@ namespace Util
       {
         for (var ii = 0; ii <= temp.Count - 1; ii++)
         {
-          double upper = 0;
-          double lower = 0;
+          double upper;
+          double lower;
           if (UpperBounds[ii] > LowerBounds[ii])
           {
             upper = UpperBounds[ii];
@@ -449,7 +449,8 @@ namespace Util
             lower = UpperBounds[ii];
           }
           else
-            throw new Exception("Error! upper bound and lower bound are same.");
+            throw new Exception(
+              "Error! upper bound and lower bound are equal.");
 
           if (temp[ii] > lower && temp[ii] < upper)
           {
@@ -472,7 +473,7 @@ namespace Util
     public static bool IsExistZeroLength(LoPoint[] points)
     {
       // var isCanCrossover = true;
-      LoVector vec /* TODO Change to default(_) if this is not a reference type */;
+      LoVector vec;
       for (var i = 0; i <= points.Length - 2; i++)
       {
         vec = points[i] - points[i + 1];

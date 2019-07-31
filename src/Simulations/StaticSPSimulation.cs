@@ -272,7 +272,7 @@ namespace sensor_positioning
           InitialPosition = _objective.SearchSpace().RandPos()
         };
       else if (optimizerName == "ADE")
-        _optimizer = new clsOptDEJADE(_objective)
+        _optimizer = new OptJADE(_objective)
         {
           IsUseCriterion = false,
           LowerBounds = _objective.Intervals().Select(i => i[0]).ToArray(),

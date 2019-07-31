@@ -24,7 +24,7 @@ namespace LibOptimization.Optimization
   ///  
   /// Implemented by N.Tomi(tomi.nori+github at gmail.com)
   /// </remarks>
-  public class clsOptDEJADE : AbsOptimization
+  public class OptJADE : AbsOptimization
   {
     // ----------------------------------------------------------------
     // Common parameters
@@ -75,12 +75,12 @@ namespace LibOptimization.Optimization
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="ai_func">Objective Function</param>
+    /// <param name="objective">Objective Function</param>
     /// <remarks>
     /// </remarks>
-    public clsOptDEJADE(AbsObjectiveFunction ai_func)
+    public OptJADE(AbsObjectiveFunction objective)
     {
-      _func = ai_func;
+      _func = objective;
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ namespace LibOptimization.Optimization
         }
 
         // generate population
-        for (var i = 0; i <= PopulationSize - 1; i++)
+        for (var i = 0; i < PopulationSize; i++)
         {
           // initial position
           var array = clsUtil.GenRandomPosition(_func, InitialPosition,
@@ -187,7 +187,7 @@ namespace LibOptimization.Optimization
         var countSuccess = 0;
         
         // Population iteration
-        for (var i = 0; i <= PopulationSize - 1; i++)
+        for (var i = 0; i < PopulationSize; i++)
         {
           // update F
           double f;

@@ -187,7 +187,7 @@ public class TestOptimization
       optimizers.Add(opt);
     }
     {
-      var opt = new clsOptDEJADE(func);
+      var opt = new OptJADE(func);
       optimizers.Add(opt);
     }
     {

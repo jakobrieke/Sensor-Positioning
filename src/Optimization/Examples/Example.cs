@@ -118,7 +118,7 @@ namespace LibOptimization.Examples
       //Evaluate optimization result per 100 iteration
       {
         var opt =
-          new clsOptDEJADE(new clsBenchRosenblock(10));
+          new OptJADE(new clsBenchRosenblock(10));
         opt.Init();
         clsUtil.DebugValue(opt);
 
@@ -132,7 +132,7 @@ namespace LibOptimization.Examples
 
       //Evaluate optimization result per 100 iteration with check my criterion.
       {
-        var opt = new clsOptDEJADE(new clsBenchRosenblock(10))
+        var opt = new OptJADE(new clsBenchRosenblock(10))
         {
           IsUseCriterion = false
         };
@@ -162,7 +162,7 @@ namespace LibOptimization.Examples
       //Set boundary variable.
       //-20<x1<-1, -15<x2<0
       {
-        var opt = new clsOptDEJADE(new clsBenchRosenblock(2))
+        var opt = new OptJADE(new clsBenchRosenblock(2))
         {
           InitialPosition = new double[] {-10, -10},
           LowerBounds = new double[] {-20, -15},
@@ -196,7 +196,7 @@ namespace LibOptimization.Examples
       // 380<=x5<=600
       {
         var func = new MyObjectiveFunction();
-        var opt = new clsOptDEJADE(func)
+        var opt = new OptJADE(func)
         {
           LowerBounds = new double[] {170, 200, 250, 370, 380},
           UpperBounds = new double[] {200, 300, 400, 580, 600}
