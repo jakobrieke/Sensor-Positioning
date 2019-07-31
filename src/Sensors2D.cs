@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Geometry;
 using Vector2 = Geometry.Vector2;
 
@@ -105,12 +106,26 @@ namespace sensor_positioning
         return new List<Polygon> {bounds.ToPolygon()};
 
       var polygons = new List<Polygon>();
+      var visited = 0;
+      var sensorHalfAngle = sensor.Angle / 2;
       foreach (var obstacle in obstacles)
       {
         if (!bounds.Contains(obstacle.Position)) continue;
-
+        if (Vector2.Distance(sensor.Position, obstacle.Position) >=
+            sensor.Radius) continue;
+        // Todo: Fix arc rotation is clockwise, angle anticlockwise
+        // -> use unit circle as reference
+        var angle = 360 - Vector2.Angle(sensor.Position, obstacle.Position);
+        Console.WriteLine("Rotation: " + sensor.Rotation);
+        Console.WriteLine("Alpha: " + (sensor.Rotation + sensorHalfAngle));
+        Console.WriteLine("Beta: " + (sensor.Rotation - sensorHalfAngle));
+        Console.WriteLine("Angle: " + angle);
+        if (sensor.Rotation + sensorHalfAngle < angle
+            && sensor.Rotation - sensorHalfAngle > angle) continue;
+        visited++;
         polygons.Add(CalcBlockedArea(sensor.Position, obstacle, bounds));
       }
+      Console.WriteLine("Visited: " + visited);
 
       // Add the area outside of the sensors area of activity
       polygons.AddRange(Polygon.Difference(
