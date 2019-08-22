@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Geometry;
-using LOMath;
-using sensor_positioning;
-using static Geometry.Vector;
+using LinearAlgebra;
+using LoMath;
+using SensorPositioning;
+using static LinearAlgebra.VectorN;
+using LibOptimization.Optimization;
 
-namespace LibOptimization.Optimization
+namespace Optimization
 {
   /// <summary>
   /// A Particle in terms of Particle Swarm Optimization is a point inside a
@@ -57,62 +58,6 @@ namespace LibOptimization.Optimization
     public List<Particle> Neighbours;
   }
 
-
-  /// <summary>
-  /// A SearchSpace in terms of Particle Swarm Optimization is a n-dimensional
-  /// space with a left and right border for each dimension.
-  /// </summary>
-  public struct SearchSpace
-  {
-    public readonly int Dimensions;
-    public readonly double[][] Intervals;
-
-    public SearchSpace(int dimensions, double size) : this()
-    {
-      Dimensions = dimensions;
-      Intervals = new double[dimensions][];
-
-      for (var i = 0; i < dimensions; i++)
-      {
-        Intervals[i] = new[] {-size, size};
-      }
-    }
-
-    public SearchSpace(int dimensions, double left, double right)
-    {
-      if (left > right)
-      {
-        throw new ArgumentException(
-          "Left border must be greater than right border.");
-      }
-
-      Dimensions = dimensions;
-      Intervals = new double[dimensions][];
-
-      for (var i = 0; i < dimensions; i++)
-      {
-        Intervals[i] = new[] {left, right};
-      }
-    }
-
-    public SearchSpace(double[][] intervals)
-    {
-      Intervals = intervals;
-      Dimensions = intervals.Length;
-    }
-
-    /// <summary>
-    /// Get a random position inside the SearchSpace.
-    /// </summary>
-    /// <returns>
-    /// An array with the same dimension as the SearchSpace.
-    /// </returns>
-    public double[] RandPos()
-    {
-      return Intervals.Select(i => MTRandom.Uniform(i[0], i[1])).ToArray();
-    }
-  }
-
   /// <summary>
   /// A swarm in terms of Particle Swarm Optimization is a set of Particles which
   /// move inside a SearchSpace to find the the minimum of a given fitness
@@ -129,7 +74,7 @@ namespace LibOptimization.Optimization
     public SearchSpace SearchSpace;
     
     /// <summary>
-    /// A function that takes an array of n numbers and returns a single number.
+    /// An objective/goal/fitness function to optimize.
     /// </summary>
     public Func<double[], double> Fitness;
 
@@ -288,7 +233,7 @@ namespace LibOptimization.Optimization
     /// <param name="startVelocity">
     /// An array of initial velocities for each particle.
     /// </param>
-    public void Initialize(double[][] startPosition, double[][] startVelocity)
+    public void Init(double[][] startPosition, double[][] startVelocity)
     {
       Particles = new List<Particle>(startPosition.Length);
 
@@ -322,7 +267,7 @@ namespace LibOptimization.Optimization
       Evaluations = 0;
     }
 
-    public void Initialize(double[][] startPosition)
+    public void Init(double[][] startPosition)
     {
       var startVelocity = new double[startPosition.Length][];
       for (var i = 0; i < startVelocity.Length; i++)
@@ -335,7 +280,7 @@ namespace LibOptimization.Optimization
             SearchSpace.Intervals[j][1] - startPosition[i][j]);
         }
       }
-      Initialize(startPosition, startVelocity);
+      Init(startPosition, startVelocity);
     }
     
     /// <summary>
@@ -345,14 +290,14 @@ namespace LibOptimization.Optimization
     /// A swarm has to be initialized before calling iterateX! on it.
     /// </summary>
     /// <param name="numberOfParticles"></param>
-    public void Initialize(int numberOfParticles = 40)
+    public void Init(int numberOfParticles = 40)
     {
       var startPosition = new double[numberOfParticles][];
       for (var i = 0; i < numberOfParticles; i++)
       {
         startPosition[i] = SearchSpace.RandPos();
       }
-      Initialize(startPosition);
+      Init(startPosition);
     }
 
     private void UpdateParticle(Particle p)
@@ -804,7 +749,7 @@ namespace LibOptimization.Optimization
           startPosition[i] = new double[InitialPosition.Length];
           InitialPosition.CopyTo(startPosition[i], 0);
         }
-        Swarm.Initialize(startPosition);
+        Swarm.Init(startPosition);
         
         foreach (var d in InitialPosition)
         {
@@ -812,7 +757,7 @@ namespace LibOptimization.Optimization
         }
         Console.WriteLine("\b\b");
       }
-      else Swarm.Initialize();
+      else Swarm.Init();
     }
 
     public override bool Iterate(int iteration = 0)
@@ -856,7 +801,7 @@ namespace LibOptimization.Optimization
       _swarm = Pso.SwarmSpso2007(
         new SearchSpace(Bounds), 
         v => ObjectiveFunction.F(v.ToList()));
-      _swarm.Initialize();
+      _swarm.Init();
     }
 
     public override bool Iterate(int iteration = 0)
@@ -901,7 +846,7 @@ namespace LibOptimization.Optimization
         v => ObjectiveFunction.F(v.ToList()));
 //      _swarm.Topology = p => Pso.AdaptiveRandomTopology(p, 3);
       _swarm.Topology = Topology.RingTopology;
-      _swarm.Initialize();
+      _swarm.Init();
     }
 
     public override bool Iterate(int iteration = 0)
@@ -925,108 +870,5 @@ namespace LibOptimization.Optimization
       get => _swarm.Iteration;
       set {}
     }
-  }
-  
-  public class MinimalParticle
-  {
-    public double[] Position;
-    public double[] LastPosition;
-    public double[] PreviousBest;
-    public double[] Velocity;
-  }
-  
-  public class MinimalPso : AbsOptimization
-  {
-    public double W = 0.729; 
-    public double C1 = 1.49445;
-    private double[] _globalBest;
-    private List<MinimalParticle> _particles;
-    public SearchSpace SearchSpace;
-
-    public MinimalPso(AbsObjectiveFunction obj)
-    {
-      ObjectiveFunction = obj;
-    }
-
-    public override void Init()
-    {
-      Init(40);
-    }
-
-    public void Init(int swarmSize)
-    {
-      _particles = new List<MinimalParticle>(swarmSize);
-
-      var bestVal = double.PositiveInfinity;
-      double[] best = null;
-      
-      for (var i = 0; i < swarmSize; i++)
-      {
-        var p = new MinimalParticle
-        {
-          Position = SearchSpace.RandPos(),
-          Velocity = SearchSpace.RandPos(),
-          LastPosition = new double[SearchSpace.Dimensions],
-          PreviousBest = new double[SearchSpace.Dimensions]
-        };
-        p.Position.CopyTo(p.LastPosition, 0);
-        p.Position.CopyTo(p.PreviousBest, 0);
-        _particles.Add(p);
-
-        var partVal = ObjectiveFunction.F(p.Position.ToList());
-        if (partVal < bestVal)
-        {
-          bestVal = partVal; 
-          best = p.Position;
-        }
-      }
-      _globalBest = new double[SearchSpace.Dimensions];
-      best.CopyTo(_globalBest, 0);
-    }
-
-    public override bool Iterate(int iteration = 0)
-    {
-      var bestVal = ObjectiveFunction.F(_globalBest.ToList());
-      double[] best = null;
-      
-      foreach (var p in _particles)
-      {
-        p.Position.CopyTo(p.LastPosition, 0);
-        
-        for (var i = 0; i < p.Velocity.Length; i++)
-        {
-          p.Velocity[i] = 
-            W * p.Velocity[i] + 
-            MTRandom.Uniform(0, C1) * 
-            (p.PreviousBest[i] - p.Position[i]) + 
-            MTRandom.Uniform(0, C1) * 
-            (_globalBest[i] - p.Position[i]);
-          p.Position[i] += p.Velocity[i];
-        }
-
-        var partVal = ObjectiveFunction.F(p.Position.ToList());
-        var preVal = ObjectiveFunction.F(p.PreviousBest.ToList());
-
-        if (partVal < preVal) p.Position.CopyTo(p.PreviousBest, 0);
-        if (partVal < bestVal)
-        {
-          bestVal = partVal;
-          best = p.Position;
-        }
-      }
-      
-      best.CopyTo(_globalBest, 0);
-
-      return false;
-    }
-
-    public override LoPoint Result => new LoPoint(ObjectiveFunction, _globalBest);
-    public override List<LoPoint> Results { get; }
-    public override bool IsRecentError()
-    {
-      return false;
-    }
-
-    public override int Iteration { get; set; }
   }
 }

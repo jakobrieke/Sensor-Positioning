@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static System.Math;
 
-namespace LibOptimization.Optimization
+namespace Optimization
 {
     public static class OptimizationFct
     {

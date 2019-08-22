@@ -2,7 +2,7 @@ using System;
 using System.Security.Cryptography;
 using MersenneTwister;
 
-namespace LibOptimization.Optimization
+namespace Optimization
 {
   public static class MTRandom
   {
