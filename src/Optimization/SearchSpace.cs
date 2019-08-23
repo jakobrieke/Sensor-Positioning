@@ -10,21 +10,21 @@ namespace Optimization
   /// </summary>
   public struct SearchSpace
   {
-    public readonly int Dimensions;
+    public readonly int Dimension;
     public readonly double[][] Intervals;
 
-    public SearchSpace(int dimensions, double size) : this()
+    public SearchSpace(int dimension, double size) : this()
     {
-      Dimensions = dimensions;
-      Intervals = new double[dimensions][];
+      Dimension = dimension;
+      Intervals = new double[dimension][];
 
-      for (var i = 0; i < dimensions; i++)
+      for (var i = 0; i < dimension; i++)
       {
         Intervals[i] = new[] {-size, size};
       }
     }
 
-    public SearchSpace(int dimensions, double left, double right)
+    public SearchSpace(int dimension, double left, double right)
     {
       if (left > right)
       {
@@ -32,10 +32,10 @@ namespace Optimization
           "Left border must be greater than right border.");
       }
 
-      Dimensions = dimensions;
-      Intervals = new double[dimensions][];
+      Dimension = dimension;
+      Intervals = new double[dimension][];
 
-      for (var i = 0; i < dimensions; i++)
+      for (var i = 0; i < dimension; i++)
       {
         Intervals[i] = new[] {left, right};
       }
@@ -44,7 +44,7 @@ namespace Optimization
     public SearchSpace(double[][] intervals)
     {
       Intervals = intervals;
-      Dimensions = intervals.Length;
+      Dimension = intervals.Length;
     }
 
     /// <summary>

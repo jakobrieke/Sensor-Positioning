@@ -5,7 +5,7 @@ using static System.Math;
 
 namespace Optimization
 {
-    public static class OptimizationFct
+    public static class OptimizationFcts
     {
         public const double SPHERE_FCT_OPT = 0; 
         public const double MC_CORMICK_FCT_OPT = -1.9133; 

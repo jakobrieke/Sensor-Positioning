@@ -3,6 +3,7 @@ using System.Linq;
 
 namespace LinearAlgebra
 {
+  [Obsolete("Use Vector instead",false)]
   public class VectorN
   {
     public static double[] Multiply(double[] vector, double x)

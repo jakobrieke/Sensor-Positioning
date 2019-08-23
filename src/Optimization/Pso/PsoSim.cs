@@ -100,11 +100,11 @@ namespace Optimization
       var possibleValues = new Dictionary<string,
         Func<double[], double>>
       {
-        {"SphereFct", OptimizationFct.SphereFct},
-        {"McCormick", OptimizationFct.McCormickFct},
-        {"HimmelblauFct", OptimizationFct.HimmelblauFct},
-        {"ThreeHumpCamel", OptimizationFct.ThreeHumpCamelFct},
-        {"HoelderTable", OptimizationFct.HoelderTableFct}
+        {"SphereFct", OptimizationFcts.SphereFct},
+        {"McCormick", OptimizationFcts.McCormickFct},
+        {"HimmelblauFct", OptimizationFcts.HimmelblauFct},
+        {"ThreeHumpCamel", OptimizationFcts.ThreeHumpCamelFct},
+        {"HoelderTable", OptimizationFcts.HoelderTableFct}
       };
       var fct = GetAnyOf(config, "Function", possibleValues, "HimmelblauFct");
       var swarmSize = GetInt(config, "SwarmSize", 40);

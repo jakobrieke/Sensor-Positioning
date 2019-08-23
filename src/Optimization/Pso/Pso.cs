@@ -242,10 +242,10 @@ namespace Optimization
         var particle = new Particle
         {
           Position = startPosition[i],
-          LastPosition = new double[SearchSpace.Dimensions],
+          LastPosition = new double[SearchSpace.Dimension],
           Velocity = startVelocity[i],
-          PreviousBest = new double[SearchSpace.Dimensions],
-          LocalBest = new double[SearchSpace.Dimensions]
+          PreviousBest = new double[SearchSpace.Dimension],
+          LocalBest = new double[SearchSpace.Dimension]
         };
 
         particle.PositionValue = Fitness(particle.Position);
@@ -272,8 +272,8 @@ namespace Optimization
       var startVelocity = new double[startPosition.Length][];
       for (var i = 0; i < startVelocity.Length; i++)
       {
-        startVelocity[i] = new double[SearchSpace.Dimensions];
-        for (var j = 0; j < SearchSpace.Dimensions; j++)
+        startVelocity[i] = new double[SearchSpace.Dimension];
+        for (var j = 0; j < SearchSpace.Dimension; j++)
         {
           startVelocity[i][j] = MTRandom.Uniform(
             SearchSpace.Intervals[j][0] - startPosition[i][j],
@@ -743,8 +743,8 @@ namespace Optimization
     {
       if (InitialPosition != null)
       {
-        var startPosition = new double[Swarm.SearchSpace.Dimensions][];
-        for (var i = 0; i < Swarm.SearchSpace.Dimensions; i++)
+        var startPosition = new double[Swarm.SearchSpace.Dimension][];
+        for (var i = 0; i < Swarm.SearchSpace.Dimension; i++)
         {
           startPosition[i] = new double[InitialPosition.Length];
           InitialPosition.CopyTo(startPosition[i], 0);

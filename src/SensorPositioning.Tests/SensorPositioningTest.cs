@@ -56,7 +56,7 @@ namespace SensorPositioning
       Console.WriteLine("- {0}, {1}, {2}, {3}",
         0, obj.Normalize(sw.GlobalBestValue), clock.ElapsedMilliseconds, 0);
 
-      var last = new double[sw.SearchSpace.Dimensions];
+      var last = new double[sw.SearchSpace.Dimension];
       sw.GlobalBest.CopyTo(last, 0);
       var totalDistance = 0.0;
       double distance;
