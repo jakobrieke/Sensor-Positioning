@@ -1,27 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
-<!--        <TargetFramework>netcoreapp2.2</TargetFramework>-->
-        <RootNamespace>sensor_positioning</RootNamespace>
+<!--        <TargetFramework>netstandard2.0</TargetFramework>-->
+        <TargetFramework>netcoreapp2.2</TargetFramework>
         <PlatformTarget>AnyCPU</PlatformTarget>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     
     <ItemGroup>
         <PackageReference Include="cairosharp" Version="3.22.24.37" />
-        <PackageReference Include="GtkSharp" Version="3.22.24.37" />
         <PackageReference Include="MersenneTwister" Version="1.0.6" />
     </ItemGroup>
     
     <ItemGroup>
         <PackageReference Include="nunit" Version="3.11.0" />
-        <PackageReference Include="NUnit3TestAdapter" Version="3.12.0" />
+        <PackageReference Include="NUnit3TestAdapter" Version="3.11.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
     </ItemGroup>
     
     <ItemGroup>
-      <Compile Remove="src\Simulations\DynamicSPSimulation.cs" />
+      <Compile Remove="src\Optimization.Tests\PsoTest.cs" />
+      <Compile Remove="src\SensorPositioning\DynamicSPSimulation.cs" />
     </ItemGroup>
     
 </Project>
