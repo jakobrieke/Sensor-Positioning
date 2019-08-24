@@ -10,15 +10,16 @@ namespace LibOptimization.Optimization
   /// <remarks></remarks>
   public class LoPoint : LoVector, IComparable
   {
-    // TODO Change to default(_) if this is not a reference type
     private AbsObjectiveFunction _func;
     private double _evaluatedValue;
 
-    /// <summary>
-    /// Default constructor
-    /// </summary>
-    /// <remarks></remarks>
-    private LoPoint() {}
+    public LoPoint(AbsObjectiveFunction func, IReadOnlyCollection<double> vars,
+      double value)
+    {
+      _func = func;
+      _evaluatedValue = value;
+      AddRange(vars);
+    }
 
     /// <summary>
     /// Create a copy of a point.
@@ -86,25 +87,25 @@ namespace LibOptimization.Optimization
     /// <summary>
     /// Compare(ICompareble)
     /// </summary>
-    /// <param name="ai_obj"></param>
+    /// <param name="obj"></param>
     /// <returns></returns>
     /// <remarks>
     /// larger Me than obj is -1. smaller Me than obj is 1.
     /// Equal is return to Zero
     /// </remarks>
-    public int CompareTo(object ai_obj)
+    public int CompareTo(object obj)
     {
       // Nothing check
-      if (ai_obj == null)
+      if (obj == null)
         return 1;
 
       // Type check
-      if (GetType() != ai_obj.GetType())
+      if (GetType() != obj.GetType())
         throw new ArgumentException("Different type", "obj");
 
       // Compare
       var mineValue = Eval;
-      var compareValue = ((LoPoint) ai_obj).Eval;
+      var compareValue = ((LoPoint) obj).Eval;
       
       if (mineValue < compareValue) return -1;
       
@@ -141,14 +142,14 @@ namespace LibOptimization.Optimization
     /// <summary>
     /// Init
     /// </summary>
-    /// <param name="ai_range">-ai_range to ai_range</param>
-    /// <param name="ai_rand">Random object</param>
+    /// <param name="range">-ai_range to ai_range</param>
+    /// <param name="rand">Random object</param>
     /// <remarks></remarks>
-    public void InitValue(double ai_range, Random ai_rand)
+    public void InitValue(double range, Random rand)
     {
       for (var i = 0; i <= _func.Dimension() - 1; i++)
       {
-        Add(Math.Abs(2.0 * ai_range) * ai_rand.NextDouble() - ai_range);
+        Add(Math.Abs(2.0 * range) * rand.NextDouble() - range);
       }
     }
 
@@ -165,15 +166,15 @@ namespace LibOptimization.Optimization
     /// <summary>
     /// Copy clsPoint
     /// </summary>
-    /// <param name="ai_point"></param>
+    /// <param name="point"></param>
     /// <remarks></remarks>
-    public void CopyFrom(LoPoint ai_point)
+    public void CopyFrom(LoPoint point)
     {
-      for (var i = 0; i <= ai_point.Count - 1; i++)
+      for (var i = 0; i <= point.Count - 1; i++)
       {
-        this[i] = ai_point[i];
+        this[i] = point[i];
       }
-      _evaluatedValue = ai_point.Eval;
+      _evaluatedValue = point.Eval;
     }
   }
 }

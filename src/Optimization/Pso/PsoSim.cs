@@ -7,7 +7,7 @@ namespace Optimization
 { 
   public class PsoSimulation : AbstractSimulation
   {
-    private Swarm _swarm;
+    private ParticleSwarm _swarm;
     private int _xOffset;
     private int _yOffset;
     private double _size;
@@ -56,7 +56,7 @@ namespace Optimization
         values[i] = new double[_rasterSize];
         for (var j = 0; j < values[i].Length; j++)
         {
-          var value = _swarm.Fitness(new[]
+          var value = _swarm.Fitness.Eval(new[]
           {
             _gridSize * i + distanceToCenter - _size / 2,
             _gridSize * j + distanceToCenter - _size / 2
@@ -110,7 +110,7 @@ namespace Optimization
       var swarmSize = GetInt(config, "SwarmSize", 40);
       
       var sp = new SearchSpace(2, _size / 2);
-      _swarm = Pso.SwarmSpso2006(sp, fct);
+      _swarm = new StandardPso2006(sp, fct);
       _swarm.Init(swarmSize);
 
       RasterFunction();

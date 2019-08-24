@@ -211,8 +211,7 @@ namespace LibOptimization.Optimization
 
           // pick pBest
           LoPoint pBest;
-          var pBestIndex =
-            Convert.ToInt32(PopulationSize * Random.NextDouble());
+          var pBestIndex = Convert.ToInt32(PopulationSize * Random.NextDouble());
           if (pBestIndex <= 2)
           {
             pBest = Random.NextDouble() > 0.5 ? _population[0] : _population[1];

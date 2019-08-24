@@ -8,16 +8,16 @@ namespace Optimization
   {
     private static void RunTest(Jade jade, double expected)
     {
-      Console.WriteLine($"i = 0, best = {jade.GetBest().Value}");
+      Console.WriteLine($"i = 0, best = {jade.Best().Value}");
       
       for (var i = 0; i < 500; i++)
       {
-        jade.Update();
+        jade.Iterate();
       }
       
-      Console.WriteLine($"i = 500, best = {jade.GetBest().Value}");
+      Console.WriteLine($"i = 500, best = {jade.Best().Value}");
       Console.WriteLine($"Expected: {expected}");
-      Assert.True(jade.GetBest().Value <= expected);
+      Assert.True(jade.Best().Value <= expected);
     }
     
     [Test] public static void TestInit()

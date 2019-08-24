@@ -30,13 +30,13 @@ namespace Optimization
 
       var particles = new List<Particle> {p1, p2, p3};
 
-      var r1 = Swarm.ArgMin(particles).Position
+      var r1 = ParticleSwarm.ArgMin(particles).Position
         .SequenceEqual(new[] {0.0, 0, 0});
 
       p2.Position[2] = 5f;
       updateValue(p2);
 
-      var r2 = Swarm.ArgMin(particles).Position
+      var r2 = ParticleSwarm.ArgMin(particles).Position
         .SequenceEqual(new[] {1.5, 1.5, 1.5});
 
       Assert.True(r1 && r2);
@@ -77,7 +77,7 @@ namespace Optimization
       Assert.IsTrue(result, "Test Initialize failed");
     }
 
-    private static void TestPso(string title, Swarm swarm,
+    private static void TestPso(string title, ParticleSwarm swarm,
       double expectation, int iterations = 100)
     {
       swarm.Init();

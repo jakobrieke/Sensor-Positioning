@@ -10,7 +10,6 @@ namespace LibOptimization.Optimization
     /// <remarks></remarks>
     public abstract class AbsOptimization
     {
-        /* TODO Change to default(_) if this is not a reference type */
         /// <summary>Objective function</summary>
         protected AbsObjectiveFunction _func;
 

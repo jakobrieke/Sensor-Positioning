@@ -244,29 +244,27 @@ namespace SensorPositioning
       
       if (optimizerName == "SPSO-2006")
       {
-        var swarm = Pso.SwarmSpso2006(_objective.SearchSpace(),
-          x => _objective.F(x.ToList()));
-        _optimizer = new SPSO2006(swarm, _objective);
-        
+        _optimizer = new Spso2006Wrapper(_objective, _objective.Intervals());
       }
       else if (optimizerName == "SPSO-2007")
-        _optimizer = new SPSO2007(_objective)
-        {
-          Bounds = _objective.Intervals()
-        };
+      {
+        _optimizer = new Spso2007Wrapper(_objective, _objective.Intervals());
+      }
       else if (optimizerName == "SPSO-2011")
-        _optimizer =  new SPSO2011(_objective)
-        {
-          Bounds = _objective.Intervals()
-        };
+      {
+        _optimizer =  new Spso2011Wrapper(_objective, _objective.Intervals());
+      }
       else if (optimizerName == "PSO")
+      {
         _optimizer = new clsOptPSO(_objective)
         {
           SwarmSize = 40,
           IsUseCriterion = false,
           InitialPosition = _objective.SearchSpace().RandPos()
         };
+      }
       else if (optimizerName == "ADE")
+      {
         _optimizer = new OptJADE(_objective)
         {
           PopulationSize = 40,
@@ -274,6 +272,11 @@ namespace SensorPositioning
           LowerBounds = _objective.Intervals().Select(i => i[0]).ToArray(),
           UpperBounds = _objective.Intervals().Select(i => i[1]).ToArray()
         };
+      }
+//      else if (optimizerName == "JADE")
+//      {
+//        _optimizer = new Jade(_objective, _objective.SearchSpace());
+//      }
       else
       {
         throw new Exception($"Optimizer {optimizerName} is not supported");
@@ -329,10 +332,10 @@ namespace SensorPositioning
       var lastBest = _optimizer.Result.Eval;
       _objective.StartPosition = _sensors;
       
-      if (_optimizer.GetType() == typeof(SPSO2006) 
+      if (_optimizer.GetType() == typeof(Spso2006Wrapper) 
           && _dynamicSearchSpaceRange != Vector2.Zero)
       {
-        var pso = (SPSO2006) _optimizer;
+        var pso = (Spso2006Wrapper) _optimizer;
         var intervals = pso.Swarm.SearchSpace.Intervals;
         for (var i = 0; i < intervals.Length; i += 3)
         {

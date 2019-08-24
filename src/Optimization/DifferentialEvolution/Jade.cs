@@ -68,7 +68,7 @@ namespace Optimization
       return values.Sum(x => Pow(x, 2)) / values.Sum();
     }
 
-    public override void Update()
+    public override void Iterate()
     {
       // Generate CR
       for (var i = 0; i < CR.Count; i++) CR[i] = RandN(µCr);
@@ -136,7 +136,7 @@ namespace Optimization
 //      base.Update();
     }
 
-    public Point GetBest()
+    public override Point Best()
     {
       return Population[0];
     }

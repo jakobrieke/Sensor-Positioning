@@ -53,7 +53,7 @@ namespace Optimization
       Init(40);
     }
 
-    public override void Update()
+    public override void Iterate()
     {
       Mutation();
       Crossover();

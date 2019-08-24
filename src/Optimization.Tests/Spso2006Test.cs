@@ -5,7 +5,7 @@ namespace Optimization
 {
   [TestFixture] public class Spso2006Test
   {
-    private static void RunTest(Swarm pso, double expected)
+    private static void RunTest(ParticleSwarm pso, double expected)
     {
       Console.WriteLine($"i = 0, best = {pso.GlobalBestValue}");
       
@@ -24,7 +24,7 @@ namespace Optimization
       var obj = new SphereFunction();
       var sp = new SearchSpace(5, 100);
 
-      var pso = Pso.SwarmSpso2006(sp, obj);
+      var pso = new StandardPso2006(sp, obj);
       pso.Init(40);
       
       RunTest(pso, 9E-17);
@@ -35,7 +35,7 @@ namespace Optimization
       var obj = new F2();
       var sp = new SearchSpace(5, 10);
       
-      var pso = Pso.SwarmSpso2006(sp, obj);
+      var pso = new StandardPso2006(sp, obj);
       pso.Init(40);
       
       RunTest(pso, 3E-09);
@@ -46,7 +46,7 @@ namespace Optimization
       var obj = new F3();
       var sp = new SearchSpace(5, 100);
       
-      var pso = Pso.SwarmSpso2006(sp, obj);
+      var pso = new StandardPso2006(sp, obj);
       pso.Init(40);
       
       RunTest(pso, 2E-12);
