@@ -25,7 +25,7 @@ namespace LibOptimization.Optimization
         // Common parameters
         // ----------------------------------------------------------------
         /// <summary>Max iteration count</summary>
-        public override int Iteration { get; set; } = 50000;
+        public override int MaxIterations { get; set; } = 50000;
 
         /// <summary>
         ///         ''' epsilon(Default:1e-8) for Criterion
@@ -111,10 +111,10 @@ namespace LibOptimization.Optimization
         /// <summary>
         ///         ''' Do Iteration
         ///         ''' </summary>
-        ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
+        ///         ''' <param name="iterations">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool Iterate(int iteration = 0)
+        public override bool Iterate(int iterations = 0)
         {
             // Check Last Error
             if (IsRecentError())
@@ -127,10 +127,10 @@ namespace LibOptimization.Optimization
             var sigma = Math.Pow((Gamma(1 + Beta) * Math.Sin(Math.PI * Beta / 2) / (Gamma((1 + Beta) / 2) * Beta * Math.Pow(2, ((Beta - 1) / 2)))), (1 / Beta));
 
             // Do Iterate
-            if (Iteration <= _iteration)
+            if (MaxIterations <= _iteration)
                 return true;
-            iteration = iteration == 0 ? Iteration - _iteration - 1 : Math.Min(iteration, Iteration - _iteration) - 1;
-            for (var iterate = 0; iterate <= iteration; iterate++)
+            iterations = iterations == 0 ? MaxIterations - _iteration - 1 : Math.Min(iterations, MaxIterations - _iteration) - 1;
+            for (var iterate = 0; iterate <= iterations; iterate++)
             {
                 // Counting generation
                 _iteration += 1;
@@ -169,13 +169,13 @@ namespace LibOptimization.Optimization
 
                 // Find current best
                 var candidateBest = newNests[clsUtil.FindCurrentIndex(newNests)];
-                if (candidateBest.Eval < m_currentBest.Eval)
+                if (candidateBest.Value < m_currentBest.Value)
                     m_currentBest = candidateBest.Copy();
 
                 // replace
                 for (var i = 0; i <= PopulationSize - 1; i++)
                 {
-                    if (newNests[i].Eval < m_nests[i].Eval)
+                    if (newNests[i].Value < m_nests[i].Value)
                         m_nests[i] = newNests[i];
                 }
 
@@ -199,13 +199,13 @@ namespace LibOptimization.Optimization
 
                 // Find current best
                 candidateBest = newNests[clsUtil.FindCurrentIndex(newNests)];
-                if (candidateBest.Eval < m_currentBest.Eval)
+                if (candidateBest.Value < m_currentBest.Value)
                     m_currentBest = candidateBest.Copy();
 
                 // replace
                 for (var i = 0; i <= PopulationSize - 1; i++)
                 {
-                    if (newNests[i].Eval < m_nests[i].Eval)
+                    if (newNests[i].Value < m_nests[i].Value)
                         m_nests[i] = newNests[i];
                 }
             }

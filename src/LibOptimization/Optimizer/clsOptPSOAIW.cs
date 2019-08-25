@@ -19,7 +19,7 @@ namespace LibOptimization.Optimization
     public class clsOptPSOAIW : AbsOptimization
     {
         /// <summary>Max iteration count(Default:20,000)</summary>
-        public override int Iteration { get; set; } = 20000;
+        public override int MaxIterations { get; set; } = 20000;
 
         /// <summary>Epsilon(Default:0.000001) for Criterion</summary>
         public double EPS { get; set; } = 0.000001; // 1e-6
@@ -117,21 +117,21 @@ namespace LibOptimization.Optimization
         /// <summary>
         ///         ''' Do optimize
         ///         ''' </summary>
-        ///         ''' <param name="iteration"></param>
+        ///         ''' <param name="iterations"></param>
         ///         ''' <returns></returns>
         ///         ''' <remarks></remarks>
-        public override bool Iterate(int iteration = 0)
+        public override bool Iterate(int iterations = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
                 return true;
 
             // do iterate
-            if (this.Iteration <= _iteration)
+            if (this.MaxIterations <= _iteration)
                 return true;
             else
-                iteration = iteration == 0 ? Iteration - _iteration - 1 : Math.Min(iteration, Iteration - _iteration) - 1;
-            for (int iterate = 0; iterate <= iteration; iterate++)
+                iterations = iterations == 0 ? MaxIterations - _iteration - 1 : Math.Min(iterations, MaxIterations - _iteration) - 1;
+            for (int iterate = 0; iterate <= iterations; iterate++)
             {
                 // Counting generation
                 _iteration += 1;
@@ -163,13 +163,13 @@ namespace LibOptimization.Optimization
                     particle.Point.ReEvaluate();
 
                     // replace personal best
-                    if (particle.Point.Eval < particle.BestPoint.Eval)
+                    if (particle.Point.Value < particle.BestPoint.Value)
                     {
                         particle.BestPoint = particle.Point.Copy();
                         replaceBestCount += 1; // for AIWPSO
 
                         // replace global best
-                        if (particle.Point.Eval < this.m_globalBest.Eval)
+                        if (particle.Point.Value < this.m_globalBest.Value)
                             this.m_globalBest = particle.Point.Copy();
                     }
                 }
@@ -207,12 +207,12 @@ namespace LibOptimization.Optimization
             {
                 // find best index
                 int bestIndex = 0;
-                var bestEval = this.m_swarm[0].BestPoint.Eval;
+                var bestEval = this.m_swarm[0].BestPoint.Value;
                 for (var i = 0; i <= this.m_swarm.Count - 1; i++)
                 {
-                    if (this.m_swarm[i].BestPoint.Eval < bestEval)
+                    if (this.m_swarm[i].BestPoint.Value < bestEval)
                     {
-                        bestEval = this.m_swarm[i].BestPoint.Eval;
+                        bestEval = this.m_swarm[i].BestPoint.Value;
                         bestIndex = i;
                     }
                 }

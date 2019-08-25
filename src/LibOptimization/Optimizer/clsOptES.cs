@@ -22,7 +22,7 @@ namespace LibOptimization.Optimization
         // Common parameters
         // ----------------------------------------------------------------
         /// <summary>Max Iteration</summary>
-        public override int Iteration { get; set; } = 50000;
+        public override int MaxIterations { get; set; } = 50000;
 
         /// <summary>epsilon(Default:1e-8) for Criterion</summary>
         public double EPS { get; set; } = 0.000000001;
@@ -133,10 +133,10 @@ namespace LibOptimization.Optimization
         /// <summary>
         ///         ''' Do Iteration
         ///         ''' </summary>
-        ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
+        ///         ''' <param name="iterations">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool Iterate(int iteration = 0)
+        public override bool Iterate(int iterations = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
@@ -146,11 +146,11 @@ namespace LibOptimization.Optimization
             var n = this._func.Dimension() * 10.0;
 
             // Do Iterate
-            if (this.Iteration <= _iteration)
+            if (this.MaxIterations <= _iteration)
                 return true;
             else
-                iteration = iteration == 0 ? Iteration - _iteration - 1 : Math.Min(iteration, Iteration - _iteration) - 1;
-            for (int iterate = 0; iterate <= iteration; iterate++)
+                iterations = iterations == 0 ? MaxIterations - _iteration - 1 : Math.Min(iterations, MaxIterations - _iteration) - 1;
+            for (int iterate = 0; iterate <= iterations; iterate++)
             {
                 // Counting generation
                 _iteration += 1;
@@ -176,9 +176,9 @@ namespace LibOptimization.Optimization
                 child.ReEvaluate();
 
                 // check best
-                if (child.Eval < _populations[0].Eval)
+                if (child.Value < _populations[0].Value)
                 {
-                    _recentResult = _populations[0].Eval;
+                    _recentResult = _populations[0].Value;
                     _populations[0] = child;
                     _successMutate.Enqueue(1);
                 }

@@ -4,7 +4,7 @@ using LinearAlgebra;
 
 namespace Optimization
 {
-  public abstract class DifferentialEvolution : OptimizationAlgorithm
+  public abstract class DifferentialEvolution : Optimization
   {
     public uint Generation { get; private set; }
     
@@ -24,13 +24,14 @@ namespace Optimization
     public int RandomSeed = 1234;
     public Random Rand;
 
-    public DifferentialEvolution(ObjectiveFunction fitness, 
+    public DifferentialEvolution(Objective fitness, 
       SearchSpace searchSpace) : base(fitness, searchSpace)
     {
     }
 
     public virtual void Init(int populationSize)
     {
+      ResetIterations();
       Generation = 0;
       Population = new List<Point>(populationSize);
       CR = new List<double>(populationSize);
@@ -53,7 +54,7 @@ namespace Optimization
       Init(40);
     }
 
-    public override void Iterate()
+    public override void Update()
     {
       Mutation();
       Crossover();

@@ -23,7 +23,7 @@ namespace Optimization
     public double µCr { get; private set; }
     public double µF { get; private set; }
 
-    public Jade(ObjectiveFunction fitness, SearchSpace searchSpace) :
+    public Jade(Objective fitness, SearchSpace searchSpace) :
       base(fitness, searchSpace)
     {
     }
@@ -68,7 +68,7 @@ namespace Optimization
       return values.Sum(x => Pow(x, 2)) / values.Sum();
     }
 
-    public override void Iterate()
+    public override void Update()
     {
       // Generate CR
       for (var i = 0; i < CR.Count; i++) CR[i] = RandN(µCr);

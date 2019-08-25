@@ -27,7 +27,7 @@ namespace LibOptimization.Optimization
     public class clsOptSteepestDescent : AbsOptimization
     {
         /// <summary>Max iteration count</summary>
-        public override int Iteration { get; set; } = 10000;
+        public override int MaxIterations { get; set; } = 10000;
 
         /// <summary>Epsilon(Default:1e-8) for Criterion</summary>
         public double EPS { get; set; } = 0.00000001;
@@ -84,10 +84,10 @@ namespace LibOptimization.Optimization
         /// <summary>
         ///         ''' Do Iteration
         ///         ''' </summary>
-        ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
+        ///         ''' <param name="iterations">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool Iterate(int iteration = 0)
+        public override bool Iterate(int iterations = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
@@ -95,11 +95,11 @@ namespace LibOptimization.Optimization
 
             // Do Iterate
             LoVector grad = new LoVector(base._func.Dimension());
-            if (this.Iteration <= _iteration)
+            if (this.MaxIterations <= _iteration)
                 return true;
             else
-                iteration = iteration == 0 ? Iteration - _iteration - 1 : Math.Min(iteration, Iteration - _iteration) - 1;
-            for (int iterate = 0; iterate <= iteration; iterate++)
+                iterations = iterations == 0 ? MaxIterations - _iteration - 1 : Math.Min(iterations, MaxIterations - _iteration) - 1;
+            for (int iterate = 0; iterate <= iterations; iterate++)
             {
                 // Counting generation
                 _iteration += 1;

@@ -71,7 +71,7 @@ namespace LibOptimization.Examples
       var func = new clsBenchRosenblock(2);
       var opt = new clsOptHillClimbing(func);
       opt.InitialPosition = new[] {10.0, -10.0};
-      opt.Iteration = 10;
+      opt.MaxIterations = 10;
       //opt.IsUseCriterion = false;
       opt.Init();
       opt.Count = 0;
@@ -114,7 +114,7 @@ namespace LibOptimization.Examples
 
       // Evaluate optimization result per 100 iteration
       
-      var opt3 = new OptJADE(new clsBenchRosenblock(10));
+      var opt3 = new clsJADE(new clsBenchRosenblock(10));
       opt3.Init();
       clsUtil.DebugValue(opt3);
 
@@ -127,7 +127,7 @@ namespace LibOptimization.Examples
 
       // -- Evaluate optimization result per 100 iteration with check my criterion.
       
-      var opt4 = new OptJADE(new clsBenchRosenblock(10))
+      var opt4 = new clsJADE(new clsBenchRosenblock(10))
       {
         IsUseCriterion = false
       };
@@ -140,7 +140,7 @@ namespace LibOptimization.Examples
       //do optimization!
       while (opt4.Iterate(100) == false)
       {
-        var eval = opt4.Result.Eval;
+        var eval = opt4.Result.Value;
 
         //my criterion
         if (eval < 0.01)
@@ -156,7 +156,7 @@ namespace LibOptimization.Examples
       // -- Test set boundary variable.
       
       // -20<x1<-1, -15<x2<0
-      var opt5 = new OptJADE(new clsBenchRosenblock(2))
+      var opt5 = new clsJADE(new clsBenchRosenblock(2))
       {
         InitialPosition = new double[] {-10, -10},
         LowerBounds = new double[] {-20, -15},
@@ -170,7 +170,7 @@ namespace LibOptimization.Examples
       //do optimization!
       while (opt5.Iterate(100) == false)
       {
-        var eval = opt5.Result.Eval;
+        var eval = opt5.Result.Value;
 
         //my criterion
         if (eval < 0.01)
@@ -190,7 +190,7 @@ namespace LibOptimization.Examples
       // 380<=x5<=600
       
       var func3 = new MyObjectiveFunction();
-      var opt6 = new OptJADE(func3)
+      var opt6 = new clsJADE(func3)
       {
         LowerBounds = new double[] {170, 200, 250, 370, 380},
         UpperBounds = new double[] {200, 300, 400, 580, 600}
@@ -213,7 +213,7 @@ namespace LibOptimization.Examples
       // Do optimization!
       while (opt6.Iterate(100) == false)
       {
-        var eval = opt6.Result.Eval;
+        var eval = opt6.Result.Value;
 
         // My criterion
         if (eval < 0.01)
@@ -221,7 +221,7 @@ namespace LibOptimization.Examples
           break;
         }
 
-        Console.WriteLine("Eval:{0}", opt6.Result.Eval);
+        Console.WriteLine("Eval:{0}", opt6.Result.Value);
       }
 
       clsUtil.DebugValue(opt6);

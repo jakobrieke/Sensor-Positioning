@@ -24,13 +24,14 @@ namespace LibOptimization.Optimization
   ///  
   /// Implemented by N.Tomi(tomi.nori+github at gmail.com)
   /// </remarks>
-  public class OptJADE : AbsOptimization
+  public class clsJADE : AbsOptimization
   {
     // ----------------------------------------------------------------
     // Common parameters
     // ----------------------------------------------------------------
-    /// <summary>Max iteration count</summary>
-    public override int Iteration { get; set; } = 20000;
+    
+    /// <summary>The parameter is not used by this algorithm.</summary>
+    public override int MaxIterations { get; set; } = 20000;
 
     /// <summary>epsilon(Default:1e-8) for Criterion</summary>
     public double EPS { get; set; } = 0.000000001;
@@ -41,7 +42,7 @@ namespace LibOptimization.Optimization
     /// </summary>
     public double HigherNPercent { get; set; } = 0.8; // for IsCriterion()
 
-    private int HigherNPercentIndex; // for IsCriterion())
+    private int _higherNPercentIndex; // for IsCriterion())
 
     /// <summary>Upper bound(limit solution space)</summary>
     public double[] UpperBounds { get; set; }
@@ -52,6 +53,7 @@ namespace LibOptimization.Optimization
     // ----------------------------------------------------------------
     // DE parameters
     // ----------------------------------------------------------------
+    
     /// <summary>
     /// Population Size(Default:100)
     /// </summary>
@@ -78,7 +80,7 @@ namespace LibOptimization.Optimization
     /// <param name="objective">Objective Function</param>
     /// <remarks>
     /// </remarks>
-    public OptJADE(AbsObjectiveFunction objective)
+    public clsJADE(AbsObjectiveFunction objective)
     {
       _func = objective;
     }
@@ -135,10 +137,10 @@ namespace LibOptimization.Optimization
         _population.Sort();
 
         // Detect HigherNPercentIndex
-        HigherNPercentIndex = Convert.ToInt32(_population.Count * HigherNPercent);
-        if (HigherNPercentIndex == _population.Count ||
-            HigherNPercentIndex >= _population.Count)
-          HigherNPercentIndex = _population.Count - 1;
+        _higherNPercentIndex = Convert.ToInt32(_population.Count * HigherNPercent);
+        if (_higherNPercentIndex == _population.Count ||
+            _higherNPercentIndex >= _population.Count)
+          _higherNPercentIndex = _population.Count - 1;
       }
       catch (Exception ex)
       {
@@ -149,20 +151,15 @@ namespace LibOptimization.Optimization
     /// <summary>
     /// Do Iteration
     /// </summary>
-    /// <param name="iteration">Iteration count. When set zero, use the
+    /// <param name="iterations">Iteration count. When set zero, use the
     /// default value.</param>
     /// <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
     /// <remarks></remarks>
-    public override bool Iterate(int iteration = 0)
+    public override bool Iterate(int iterations = 0)
     {
-      // Check if there is an error and if the optimization has been initialized
-      if (IsRecentError() || Iteration <= _iteration) return true;
-      
-      iteration = iteration == 0
-        ? Iteration - _iteration - 1
-        : Math.Min(iteration, Iteration - _iteration) - 1;
-      
-      for (var iterate = 0; iterate <= iteration; iterate++)
+      if (IsRecentError()) return true;
+
+      for (var iterate = 0; iterate < iterations; iterate++)
       {
         // Counting generation
         _iteration += 1;
@@ -175,14 +172,15 @@ namespace LibOptimization.Optimization
         {
           // higher N percentage particles are finished at the time of same
           // evaluate value.
-          if (clsUtil.IsCriterion(EPS, _population[0].Eval,
-            _population[HigherNPercentIndex].Eval))
+          if (clsUtil.IsCriterion(EPS, _population[0].Value,
+            _population[_higherNPercentIndex].Value))
             return true;
         }
 
         // ---------------------------------------------------------------------
         // DE process
         // ---------------------------------------------------------------------
+        
         // Mutation and Crossover
         var sumF = 0.0;
         var sumFSquare = 0.0;
@@ -265,7 +263,7 @@ namespace LibOptimization.Optimization
           // => Objective function evaluation
           clsUtil.LimitSolutionSpace(child, LowerBounds, UpperBounds);
           
-          if (child.Eval >= _population[i].Eval) continue;
+          if (child.Value >= _population[i].Value) continue;
           
           // Add archive
           _archive.Add(_population[i].Copy());

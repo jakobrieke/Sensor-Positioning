@@ -4,8 +4,8 @@ using System.Linq;
 using charlie;
 using Cairo;
 using LinearAlgebra;
-using LibOptimization.Optimization;
 using Optimization;
+using Optimization.LibOptimizationWrapper;
 
 namespace SensorPositioning
 {
@@ -145,7 +145,7 @@ namespace SensorPositioning
         "LogRoundedPositions";
     }
 
-    private AbsOptimization _optimizer;
+    private Optimization.Optimization _optimizer;
     private SensorPositionObj _objective;
     private int _zoom;
     private bool _drawSensorLines;
@@ -241,22 +241,23 @@ namespace SensorPositioning
 
       var optimizerName = config.ContainsKey("Optimizer") ? 
         config["Optimizer"] : null;
+      var sp = new SearchSpace(_objective.Intervals());
       
       if (optimizerName == "SPSO-2006")
       {
-        _optimizer = new Spso2006Wrapper(_objective, _objective.Intervals());
+        _optimizer = new StandardPso2006(sp, _objective);
       }
       else if (optimizerName == "SPSO-2007")
       {
-        _optimizer = new Spso2007Wrapper(_objective, _objective.Intervals());
+        _optimizer = new StandardPso2007(sp, _objective);
       }
       else if (optimizerName == "SPSO-2011")
       {
-        _optimizer =  new Spso2011Wrapper(_objective, _objective.Intervals());
+        _optimizer = new StandardPso2011(sp, _objective);
       }
       else if (optimizerName == "PSO")
       {
-        _optimizer = new clsOptPSO(_objective)
+        _optimizer = new PsoWrapper(_objective, sp)
         {
           SwarmSize = 40,
           IsUseCriterion = false,
@@ -265,7 +266,7 @@ namespace SensorPositioning
       }
       else if (optimizerName == "ADE")
       {
-        _optimizer = new OptJADE(_objective)
+        _optimizer = new JadeWrapper(_objective, sp)
         {
           PopulationSize = 40,
           IsUseCriterion = false,
@@ -283,7 +284,7 @@ namespace SensorPositioning
       }
       
       _optimizer.Init();
-      _sensors = _objective.ToAgents(_optimizer.Result.ToArray());
+      _sensors = _objective.ToAgents(_optimizer.Best().Position.ToArray());
       _objective.StartPosition = _sensors;
 
       _initEachUpdate = config.ContainsKey("InitializeEachUpdate");
@@ -317,26 +318,26 @@ namespace SensorPositioning
 
     private void UpdateOptimizerStatic()
     {
-      var lastBest = _optimizer.Result.Eval;
-      _optimizer.Iterate(1);
+      var lastBest = _optimizer.Best().Value;
+      _optimizer.Update();
       
-      if (_logChanges && lastBest > _optimizer.Result.Eval) 
+      if (_logChanges && lastBest > _optimizer.Best().Value) 
       {
         _changes.Add(new Tuple<int, double>(
-          _optimizer.IterationCount, lastBest - _optimizer.Result.Eval));
+          _optimizer.Iteration, lastBest - _optimizer.Best().Value));
       }
     }
     
     private void UpdateOptimizerDynamic()
     {
-      var lastBest = _optimizer.Result.Eval;
+      var lastBest = _optimizer.Best().Value;
       _objective.StartPosition = _sensors;
       
-      if (_optimizer.GetType() == typeof(Spso2006Wrapper) 
+      if (_optimizer.GetType() == typeof(StandardPso2006) 
           && _dynamicSearchSpaceRange != Vector2.Zero)
       {
-        var pso = (Spso2006Wrapper) _optimizer;
-        var intervals = pso.Swarm.SearchSpace.Intervals;
+        var pso = (StandardPso2006) _optimizer;
+        var intervals = pso.SearchSpace.Intervals;
         for (var i = 0; i < intervals.Length; i += 3)
         {
           var pos = _sensors[i / 3].Position;
@@ -356,12 +357,12 @@ namespace SensorPositioning
       }
       
       _optimizer.Init();
-      _optimizer.Iterate((int) _updatesPerIteration);
+      _optimizer.Iterate(_updatesPerIteration);
 
       if (_logChanges) 
       {
         _changes.Add(new Tuple<int, double>(
-          _optimizer.IterationCount, lastBest - _optimizer.Result.Eval));
+          _optimizer.Iteration, lastBest - _optimizer.Best().Value));
       }
     }
     
@@ -372,7 +373,7 @@ namespace SensorPositioning
       if (_initEachUpdate) UpdateOptimizerDynamic();
       else UpdateOptimizerStatic();
 
-      _sensors = _objective.ToAgents(_optimizer.Result.ToArray());
+      _sensors = _objective.ToAgents(_optimizer.Best().Position.ToArray());
     }
 
     private void DrawCoordinateSystem(Context cr)
@@ -552,7 +553,7 @@ namespace SensorPositioning
           $"sensors: {sensorPositions}\n" +
           $"obstacles: {obstaclePositions}\n" +
           (_logChanges ? $"changes: {changes}\n" : "") + 
-          "global-best: " + _optimizer.Result.Eval;
+          "global-best: " + _optimizer.Best().Value;
       }
       
       return 
@@ -562,7 +563,7 @@ namespace SensorPositioning
         (_logEvaluations ? 
           $"<objective-evaluations>{_objective.Evaluations}" +
           "</objective-evaluations>\n" : "") +
-        "<global-best>" + _optimizer.Result.Eval + "</global-best>";
+        "<global-best>" + _optimizer.Best().Value + "</global-best>";
     }
   }
 }

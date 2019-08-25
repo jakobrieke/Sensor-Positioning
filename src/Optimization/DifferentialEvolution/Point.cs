@@ -27,7 +27,7 @@ namespace Optimization
 
     public override string ToString()
     {
-      return $"({string.Join(", ", Position)}), {Value}";
+      return $"{Value} <- ({string.Join(", ", Position)})";
     }
   }
 }

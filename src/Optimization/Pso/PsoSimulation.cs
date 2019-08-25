@@ -79,9 +79,9 @@ namespace Optimization
       }
     }
 
-    public static Func<double[], double> GetAnyOf(
+    public static Objective GetAnyOf(
       Dictionary<string, string> model, string key, 
-      Dictionary<string, Func<double[], double>> possibleValues, 
+      Dictionary<string, Objective> possibleValues, 
       string backup)
     {
       if (!model.TryGetValue(key, out var value)) return possibleValues[backup];
@@ -98,15 +98,16 @@ namespace Optimization
       _gridSize = _size / _rasterSize;
       
       var possibleValues = new Dictionary<string,
-        Func<double[], double>>
+        Objective>
       {
-        {"SphereFct", OptimizationFcts.SphereFct},
-        {"McCormick", OptimizationFcts.McCormickFct},
-        {"HimmelblauFct", OptimizationFcts.HimmelblauFct},
-        {"ThreeHumpCamel", OptimizationFcts.ThreeHumpCamelFct},
-        {"HoelderTable", OptimizationFcts.HoelderTableFct}
+        {"SphereFct", new SphereFunction()},
+        {"F2", new F2()},
+        {"F3", new F3()},
+        {"Rosenbrock", new F5()},
+        {"F6", new F6()},
+        {"F7", new F7()},
       };
-      var fct = GetAnyOf(config, "Function", possibleValues, "HimmelblauFct");
+      var fct = GetAnyOf(config, "Function", possibleValues, "SphereFct");
       var swarmSize = GetInt(config, "SwarmSize", 40);
       
       var sp = new SearchSpace(2, _size / 2);
@@ -118,7 +119,7 @@ namespace Optimization
 
     public override void Update(long deltaTime)
     {
-      _swarm.Iterate();
+      _swarm.Update();
     }
 
     public override void Render(Context cr, int width, int height)

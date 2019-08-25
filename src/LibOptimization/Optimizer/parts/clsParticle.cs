@@ -124,8 +124,8 @@ namespace LibOptimization.Optimization
                 throw new ArgumentException("Different type", "obj");
 
             // Compare
-            double mineValue = this.m_bestPoint.Eval;
-            double compareValue = ((clsParticle)ai_obj).BestPoint.Eval;
+            double mineValue = this.m_bestPoint.Value;
+            double compareValue = ((clsParticle)ai_obj).BestPoint.Value;
             if (mineValue < compareValue)
                 return -1;
             else if (mineValue > compareValue)

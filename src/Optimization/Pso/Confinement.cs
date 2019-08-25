@@ -1,5 +1,5 @@
 using System.Linq;
-using LoMath;
+using LinearAlgebra;
 using static System.Math;
 
 namespace Optimization
@@ -125,7 +125,7 @@ namespace Optimization
           Pow(p.Velocity[i] / (p.LastPosition[i] - t[0]), 2)).Sum();
       }
 
-      p.Velocity = (new LoVector(p.Velocity) / (1 + length)).ToArray();
+      p.Velocity = (new Vector(p.Velocity) / (1 + length)).ToArray();
     }
 
     public static void HybridHyperbolicRandomBack(Particle p, SearchSpace sp)

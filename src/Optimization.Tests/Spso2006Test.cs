@@ -11,7 +11,7 @@ namespace Optimization
       
       for (var i = 0; i < 500; i++)
       {
-        pso.Iterate();
+        pso.Update();
       }
       
       Console.WriteLine($"i = 0, best = {pso.GlobalBestValue}");

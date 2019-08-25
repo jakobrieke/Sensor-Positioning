@@ -20,7 +20,7 @@ namespace LibOptimization.Optimization
     public class clsOptPatternSearch : AbsOptimization
     {
         /// <summary>Max iteration count(Default:20,000)</summary>
-        public override int Iteration { get; set; } = 20000;
+        public override int MaxIterations { get; set; } = 20000;
 
         /// <summary>Epsilon(Default:0.000001) for Criterion</summary>
         public double EPS { get; set; } = 0.000001;
@@ -119,21 +119,21 @@ namespace LibOptimization.Optimization
         /// <summary>
         ///         ''' Do optimization
         ///         ''' </summary>
-        ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
+        ///         ''' <param name="iterations">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool Iterate(int iteration = 0)
+        public override bool Iterate(int iterations = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
                 return true;
 
             // Do Iterate
-            if (this.Iteration <= _iteration)
+            if (this.MaxIterations <= _iteration)
                 return true;
             else
-                iteration = iteration == 0 ? Iteration - _iteration - 1 : Math.Min(iteration, Iteration - _iteration) - 1;
-            for (int iterate = 0; iterate <= iteration; iterate++)
+                iterations = iterations == 0 ? MaxIterations - _iteration - 1 : Math.Min(iterations, MaxIterations - _iteration) - 1;
+            for (int iterate = 0; iterate <= iterations; iterate++)
             {
                 // Counting generation
                 _iteration += 1;
@@ -141,7 +141,7 @@ namespace LibOptimization.Optimization
                 // MakeExploratoryMoves
                 LoPoint exp = this.MakeExploratoryMoves(this.m_base, this.m_stepLength);
 
-                if (exp.Eval < this.m_base.Eval)
+                if (exp.Value < this.m_base.Value)
                 {
                     // Replace basepoint
                     LoPoint previousBasePoint = this.m_base;
@@ -150,7 +150,7 @@ namespace LibOptimization.Optimization
                     // MakePatternMove and MakeExploratoryMoves
                     LoPoint temp = this.MakePatternMove(previousBasePoint, this.m_base);
                     var expUsingPatternMove = this.MakeExploratoryMoves(temp, this.m_stepLength);
-                    if (expUsingPatternMove.Eval < this.m_base.Eval)
+                    if (expUsingPatternMove.Value < this.m_base.Value)
                         this.m_base = expUsingPatternMove;
                 }
                 else
@@ -191,7 +191,7 @@ namespace LibOptimization.Optimization
             }
             explorePoint.Sort();
 
-            if (explorePoint[0].Eval < ai_base.Eval)
+            if (explorePoint[0].Value < ai_base.Value)
                 return explorePoint[0];
             else
                 return new LoPoint(ai_base);

@@ -26,11 +26,11 @@ namespace LibOptimization.Optimization
   /// </remarks>
   public class clsOptPSO : AbsOptimization
   {
-    /// <summary>Max iteration count(Default:20,000)</summary>
-    public override int Iteration { get; set; } = 20000;
+    /// <summary>The parameter is not used by this algorithm.</summary>
+    public override int MaxIterations { get; set; } = 20000;
 
     /// <summary>Epsilon(Default:0.000001) for Criterion</summary>
-    public double EPS { get; set; } = 0.000001; // 1e-6
+    public double Eps { get; set; } = 0.000001; // 1e-6
 
     /// <summary>
     /// higher N percentage particles are finished at the time of same evaluate value.
@@ -44,14 +44,14 @@ namespace LibOptimization.Optimization
     /// <summary>
     /// A list of particles which make up the swarm.
     /// </summary>
-    private readonly List<clsParticle> m_swarm = new List<clsParticle>();
+    private readonly List<clsParticle> _swarm = new List<clsParticle>();
 
-    // TODO Change to default(_) if this is not a reference type
-    private LoPoint m_globalBest;
+    private LoPoint _globalBest;
 
     // -------------------------------------------------------------------
     // Coefficient of PSO
     // -------------------------------------------------------------------
+    
     /// <summary>
     /// Swarm Size(Default:100)
     /// </summary>
@@ -78,10 +78,10 @@ namespace LibOptimization.Optimization
     /// <summary>
     /// Construct a new PSO from an objective function.
     /// </summary>
-    /// <param name="ai_func"></param>
-    public clsOptPSO(AbsObjectiveFunction ai_func)
+    /// <param name="func"></param>
+    public clsOptPSO(AbsObjectiveFunction func)
     {
-      _func = ai_func;
+      _func = func;
     }
     
     public override void Init()
@@ -90,7 +90,7 @@ namespace LibOptimization.Optimization
       {
         // Init member variables
         _iteration = 0;
-        m_swarm.Clear();
+        _swarm.Clear();
 
         // Init position
         for (var i = 0; i < SwarmSize; i++)
@@ -104,26 +104,25 @@ namespace LibOptimization.Optimization
           var tempBestPosition = tempPosition.Copy();
 
           // Velocity
-          var tempVelocity = clsUtil.GenRandomPosition(_func,
-            null, // TODO Change to default(_) if this is not a reference type
+          var tempVelocity = clsUtil.GenRandomPosition(_func, null,
             InitialValueRangeLower, InitialValueRangeUpper);
 
           // Create swarm
-          m_swarm.Add(new clsParticle(tempPosition, tempVelocity,
+          _swarm.Add(new clsParticle(tempPosition, tempVelocity,
             tempBestPosition));
         }
 
         // Sort Evaluate
-        m_swarm.Sort();
-        m_globalBest = m_swarm[0].BestPoint.Copy();
+        _swarm.Sort();
+        _globalBest = _swarm[0].BestPoint.Copy();
 
         // Detect HigherNPercentIndex
-        _higherNPercentIndex = Convert.ToInt32(m_swarm.Count * HigherNPercent);
+        _higherNPercentIndex = Convert.ToInt32(_swarm.Count * HigherNPercent);
         
-        if (_higherNPercentIndex == m_swarm.Count ||
-            _higherNPercentIndex >= m_swarm.Count)
+        if (_higherNPercentIndex == _swarm.Count ||
+            _higherNPercentIndex >= _swarm.Count)
         {
-          _higherNPercentIndex = m_swarm.Count - 1;
+          _higherNPercentIndex = _swarm.Count - 1;
         }
       }
       catch (Exception ex)
@@ -139,19 +138,14 @@ namespace LibOptimization.Optimization
     /// <summary>
     /// Do optimize
     /// </summary>
-    /// <param name="iteration"></param>
+    /// <param name="iterations"></param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public override bool Iterate(int iteration = 0)
+    public override bool Iterate(int iterations = 0)
     {
-      // Check Last Error
-      if (IsRecentError() || Iteration <= _iteration) return true;
+      if (IsRecentError()) return true;
 
-      iteration = iteration == 0 ? 
-        Iteration - _iteration - 1 : 
-        Math.Min(iteration, Iteration - _iteration) - 1;
-      
-      for (var iterate = 0; iterate <= iteration; iterate++)
+      for (var iteration = 0; iteration < iterations; iteration++)
       {
         _iteration += 1;
 
@@ -159,23 +153,23 @@ namespace LibOptimization.Optimization
         {
           // Higher N percentage particles are finished at the time of
           // same evaluate value
-          if (clsUtil.IsCriterion(EPS, m_globalBest,
-            m_swarm[_higherNPercentIndex].BestPoint))
+          if (clsUtil.IsCriterion(Eps, _globalBest,
+            _swarm[_higherNPercentIndex].BestPoint))
             return true;
         }
 
         // PSO process
-        foreach (var particle in m_swarm)
+        foreach (var particle in _swarm)
         {
           // replace personal best
-          if (particle.Point.Eval < particle.BestPoint.Eval)
+          if (particle.Point.Value < particle.BestPoint.Value)
           {
             particle.BestPoint = particle.Point.Copy();
 
             // Replace global best
-            if (particle.Point.Eval < m_globalBest.Eval)
+            if (particle.Point.Value < _globalBest.Value)
             {
-              m_globalBest = particle.Point.Copy();
+              _globalBest = particle.Point.Copy();
             }
           }
 
@@ -186,7 +180,7 @@ namespace LibOptimization.Optimization
             var r2 = _rand.NextDouble();
             var newV = Weight * particle.Velocity[i] +
                        C1 * r1 * (particle.BestPoint[i] - particle.Point[i]) +
-                       C2 * r2 * (m_globalBest[i] - particle.Point[i]);
+                       C2 * r2 * (_globalBest[i] - particle.Point[i]);
             particle.Velocity[i] = newV;
 
             // Update the position
@@ -198,7 +192,7 @@ namespace LibOptimization.Optimization
         }
 
         // sort by eval
-        m_swarm.Sort();
+        _swarm.Sort();
       }
 
       return false;
@@ -226,16 +220,16 @@ namespace LibOptimization.Optimization
       {
         // find best index
         // var bestIndex = 0;
-        var bestEval = m_swarm[0].BestPoint.Eval;
-        for (var i = 0; i <= m_swarm.Count - 1; i++)
+        var bestEval = _swarm[0].BestPoint.Value;
+        for (var i = 0; i <= _swarm.Count - 1; i++)
         {
-          if (!(m_swarm[i].BestPoint.Eval < bestEval)) continue;
+          if (!(_swarm[i].BestPoint.Value < bestEval)) continue;
           
-          bestEval = m_swarm[i].BestPoint.Eval;
+          bestEval = _swarm[i].BestPoint.Value;
           // bestIndex = i;
         }
 
-        return m_swarm[0].BestPoint.Copy();
+        return _swarm[0].BestPoint.Copy();
       }
     }
 
@@ -249,9 +243,9 @@ namespace LibOptimization.Optimization
     {
       get
       {
-        m_swarm.Sort();
-        var result = new List<LoPoint>(m_swarm.Count);
-        foreach (var p in m_swarm)
+        _swarm.Sort();
+        var result = new List<LoPoint>(_swarm.Count);
+        foreach (var p in _swarm)
         {
           result.Add(p.BestPoint.Copy());
         }
@@ -264,12 +258,12 @@ namespace LibOptimization.Optimization
       var str = new StringBuilder();
       var i = 0;
       
-      foreach (var p in m_swarm)
+      foreach (var p in _swarm)
       {
-        str.Append(p.BestPoint.Eval);
+        str.Append(p.BestPoint.Value);
         str.Append(" ");
         str.Append(p.BestPoint);
-        if (i++ < m_swarm.Count - 1) str.Append("\n");
+        if (i++ < _swarm.Count - 1) str.Append("\n");
       }
 
       return str.ToString();

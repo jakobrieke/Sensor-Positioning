@@ -2,24 +2,31 @@ namespace Optimization
 {
   public class StandardPso2011 : ParticleSwarm
   {
+    /// <summary>
+    /// The factor K is used by Adaptive Random Topology and defines the maximum
+    /// number of neighbours a particle might have.
+    /// </summary>
+    /// <remarks>Needs to be smaller or equal the number of particles.</remarks>
+    public uint K = 3;
+    
     public StandardPso2011(SearchSpace searchSpace, 
-      ObjectiveFunction fitness) : base(searchSpace, fitness)
+      Objective fitness) : base(searchSpace, fitness)
     {
     }
 
     public override void Update(Particle particle)
     {
-      Optimization.Update.UpdateSpso2011(particle, W, C1, C2);
+      global::Optimization.Update.UpdateSpso2011(particle, W, C1, C2);
     }
 
     public override void Confinement(Particle particle)
     {
-      Optimization.Confinement.DeterministicBack(particle, SearchSpace);
+      global::Optimization.Confinement.DeterministicBack(particle, SearchSpace);
     }
 
     public override void Topology()
     {
-      Optimization.Topology.AdaptiveRandomTopology(Particles, 3);
+      global::Optimization.Topology.AdaptiveRandomTopology(Particles, K);
     }
 
     public override bool ShouldTopoUpdate()
