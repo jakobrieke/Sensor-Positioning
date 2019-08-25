@@ -1,6 +1,6 @@
 using System;
+using System.Linq;
 using LinearAlgebra;
-using static LinearAlgebra.VectorN;
 using static System.Math;
 
 namespace Optimization
@@ -39,33 +39,32 @@ namespace Optimization
       else UpdateSpso2006(p, w, c1, c2, random);
     }
 
-    public static void UpdateSpso2011(Particle particle, double w, double c1, 
-      double c2, Random random)
+    public static void UpdateSpso2011(Particle particle,
+      double w, double c1, double c2, Random random)
     {
-      var value = Add(particle.PreviousBest, particle.LocalBest);
-      value = Subtract(value, Multiply(particle.Position, 2f));
+      var p = new Vector(particle.PreviousBest);
+      var l = new Vector(particle.LocalBest);
+      var x = new Vector(particle.Position);
+      var v = new Vector(particle.Velocity);
 
-      if (Abs(particle.LocalBestValue - particle.PreviousBestValue) 
-          < Defs.Precision)
-      {
-        value = Subtract(particle.PreviousBest, particle.Position);
-      }
+      // If local best == previous best
+      var localBestEqualsPrevious =
+        Abs(particle.LocalBestValue - particle.PreviousBestValue)
+        < Defs.Precision;
 
-      var g = Add(particle.Position, Multiply(Divide(value, 3f), c1));
-      var x = new double[particle.Position.Length];
+      var center = localBestEqualsPrevious
+        ? x + c1 * (p + x) / 2
+        : x + c1 * (p + l - 2 * x) / 3;
 
-      for (var i = 0; i < particle.Position.Length; i++)
-      {
-        x[i] = RandomExtension.Uniform(random, 
-          g[i], Abs(g[i] - particle.Position[i]));
-      }
+      var x2 = new Vector();
+      x2.AddRange(center.Select((t, i) =>
+        RandomExtension.Uniform(random, t, Abs(t - x[i]))));
 
-      var lastPosition = new double[particle.Position.Length];
-      particle.Position.CopyTo(lastPosition, 0);
+      var vNew = w * v + x2 - x;
+      var xNew = x + vNew;
 
-      particle.Position = Add(Multiply(particle.Velocity, w), x);
-      particle.Velocity = Subtract(
-        Add(Multiply(particle.Velocity, w), x), lastPosition);
+      particle.Velocity = vNew.ToArray();
+      particle.Position = xNew.ToArray();
     }
   }
 }
