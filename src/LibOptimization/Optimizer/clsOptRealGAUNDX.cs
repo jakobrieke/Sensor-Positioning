@@ -24,7 +24,7 @@ namespace LibOptimization.Optimization
     public class clsOptRealGAUNDX : AbsOptimization
     {
         /// <summary>Max iteration count(Default:20,000)</summary>
-        public override int Iteration { get; set; } = 20000;
+        public override int MaxIterations { get; set; } = 20000;
 
         /// <summary>Epsilon(Default:1e-8) for Criterion</summary>
         public double EPS { get; set; } = 0.00000001;
@@ -115,21 +115,21 @@ namespace LibOptimization.Optimization
         /// <summary>
         ///         ''' Do Iteration
         ///         ''' </summary>
-        ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
+        ///         ''' <param name="iterations">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool Iterate(int iteration = 0)
+        public override bool Iterate(int iterations = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
                 return true;
 
             // Do Iterate
-            if (this.Iteration <= _iteration)
+            if (this.MaxIterations <= _iteration)
                 return true;
             else
-                iteration = iteration == 0 ? Iteration - _iteration - 1 : Math.Min(iteration, Iteration - _iteration) - 1;
-            for (int iterate = 0; iterate <= iteration; iterate++)
+                iterations = iterations == 0 ? MaxIterations - _iteration - 1 : Math.Min(iterations, MaxIterations - _iteration) - 1;
+            for (int iterate = 0; iterate <= iterations; iterate++)
             {
                 // Counting generation
                 _iteration += 1;
@@ -141,7 +141,7 @@ namespace LibOptimization.Optimization
                 if (this.IsUseCriterion == true)
                 {
                     // higher N percentage particles are finished at the time of same evaluate value.
-                    if (clsUtil.IsCriterion(this.EPS, this.m_parents[0].Eval, this.m_parents[this.HigherNPercentIndex].Eval))
+                    if (clsUtil.IsCriterion(this.EPS, this.m_parents[0].Value, this.m_parents[this.HigherNPercentIndex].Value))
                         return true;
                 }
 
@@ -193,12 +193,12 @@ namespace LibOptimization.Optimization
             {
                 double tempSum = 0.0;
                 foreach (var c in ai_chidren)
-                    tempSum += Math.Abs(c.Eval);
+                    tempSum += Math.Abs(c.Value);
                 List<double> tempList = new List<double>(ai_chidren.Count);
                 double newTempSum = 0.0;
                 for (int i = 0; i <= ai_chidren.Count - 1; i++)
                 {
-                    var temp = tempSum - ai_chidren[i].Eval;
+                    var temp = tempSum - ai_chidren[i].Value;
                     tempList.Add(temp);
                     newTempSum += temp;
                 }
@@ -216,13 +216,13 @@ namespace LibOptimization.Optimization
             {
                 double tempSum = 0.0;
                 foreach (var c in ai_chidren)
-                    tempSum += c.Eval;
+                    tempSum += c.Value;
                 // select
                 var r = Random.NextDouble();
                 double cumulativeRatio = 0.0;
                 for (int i = 0; i <= ai_chidren.Count - 1; i++)
                 {
-                    cumulativeRatio += ai_chidren[i].Eval / tempSum;
+                    cumulativeRatio += ai_chidren[i].Value / tempSum;
                     if (cumulativeRatio > r)
                         return i;
                 }

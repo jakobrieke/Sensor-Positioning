@@ -72,7 +72,7 @@ namespace LibOptimization.Optimization
         /// <summary>
         /// Do Iteration
         /// </summary>
-        /// <param name="iteration">
+        /// <param name="iterations">
         /// Iteration count. When you set zero, use the default value.
         /// </param>
         /// <returns>
@@ -80,7 +80,7 @@ namespace LibOptimization.Optimization
         /// False:Do not Stopping Criterion
         /// </returns>
         /// <remarks></remarks>
-        public abstract bool Iterate(int iteration = 0);
+        public abstract bool Iterate(int iterations = 0);
 
         /// <summary>
         /// Result
@@ -111,7 +111,7 @@ namespace LibOptimization.Optimization
         /// Max Iteration
         /// </summary>
         /// <returns></returns>
-        public abstract int Iteration { get; set; }
+        public abstract int MaxIterations { get; set; }
 
         /// <summary>
         /// Iteration count 

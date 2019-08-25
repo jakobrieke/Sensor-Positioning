@@ -1,29 +1,18 @@
-using System;
 using System.Linq;
 using LinearAlgebra;
-using NUnit.Framework;
 using static System.Math;
 
 namespace Optimization
 {
-  public class SphereFunction : ObjectiveFunction
+  public class SphereFunction : Objective
   {
     public override double Eval(Vector position)
     {
       return position.Sum(x => Pow(x, 2));
     }
-
-    [Test]
-    public static void Test()
-    {
-      var f = new SphereFunction();
-      var value = f.Eval(new Vector(1.0, 1, 1, 1));
-      Console.WriteLine(value);
-      Assert.True(value == 4);
-    }
   }
 
-  public class F2 : ObjectiveFunction
+  public class F2 : Objective
   {
     public override double Eval(Vector position)
     {
@@ -32,7 +21,7 @@ namespace Optimization
     }
   }
 
-  public class F3 : ObjectiveFunction
+  public class F3 : Objective
   {
     public override double Eval(Vector position)
     {
@@ -51,7 +40,7 @@ namespace Optimization
   /// Rosenbrock function (unimodal for D = 2 and 3, multiple minima in higher
   /// dimensions.
   /// </summary>
-  public class F5 : ObjectiveFunction
+  public class F5 : Objective
   {
     public override double Eval(Vector position)
     {
@@ -67,7 +56,7 @@ namespace Optimization
     }
   }
   
-  public class F6 : ObjectiveFunction
+  public class F6 : Objective
   {
     public override double Eval(Vector position)
     {
@@ -75,7 +64,7 @@ namespace Optimization
     }
   }
   
-  public class F7 : ObjectiveFunction
+  public class F7 : Objective
   {
     public override double Eval(Vector position)
     {

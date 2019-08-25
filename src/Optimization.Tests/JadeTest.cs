@@ -12,7 +12,7 @@ namespace Optimization
       
       for (var i = 0; i < 500; i++)
       {
-        jade.Iterate();
+        jade.Update();
       }
       
       Console.WriteLine($"i = 500, best = {jade.Best().Value}");

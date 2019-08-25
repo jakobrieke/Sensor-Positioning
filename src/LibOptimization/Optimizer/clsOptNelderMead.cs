@@ -22,7 +22,7 @@ namespace LibOptimization.Optimization
     public class clsOptNelderMead : AbsOptimization
     {
         /// <summary>Max iteration count(Default:5,000)</summary>
-        public override int Iteration { get; set; } = 5000;
+        public override int MaxIterations { get; set; } = 5000;
 
         /// <summary>Epsilon(Default:0.000001) for Criterion</summary>
         public double EPS { get; set; } = 0.000001;
@@ -130,28 +130,28 @@ namespace LibOptimization.Optimization
         /// <summary>
         ///         ''' Do optimization
         ///         ''' </summary>
-        ///         ''' <param name="iteration">Iteration count. When you set zero, use the default value.</param>
+        ///         ''' <param name="iterations">Iteration count. When you set zero, use the default value.</param>
         ///         ''' <returns>True:Stopping Criterion. False:Do not Stopping Criterion</returns>
         ///         ''' <remarks></remarks>
-        public override bool Iterate(int iteration = 0)
+        public override bool Iterate(int iterations = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
                 return true;
 
             // Do Iterate
-            if (this.Iteration <= _iteration)
+            if (this.MaxIterations <= _iteration)
                 return true;
             else
-                iteration = iteration == 0 ? Iteration - _iteration - 1 : Math.Min(iteration, Iteration - _iteration) - 1;
-            for (int iterate = 0; iterate <= iteration; iterate++)
+                iterations = iterations == 0 ? MaxIterations - _iteration - 1 : Math.Min(iterations, MaxIterations - _iteration) - 1;
+            for (int iterate = 0; iterate <= iterations; iterate++)
             {
                 // Counting generation
                 _iteration += 1;
 
                 // Check criterion
                 this.m_points.Sort();
-                if (clsUtil.IsCriterion(this.EPS, this.m_points[0].Eval, this.m_points[this.m_points.Count - 1].Eval))
+                if (clsUtil.IsCriterion(this.EPS, this.m_points[0].Value, this.m_points[this.m_points.Count - 1].Value))
                     return true;
 
                 // -----------------------------------------------------
@@ -164,24 +164,24 @@ namespace LibOptimization.Optimization
                 LoPoint refrection = this.CalcRefrection(WorstPoint, centroid, this.Refrection);
 
                 // Simplex Operators - Refrection, Expantion, Constratction, (Shrink)
-                if (refrection.Eval < BestPoint.Eval)
+                if (refrection.Value < BestPoint.Value)
                 {
                     LoPoint expantion = this.CalcExpantion(refrection, centroid, this.Expantion); // Fig. 1 Flow diagram is constratction??
-                    if (expantion.Eval < BestPoint.Eval)
+                    if (expantion.Value < BestPoint.Value)
                         WorstPoint = expantion;
                     else
                         WorstPoint = refrection;
                 }
-                else if (refrection.Eval > Worst2ndPoint.Eval)
+                else if (refrection.Value > Worst2ndPoint.Value)
                 {
-                    if (refrection.Eval > WorstPoint.Eval)
+                    if (refrection.Value > WorstPoint.Value)
                     {
                     }
                     else
                         WorstPoint = refrection;
                     // Contraction
                     LoPoint contraction = this.CalcContraction(WorstPoint, centroid, this.Contraction);
-                    if (contraction.Eval > WorstPoint.Eval)
+                    if (contraction.Value > WorstPoint.Value)
                         WorstPoint = contraction;
                     else
                         // Shrink

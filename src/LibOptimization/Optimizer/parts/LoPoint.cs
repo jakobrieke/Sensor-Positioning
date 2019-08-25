@@ -30,7 +30,7 @@ namespace LibOptimization.Optimization
     {
       _func = point.GetFunc();
       AddRange(point);
-      _evaluatedValue = point.Eval;
+      _evaluatedValue = point.Value;
     }
 
     /// <summary>
@@ -104,8 +104,8 @@ namespace LibOptimization.Optimization
         throw new ArgumentException("Different type", "obj");
 
       // Compare
-      var mineValue = Eval;
-      var compareValue = ((LoPoint) obj).Eval;
+      var mineValue = Value;
+      var compareValue = ((LoPoint) obj).Value;
       
       if (mineValue < compareValue) return -1;
       
@@ -137,7 +137,7 @@ namespace LibOptimization.Optimization
     /// <value></value>
     /// <returns></returns>
     /// <remarks></remarks>
-    public double Eval => _evaluatedValue;
+    public double Value => _evaluatedValue;
 
     /// <summary>
     /// Init
@@ -174,7 +174,7 @@ namespace LibOptimization.Optimization
       {
         this[i] = point[i];
       }
-      _evaluatedValue = point.Eval;
+      _evaluatedValue = point.Value;
     }
   }
 }

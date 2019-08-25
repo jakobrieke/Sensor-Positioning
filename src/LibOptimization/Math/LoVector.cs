@@ -50,37 +50,40 @@ namespace LoMath
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="ai_dim"></param>
+    /// <param name="dim"></param>
+    /// <param name="direction"></param>
     /// <remarks></remarks>
-    public LoVector(int ai_dim,
-      VectorDirection ai_direction = VectorDirection.Row)
+    public LoVector(int dim,
+      VectorDirection direction = VectorDirection.Row)
     {
-      AddRange(new double[ai_dim - 1 + 1]);
-      Direction = ai_direction;
+      AddRange(new double[dim - 1 + 1]);
+      Direction = direction;
     }
 
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="ai_val"></param>
+    /// <param name="val"></param>
+    /// <param name="direction"></param>
     /// <remarks></remarks>
-    public LoVector(IReadOnlyCollection<double> ai_val,
-      VectorDirection ai_direction = VectorDirection.Row)
+    public LoVector(IReadOnlyCollection<double> val,
+      VectorDirection direction = VectorDirection.Row)
     {
-      AddRange(ai_val);
-      Direction = ai_direction;
+      AddRange(val);
+      Direction = direction;
     }
 
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="ai_val"></param>
+    /// <param name="val"></param>
+    /// <param name="direction"></param>
     /// <remarks></remarks>
-    public LoVector(IEnumerable<double> ai_val,
-      VectorDirection ai_direction = VectorDirection.Row)
+    public LoVector(IEnumerable<double> val,
+      VectorDirection direction = VectorDirection.Row)
     {
-      AddRange(ai_val);
-      Direction = ai_direction;
+      AddRange(val);
+      Direction = direction;
     }
 
     /// <summary>
@@ -118,8 +121,8 @@ namespace LoMath
     /// </remarks>
     public double NormL1()
     {
-      double ret = 0.0;
-      foreach (double value in this)
+      var ret = 0.0;
+      foreach (var value in this)
         ret += System.Math.Abs(value);
       return ret;
     }

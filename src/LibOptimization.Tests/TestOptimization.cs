@@ -103,14 +103,14 @@ namespace LibOptimization
     Assert.False(errorFlg);
 
     // Eval
-    Console.Write("Eval:{0} ", opt.Result.Eval);
+    Console.Write("Eval:{0} ", opt.Result.Value);
     var isConversion = false;
     for (var retry = 0; retry <= 5; retry++)
     {
-      if (Math.Abs(opt.Result.Eval) > eval)
+      if (Math.Abs(opt.Result.Value) > eval)
       {
         Console.Write("{0}Retry! Eval:{1}", Environment.NewLine,
-          opt.Result.Eval);
+          opt.Result.Value);
 
         opt.InitialPosition = opt.Result.ToArray();
         opt.InitialValueRangeLower /= 2;
@@ -127,7 +127,7 @@ namespace LibOptimization
 
     if (isConversion == false)
       throw new Exception(
-        $"fail:{opt.GetType().Name} Eval:{opt.Result.Eval}");
+        $"fail:{opt.GetType().Name} Eval:{opt.Result.Value}");
 
     // Result
     if (Math.Abs(opt.Result[0]) > 0.1 || Math.Abs(opt.Result[1]) > 0.1)
@@ -186,7 +186,7 @@ namespace LibOptimization
       optimizers.Add(opt);
     }
     {
-      var opt = new OptJADE(func);
+      var opt = new clsJADE(func);
       optimizers.Add(opt);
     }
     {
@@ -195,7 +195,7 @@ namespace LibOptimization
     }
     {
       var opt = new clsOptFA(func);
-      opt.Iteration = 300;
+      opt.MaxIterations = 300;
       optimizers.Add(opt);
     }
     {
@@ -242,7 +242,7 @@ namespace LibOptimization
     }
     {
       var opt = new clsOptRealGAPCX(func);
-      opt.Iteration = 1000;
+      opt.MaxIterations = 1000;
       optimizers.Add(opt);
     }
     {
@@ -258,13 +258,13 @@ namespace LibOptimization
       opt.ALPHA = 0.6;
       opt.PopulationSize = 100;
       opt.ChildrenSize = 50;
-      opt.Iteration = 700;
+      opt.MaxIterations = 700;
       optimizers.Add(opt);
     }
     {
       var opt = new clsOptSimulatedAnnealing(func);
       opt.NeighborRange = 0.1;
-      opt.Iteration *= 2;
+      opt.MaxIterations *= 2;
       optimizers.Add(opt);
     }
 
@@ -321,14 +321,14 @@ namespace LibOptimization
           Console.Write("ElapsedTime:{0}[ms] ", sw.ElapsedMilliseconds);
 
           // Eval
-          Console.Write("Eval:{0} ", opt.Result.Eval);
+          Console.Write("Eval:{0} ", opt.Result.Value);
           var isConversion = false;
           for (var retry = 0; retry <= 5; retry++)
           {
-            if (Math.Abs(opt.Result.Eval) > EVAL)
+            if (Math.Abs(opt.Result.Value) > EVAL)
             {
               Console.Write("{0}Retry! Eval:{1}", Environment.NewLine,
-                opt.Result.Eval);
+                opt.Result.Value);
               opt.InitialPosition = opt.Result.ToArray();
               opt.InitialValueRangeLower = opt.InitialValueRangeLower / 2;
               opt.InitialValueRangeUpper = opt.InitialValueRangeUpper / 2;
@@ -344,7 +344,7 @@ namespace LibOptimization
 
           if (isConversion == false)
             throw new Exception(
-              $"fail:{opt.GetType().Name} Eval:{opt.Result.Eval}");
+              $"fail:{opt.GetType().Name} Eval:{opt.Result.Value}");
 
           // Result
           if (Math.Abs(opt.Result[0]) > 0.1 || Math.Abs(opt.Result[1]) > 0.1)
@@ -375,14 +375,14 @@ namespace LibOptimization
         Console.WriteLine("{0,-40}", opt.GetType().Name);
         // 1st
         opt.Init();
-        opt.Iteration = 1;
+        opt.MaxIterations = 1;
         opt.Iterate();
 
         // 2nd
         var recentCount = opt.IterationCount;
-        var recentEval = opt.Result.Eval;
+        var recentEval = opt.Result.Value;
         opt.InitialPosition = opt.Result.ToArray();
-        opt.Iteration = 100;
+        opt.MaxIterations = 100;
         opt.Init();
 
         // check iteration count
@@ -469,12 +469,12 @@ namespace LibOptimization
     Assert.False(errorFlg);
 
     // Eval
-    if (-78.99 < opt.Result.Eval && opt.Result.Eval < -78.98)
+    if (-78.99 < opt.Result.Value && opt.Result.Value < -78.98)
     {
     }
-    else Assert.Fail($"fail Eval {opt.Result.Eval}");
+    else Assert.Fail($"fail Eval {opt.Result.Value}");
 
-    Console.WriteLine("Success Eval {0}", opt.Result.Eval);
+    Console.WriteLine("Success Eval {0}", opt.Result.Value);
 
     // Result
     if (2.8 < opt.Result[0] && opt.Result[0] < 2.9)
@@ -529,10 +529,10 @@ namespace LibOptimization
       {
         opt.IsUseCriterion = false;
         opt.InitialPosition = new double[] {100, 100};
-        opt.Iteration = 2;
+        opt.MaxIterations = 2;
         opt.Init();
         opt.Iterate();
-        if (opt.IterationCount != opt.Iteration)
+        if (opt.IterationCount != opt.MaxIterations)
           Assert.Fail(
             $"{opt.GetType().Name} : IterationCount : {opt.IterationCount}");
 
@@ -547,13 +547,13 @@ namespace LibOptimization
       {
         opt.IsUseCriterion = false;
         opt.InitialPosition = new double[] {100, 100};
-        opt.Iteration = 3;
+        opt.MaxIterations = 3;
         opt.Init();
         while ((opt.Iterate(1) == false))
         {
         }
 
-        if (opt.IterationCount != opt.Iteration)
+        if (opt.IterationCount != opt.MaxIterations)
           Assert.Fail($"Fail! {opt.GetType().Name} : IterationCount : {opt.IterationCount}");
         else
           Console.WriteLine("Success : {0}", opt.GetType().Name);
@@ -567,13 +567,13 @@ namespace LibOptimization
       {
         opt.IsUseCriterion = false;
         opt.InitialPosition = new double[] {100, 100};
-        opt.Iteration = 3;
+        opt.MaxIterations = 3;
         opt.Init();
         while ((opt.Iterate(2) == false))
         {
         }
 
-        if (opt.IterationCount != opt.Iteration)
+        if (opt.IterationCount != opt.MaxIterations)
           Assert.Fail("{0} : IterationCount : {1}", opt.GetType().Name,
             opt.IterationCount);
         else

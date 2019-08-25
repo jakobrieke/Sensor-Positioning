@@ -183,7 +183,7 @@ namespace Util
           "TargetFunction:" + ai_opt.ObjectiveFunction.GetType().Name + 
           " Dimension:" + ai_opt.ObjectiveFunction.Dimension());
         Console.WriteLine("OptimizeMethod:" + ai_opt.GetType().Name);
-        Console.WriteLine("Eval          :" + $"{ai_opt.Result.Eval}");
+        Console.WriteLine("Eval          :" + $"{ai_opt.Result.Value}");
         Console.WriteLine("IterationCount:" + $"{ai_opt.IterationCount}");
         Console.WriteLine("Result        :");
         
@@ -200,7 +200,7 @@ namespace Util
       }
       else
         Console.WriteLine("Eval          :" +
-                          string.Format("{0}", ai_opt.Result.Eval));
+                          string.Format("{0}", ai_opt.Result.Value));
     }
 
     /// <summary>
@@ -214,7 +214,7 @@ namespace Util
         return;
       for (var i = 0; i <= ai_results.Count - 1; i++)
       {
-        Console.WriteLine($"Eval          : {ai_results[i].Eval}");
+        Console.WriteLine($"Eval          : {ai_results[i].Value}");
       }
       Console.WriteLine();
     }
@@ -231,7 +231,7 @@ namespace Util
     public static bool IsCriterion(double ai_eps, LoPoint ai_comparisonA,
       LoPoint ai_comparisonB, double ai_tiny = 0.0000000000001)
     {
-      return IsCriterion(ai_eps, ai_comparisonA.Eval, ai_comparisonB.Eval,
+      return IsCriterion(ai_eps, ai_comparisonA.Value, ai_comparisonB.Value,
         ai_tiny);
     }
 
@@ -353,7 +353,7 @@ namespace Util
     public static void ToEvalList(List<LoPoint> arP)
     {
       foreach (var p in arP)
-        Console.WriteLine("{0}", p.Eval);
+        Console.WriteLine("{0}", p.Value);
     }
 
     /// <summary>
@@ -367,7 +367,7 @@ namespace Util
       var sortedEvalList = new List<clsEval>();
       for (var i = 0; i <= arP.Count - 1; i++)
       {
-        sortedEvalList.Add(new clsEval(i, arP[i].Eval));
+        sortedEvalList.Add(new clsEval(i, arP[i].Value));
       }
       sortedEvalList.Sort();
       return sortedEvalList;
@@ -376,23 +376,22 @@ namespace Util
     /// <summary>
     /// Best clsPoint
     /// </summary>
-    /// <param name="ai_points"></param>
+    /// <param name="points"></param>
+    /// <param name="isCopy"></param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public static LoPoint GetBestPoint(List<LoPoint> ai_points,
+    public static LoPoint GetBestPoint(List<LoPoint> points,
       bool isCopy = false)
     {
-      if (ai_points == null)
-        return null /* TODO Change to default(_) if this is not a reference type */;
-      if (ai_points.Count == 0)
-        return null /* TODO Change to default(_) if this is not a reference type */;
-      if (ai_points.Count == 1) return ai_points[0];
+      if (points == null || points.Count == 0)
+        return null;
+      if (points.Count == 1) return points[0];
 
-      var best = ai_points[0];
-      for (var i = 1; i <= ai_points.Count - 1; i++)
+      var best = points[0];
+      for (var i = 1; i <= points.Count - 1; i++)
       {
-        if (best.Eval > ai_points[i].Eval)
-          best = ai_points[i];
+        if (best.Value > points[i].Value)
+          best = points[i];
       }
 
       return isCopy == false ? best : best.Copy();
@@ -407,13 +406,13 @@ namespace Util
     public static int FindCurrentIndex(List<LoPoint> ai_points)
     {
       var bestIndex = 0;
-      var bestEval = ai_points[0].Eval;
+      var bestEval = ai_points[0].Value;
       
       for (var i = 0; i <= ai_points.Count - 1; i++)
       {
-        if (!(ai_points[i].Eval < bestEval)) continue;
+        if (!(ai_points[i].Value < bestEval)) continue;
         
-        bestEval = ai_points[i].Eval;
+        bestEval = ai_points[i].Value;
         bestIndex = i;
       }
 

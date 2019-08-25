@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using MersenneTwister;
 using static System.Math;
 
 namespace Optimization
@@ -10,7 +12,7 @@ namespace Optimization
   /// function. Also there is a topology defined between the particles which
   /// indicates which particle informs another particle.
   /// </summary>
-  public abstract class ParticleSwarm : OptimizationAlgorithm
+  public abstract class ParticleSwarm : Optimization
   {
     /// <summary>
     /// A list of particles which make up the swarm.
@@ -18,9 +20,13 @@ namespace Optimization
     public List<Particle> Particles;
     
     public double W = 1 / (2 * Log(2));  // ~0.729
+    
     public double C1 = 1 / 2f + Log(2);  // ~1.49445
+    
     public double C2 = 1 / 2f + Log(2);  // ~1.49445
 
+    public Random Random;
+    
     /// <summary>
     /// The best known position in the search space.
     /// </summary>
@@ -41,12 +47,13 @@ namespace Optimization
     /// </summary>
     /// <param name="searchSpace"></param>
     /// <param name="fitness"></param>
-    public ParticleSwarm(SearchSpace searchSpace, Func<double[], double> fitness) : 
+    public ParticleSwarm(SearchSpace searchSpace, Objective fitness) : 
       base(fitness, searchSpace)
     {
       SearchSpace = searchSpace;
       Fitness = fitness;
-      Iteration = -1;
+      Random = MersenneTwister.MTRandom.Create(
+        DateTime.Now.Millisecond, MTEdition.Cok_19937);
     }
 
     /// <summary>
@@ -92,7 +99,6 @@ namespace Optimization
       {
         throw new ArgumentException("List of particles is empty.");
       }
-      if (particles.Count == 1) return particles[0];
 
       var result = particles[0];
 
@@ -117,9 +123,9 @@ namespace Optimization
     /// The swarm to get the so far globally found value from.
     /// </param>
     /// <returns>
-    /// The position and the corresponding value.
+    /// The position and its corresponding value.
     /// </returns>
-    public static Tuple<double[], double> GetGlobalBest(ParticleSwarm swarm)
+    private static Tuple<double[], double> GetGlobalBest(ParticleSwarm swarm)
     {
       var min = swarm.Particles[0];
 
@@ -138,6 +144,30 @@ namespace Optimization
     }
 
     /// <summary>
+    /// Generate a random number in [left, right]. If left > right the number is
+    /// generated inside [right, left].
+    /// </summary>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns></returns>
+    public double Uniform(double left = 0.0, double right = 1.0)
+    {
+      if (left < right) return left + Random.NextDouble() * (right - left);
+      
+      return right + Random.NextDouble() * (left - right);
+    }
+
+    /// <summary>
+    /// Generate a random position inside the search space.
+    /// </summary>
+    /// <returns></returns>
+    public double[] RandomPosition()
+    {
+      return SearchSpace.Intervals.Select(i => Uniform(i[0], i[1]))
+        .ToArray();
+    }
+    
+    /// <summary>
     /// Initialize a swarm from a list of start positions and velocities.
     /// </summary>
     /// <param name="startPosition">
@@ -147,7 +177,7 @@ namespace Optimization
     /// An array of initial velocities for each particle.
     /// </param>
     public void Init(double[][] startPosition, double[][] startVelocity)
-    {
+    { 
       Particles = new List<Particle>(startPosition.Length);
 
       for (var i = 0; i < startPosition.Length; i++)
@@ -175,10 +205,14 @@ namespace Optimization
       GlobalBest = best;
       GlobalBestValue = bestValue;
       GlobalBestChanged = true;
-
-      Iteration = 0;
+      
+      ResetIterations();
     }
 
+    /// <summary>
+    /// Initialize the swarm with a list of start positions for each particle.
+    /// </summary>
+    /// <param name="startPosition"></param>
     public void Init(double[][] startPosition)
     {
       var startVelocity = new double[startPosition.Length][];
@@ -187,7 +221,7 @@ namespace Optimization
         startVelocity[i] = new double[SearchSpace.Dimension];
         for (var j = 0; j < SearchSpace.Dimension; j++)
         {
-          startVelocity[i][j] = MTRandom.Uniform(
+          startVelocity[i][j] = Uniform(
             SearchSpace.Intervals[j][0] - startPosition[i][j],
             SearchSpace.Intervals[j][1] - startPosition[i][j]);
         }
@@ -199,55 +233,52 @@ namespace Optimization
     /// Initialize a swarm with n particles.
     /// This creates n particles and initializes them with random values 
     /// inside the search space.
-    /// A swarm has to be initialized before calling iterateX! on it.
     /// </summary>
     /// <param name="numberOfParticles"></param>
-    public void Init(int numberOfParticles = 40)
+    public void Init(int numberOfParticles)
     {
       var startPosition = new double[numberOfParticles][];
       for (var i = 0; i < numberOfParticles; i++)
       {
-        startPosition[i] = SearchSpace.RandPos();
+        startPosition[i] = RandomPosition();
       }
       Init(startPosition);
     }
 
-    private void IterateParticle(Particle p)
+    public override void Init()
     {
-      p.Position.CopyTo(p.LastPosition, 0);
-      Update(p);
-      Confinement(p);
-      p.PositionValue = Fitness.Eval(p.Position);
-
-      if (p.PositionValue < p.PreviousBestValue)
-      {
-        p.Position.CopyTo(p.PreviousBest, 0);
-        p.PreviousBestValue = p.PositionValue;
-      }
-
-      if (p.PositionValue < p.LocalBestValue)
-      {
-        foreach (var neighbour in p.Neighbours)
-        {
-          p.Position.CopyTo(neighbour.LocalBest, 0);
-          neighbour.LocalBestValue = p.PositionValue;
-        }
-      }
+      Init(40);
     }
-    
+
     /// <summary>
     /// Run one iteration on an initialized swarm.
     /// The iteration will update the particle positions, their previousBest,
-    /// apply a confinement on the particles, update their
-    /// localBests and increase the the number of evaluations, done
-    /// for each particle in the swarm.
+    /// apply a confinement on the particles and update their localBests.
     /// </summary>
-    public override void Iterate()
+    public override void Update()
     {
       var best = Particles[0];
       foreach (var particle in Particles)
       {
-        IterateParticle(particle);
+        particle.Position.CopyTo(particle.LastPosition, 0);
+        Update(particle);
+        Confinement(particle);
+        particle.PositionValue = Fitness.Eval(particle.Position);
+
+        if (particle.PositionValue < particle.PreviousBestValue)
+        {
+          particle.Position.CopyTo(particle.PreviousBest, 0);
+          particle.PreviousBestValue = particle.PositionValue;
+        }
+
+        if (particle.PositionValue < particle.LocalBestValue)
+        {
+          foreach (var neighbour in particle.Neighbours)
+          {
+            particle.Position.CopyTo(neighbour.LocalBest, 0);
+            neighbour.LocalBestValue = particle.PositionValue;
+          }
+        }
 
         if (particle.PositionValue < best.PositionValue) best = particle;
       }
@@ -261,19 +292,8 @@ namespace Optimization
       else GlobalBestChanged = false;
 
       if (ShouldTopoUpdate()) Topology();
-
-      Iteration++;
     }
 
-    /// <summary>
-    ///  Run n iterations on an initialized swarm.
-    /// </summary>
-    /// <param name="n"></param>
-    public void Iterate(int n)
-    {
-      for (var i = 0; i < n; i++) Iterate();
-    }
-    
     public override Point Best()
     {
       return new Point(GlobalBest, GlobalBestValue);

@@ -41,33 +41,29 @@ namespace Optimization
     /// Defaults to 3.
     /// </param>
     public static void AdaptiveRandomTopology(List<Particle> particles,
-      int k = 3)
+      uint k = 3)
     {
-      var amount = particles.Count;
+      if (particles.Count == 0) return;
+      
+      var result = new bool[particles.Count, particles.Count];
 
-      if (amount == 0) return;
-
-      k = k == -1 ? amount : k;
-      var result = new bool[amount, amount];
-
-      for (var i = 0; i < amount; i++)
+      for (var i = 0; i < particles.Count; i++)
       {
         result[i, i] = true;
+        var rand = MersenneTwister.MTRandom.Create();
+        
         for (var j = 0; j < k; j++)
         {
-          var rand = MersenneTwister.MTRandom.Create();
-          var column = rand.Next();
-
-          result[i, column] = true;
+          result[i, rand.Next(0, particles.Count - 1)] = true;
         }
       }
 
-      for (var j = 0; j < amount; j++)
+      for (var j = 0; j < particles.Count; j++)
       {
         var particle = particles[j];
         particle.Neighbours = new List<Particle>();
 
-        for (var i = 0; i < amount; i++)
+        for (var i = 0; i < particles.Count; i++)
         {
           if (result[i, j])
           {

@@ -20,7 +20,7 @@ namespace LibOptimization.Optimization
     public class clsOptSimulatedAnnealing : AbsOptimization
     {
         /// <summary>Max iteration count(Default:20,000)</summary>
-        public override int Iteration { get; set; } = 20000;
+        public override int MaxIterations { get; set; } = 20000;
 
         /// <summary>Epsilon(Default:1e-8) for Criterion</summary>
         public double EPS { get; set; } = 0.00000001;
@@ -88,21 +88,21 @@ namespace LibOptimization.Optimization
         /// <summary>
         ///         ''' Do optimization
         ///         ''' </summary>
-        ///         ''' <param name="iteration"></param>
+        ///         ''' <param name="iterations"></param>
         ///         ''' <returns></returns>
         ///         ''' <remarks></remarks>
-        public override bool Iterate(int iteration = 0)
+        public override bool Iterate(int iterations = 0)
         {
             // Check Last Error
             if (this.IsRecentError() == true)
                 return true;
 
             // Do Iterate
-            if (this.Iteration <= _iteration)
+            if (this.MaxIterations <= _iteration)
                 return true;
             else
-                iteration = iteration == 0 ? Iteration - _iteration - 1 : Math.Min(iteration, Iteration - _iteration) - 1;
-            for (int iterate = 0; iterate <= iteration; iterate++)
+                iterations = iterations == 0 ? MaxIterations - _iteration - 1 : Math.Min(iterations, MaxIterations - _iteration) - 1;
+            for (int iterate = 0; iterate <= iterations; iterate++)
             {
                 // Counting generation
                 _iteration += 1;
@@ -111,8 +111,8 @@ namespace LibOptimization.Optimization
                 LoPoint temp = Neighbor(this.m_point);
 
                 // transition
-                double evalNow = this.m_point.Eval;
-                double evalNew = temp.Eval;
+                double evalNow = this.m_point.Value;
+                double evalNew = temp.Value;
                 double r1 = 0.0;
                 var r2 = base.Random.NextDouble();
                 if (evalNew < evalNow)
@@ -131,7 +131,7 @@ namespace LibOptimization.Optimization
                     return true;// stop iteration
 
                 // reserve best
-                if (this.m_point.Eval < this.m_Bestpoint.Eval)
+                if (this.m_point.Value < this.m_Bestpoint.Value)
                     this.m_Bestpoint = this.m_point.Copy();
             }
 

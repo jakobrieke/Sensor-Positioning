@@ -21,7 +21,7 @@ namespace LibOptimization.Optimization
   public class ClsOptNelderMeadWiki : AbsOptimization
   {
     /// <summary>Max iteration count(Default:5,000)</summary>
-    public override int Iteration { get; set; } = 5000;
+    public override int MaxIterations { get; set; } = 5000;
 
     /// <summary>Epsilon(Default:0.000001) for Criterion</summary>
     public double EPS { get; set; } = 0.000001;
@@ -135,34 +135,34 @@ namespace LibOptimization.Optimization
     /// <summary>
     /// Do optimization
     /// </summary>
-    /// <param name="iteration">Iteration count. When you set zero,
+    /// <param name="iterations">Iteration count. When you set zero,
     /// use the default value.</param>
     /// <returns>
     /// True: Stopping Criterion.
     /// False: Do not Stopping Criterion
     /// </returns>
     /// <remarks></remarks>
-    public override bool Iterate(int iteration = 0)
+    public override bool Iterate(int iterations = 0)
     {
       // Check Last Error
       if (IsRecentError())
         return true;
 
       // Do Iterate
-      if (Iteration <= _iteration)
+      if (MaxIterations <= _iteration)
         return true;
-      iteration = iteration == 0
-        ? Iteration - _iteration - 1
-        : Math.Min(iteration, Iteration - _iteration) - 1;
-      for (var iterate = 0; iterate <= iteration; iterate++)
+      iterations = iterations == 0
+        ? MaxIterations - _iteration - 1
+        : Math.Min(iterations, MaxIterations - _iteration) - 1;
+      for (var iterate = 0; iterate <= iterations; iterate++)
       {
         // Counting generation
         _iteration += 1;
 
         // Check criterion
         m_points.Sort();
-        if (clsUtil.IsCriterion(EPS, m_points[0].Eval,
-          m_points[m_points.Count - 1].Eval))
+        if (clsUtil.IsCriterion(EPS, m_points[0].Value,
+          m_points[m_points.Count - 1].Value))
           return true;
 
         // -----------------------------------------------------
@@ -174,15 +174,15 @@ namespace LibOptimization.Optimization
         // Reflection
         var refrection =
           ModifySimplex(WorstPoint, centroid, Refrection);
-        if (BestPoint.Eval <= refrection.Eval &&
-            refrection.Eval < Worst2ndPoint.Eval)
+        if (BestPoint.Value <= refrection.Value &&
+            refrection.Value < Worst2ndPoint.Value)
           WorstPoint = refrection;
-        else if (refrection.Eval < BestPoint.Eval)
+        else if (refrection.Value < BestPoint.Value)
         {
           var expansion =
             ModifySimplex(WorstPoint, centroid, Expantion);
 
-          WorstPoint = expansion.Eval < refrection.Eval ? 
+          WorstPoint = expansion.Value < refrection.Value ? 
             expansion : refrection;
         }
         else
@@ -190,7 +190,7 @@ namespace LibOptimization.Optimization
           // Contraction
           var contraction =
             ModifySimplex(WorstPoint, centroid, Contraction);
-          if (contraction.Eval < WorstPoint.Eval)
+          if (contraction.Value < WorstPoint.Value)
             WorstPoint = contraction;
           else
             // Reduction(Shrink) BestPoint以外を縮小

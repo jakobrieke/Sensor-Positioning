@@ -55,7 +55,8 @@ namespace Optimization
     /// </returns>
     public double[] RandPos()
     {
-      return Intervals.Select(i => MTRandom.Uniform(i[0], i[1])).ToArray();
+      return Intervals.Select(i => MTRandom.Uniform(i[0], i[1]))
+        .ToArray();
     }
   }
 }

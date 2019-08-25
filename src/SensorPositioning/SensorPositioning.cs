@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LinearAlgebra;
-using LibOptimization.Optimization;
 using Optimization;
 
 namespace SensorPositioning
@@ -51,7 +50,7 @@ namespace SensorPositioning
     }
   }
 
-  public class SensorPositionObj : AbsObjectiveFunction
+  public class SensorPositionObj : Objective
   {
     public uint Evaluations { get; private set; }
     public readonly List<Circle> Obstacles = new List<Circle>();
@@ -276,7 +275,7 @@ namespace SensorPositioning
       return result;
     }
     
-    public override double F(List<double> vector)
+    public override double Eval(Vector vector)
     {
       var agents = ToAgents(vector.ToArray());
       
@@ -332,21 +331,6 @@ namespace SensorPositioning
 
       Evaluations++;
       return penalty + notPerceptibleArea;
-    }
-    
-    public override int Dimension()
-    {
-      return Intervals().Length;
-    }
-    
-    public override List<double> Gradient(List<double> x)
-    {
-      throw new NotImplementedException();
-    }
-
-    public override List<List<double>> Hessian(List<double> x)
-    {
-      throw new NotImplementedException();
     }
   }
 }
