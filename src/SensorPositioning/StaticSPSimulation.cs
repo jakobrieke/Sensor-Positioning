@@ -263,7 +263,7 @@ namespace SensorPositioning
         {
           SwarmSize = 40,
           IsUseCriterion = false,
-          InitialPosition = _objective.SearchSpace().RandPos()
+//          InitialPosition = _objective.SearchSpace().RandPos(),
           Random = MTRandom.Create(1234, MTEdition.Original_19937)
         };
       }
