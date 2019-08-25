@@ -1,5 +1,7 @@
+using System;
 using System.Linq;
 using LinearAlgebra;
+using MersenneTwister;
 using static System.Math;
 
 namespace Optimization
@@ -86,12 +88,15 @@ namespace Optimization
     }
 
     /// <summary>
+    /// Applies a "RandomBack" confinement to a list of particles using a
+    /// specific PRNG.
     /// See also "Confinements and Biases in Particle Swarm Optimisation" by
-    /// Maurice Clerc
+    /// Maurice Clerc.
     /// </summary>
     /// <param name="p"></param>
     /// <param name="sp"></param>
-    public static void RandomBack(Particle p, SearchSpace sp)
+    /// <param name="random"></param>
+    public static void RandomBack(Particle p, SearchSpace sp, Random random)
     {
       var i = 0;
       foreach (var interval in sp.Intervals)
@@ -99,15 +104,28 @@ namespace Optimization
         if (p.Position[i] < interval[0])
         {
           p.Position[i] = interval[0];
-          p.Velocity[i] *= -MTRandom.Uniform();
+          p.Velocity[i] *= -RandomExtension.Uniform(random);
         }
         else if (p.Position[i] > interval[1])
         {
           p.Position[i] = interval[1];
-          p.Velocity[i] *= -MTRandom.Uniform();
+          p.Velocity[i] *= -RandomExtension.Uniform(random);
         }
         i++;
       }
+    }
+    
+    /// <summary>
+    /// Applies a "RandomBack" confinement to a list of particles using a
+    /// Mersenne Twister as PRNG.
+    /// See also "Confinements and Biases in Particle Swarm Optimisation" by
+    /// Maurice Clerc
+    /// </summary>
+    /// <param name="p"></param>
+    /// <param name="sp"></param>
+    public static void RandomBack(Particle p, SearchSpace sp)
+    {
+      RandomBack(p, sp, MTRandom.Create(MTEdition.Original_19937));
     }
 
     public static void Hyperbolic(Particle p, SearchSpace sp)

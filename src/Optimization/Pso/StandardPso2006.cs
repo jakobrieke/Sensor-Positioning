@@ -9,7 +9,7 @@ namespace Optimization
 
     public override void Update(Particle particle)
     {
-      global::Optimization.Update.UpdateSpso2006(particle, W, C1, C2);
+      global::Optimization.Update.UpdateSpso2006(particle, W, C1, C2, Random);
     }
 
     public override void Confinement(Particle particle)

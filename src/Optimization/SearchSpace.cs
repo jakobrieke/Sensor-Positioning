@@ -48,14 +48,26 @@ namespace Optimization
     }
 
     /// <summary>
-    /// Get a random position inside the SearchSpace.
+    /// Gets a random position inside the SearchSpace using a specific PRNG.
+    /// </summary>
+    /// <returns>
+    /// An array with the same dimension as the SearchSpace.
+    /// </returns>
+    public double[] RandPos(Random random)
+    {
+      return Intervals.Select(i => RandomExtension.Uniform(
+          random, i[0], i[1])).ToArray();
+    }
+    
+    /// <summary>
+    /// Gets a random position inside the SearchSpace using a Mersenne Twister.
     /// </summary>
     /// <returns>
     /// An array with the same dimension as the SearchSpace.
     /// </returns>
     public double[] RandPos()
     {
-      return Intervals.Select(i => MTRandom.Uniform(i[0], i[1]))
+      return Intervals.Select(i => RandomExtension.Uniform(i[0], i[1]))
         .ToArray();
     }
   }

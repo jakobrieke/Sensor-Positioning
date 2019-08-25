@@ -144,30 +144,6 @@ namespace Optimization
     }
 
     /// <summary>
-    /// Generate a random number in [left, right]. If left > right the number is
-    /// generated inside [right, left].
-    /// </summary>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns></returns>
-    public double Uniform(double left = 0.0, double right = 1.0)
-    {
-      if (left < right) return left + Random.NextDouble() * (right - left);
-      
-      return right + Random.NextDouble() * (left - right);
-    }
-
-    /// <summary>
-    /// Generate a random position inside the search space.
-    /// </summary>
-    /// <returns></returns>
-    public double[] RandomPosition()
-    {
-      return SearchSpace.Intervals.Select(i => Uniform(i[0], i[1]))
-        .ToArray();
-    }
-    
-    /// <summary>
     /// Initialize a swarm from a list of start positions and velocities.
     /// </summary>
     /// <param name="startPosition">
@@ -221,7 +197,7 @@ namespace Optimization
         startVelocity[i] = new double[SearchSpace.Dimension];
         for (var j = 0; j < SearchSpace.Dimension; j++)
         {
-          startVelocity[i][j] = Uniform(
+          startVelocity[i][j] = RandomExtension.Uniform(Random,
             SearchSpace.Intervals[j][0] - startPosition[i][j],
             SearchSpace.Intervals[j][1] - startPosition[i][j]);
         }
@@ -240,7 +216,7 @@ namespace Optimization
       var startPosition = new double[numberOfParticles][];
       for (var i = 0; i < numberOfParticles; i++)
       {
-        startPosition[i] = RandomPosition();
+        startPosition[i] = SearchSpace.RandPos(Random);
       }
       Init(startPosition);
     }

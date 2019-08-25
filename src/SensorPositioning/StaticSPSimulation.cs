@@ -4,8 +4,10 @@ using System.Linq;
 using charlie;
 using Cairo;
 using LinearAlgebra;
+using MersenneTwister;
 using Optimization;
 using Optimization.LibOptimizationWrapper;
+using MTRandom = MersenneTwister.MTRandom;
 
 namespace SensorPositioning
 {
@@ -262,6 +264,7 @@ namespace SensorPositioning
           SwarmSize = 40,
           IsUseCriterion = false,
           InitialPosition = _objective.SearchSpace().RandPos()
+          Random = MTRandom.Create(1234, MTEdition.Original_19937)
         };
       }
       else if (optimizerName == "ADE")
@@ -272,6 +275,7 @@ namespace SensorPositioning
           IsUseCriterion = false,
           LowerBounds = _objective.Intervals().Select(i => i[0]).ToArray(),
           UpperBounds = _objective.Intervals().Select(i => i[1]).ToArray()
+          Random = MTRandom.Create(1234, MTEdition.Original_19937)
         };
       }
 //      else if (optimizerName == "JADE")

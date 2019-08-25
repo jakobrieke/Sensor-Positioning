@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using LinearAlgebra;
+using MersenneTwister;
 
 namespace Optimization
 {
@@ -21,12 +22,12 @@ namespace Optimization
     /// </summary>
     public List<double> F;
 
-    public int RandomSeed = 1234;
-    public Random Rand;
+    public Random Random;
 
     public DifferentialEvolution(Objective fitness, 
       SearchSpace searchSpace) : base(fitness, searchSpace)
     {
+      Random = MTRandom.Create(MTEdition.Original_19937);
     }
 
     public virtual void Init(int populationSize)
@@ -42,11 +43,9 @@ namespace Optimization
         CR.Add(1);
         F.Add(1);
         
-        var pos = new Vector(SearchSpace.RandPos());
+        var pos = new Vector(SearchSpace.RandPos(Random));
         Population.Add(new Point(pos, Fitness.Eval(pos)));
       }
-
-      Rand = MersenneTwister.MTRandom.Create(RandomSeed);
     }
 
     public override void Init()
@@ -63,7 +62,9 @@ namespace Optimization
     }
     
     public abstract Vector Mutation();
+    
     public abstract Vector Crossover();
+    
     public abstract Point Selection();
   }
 }

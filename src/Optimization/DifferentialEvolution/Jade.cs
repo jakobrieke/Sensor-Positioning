@@ -45,15 +45,17 @@ namespace Optimization
     /// <returns></returns>
     private double RandU(double left = 0.0, double right = 1.0)
     {
-      return left + Rand.NextDouble() * (right - left);
+      return RandomExtension.Uniform(Random, left, right);
     }
 
-    private static double CauchyRand(double location = 0, double scale = 1)
+    private double CauchyRand(double location = 0, double scale = 1)
     {
-      return location + scale * Tan(PI * MTRandom.Uniform(-0.5, 0.5));
+      return location + scale * Tan(
+               PI * RandomExtension.Uniform(Random, -0.5, 0.5));
     }
 
-    private static double RandN(double mean, double standardDeviation = 0.1)
+    // Todo: Use a normal distribution instead of a cauchy distribution.
+    private double RandN(double mean, double standardDeviation = 0.1)
     {
       return CauchyRand(mean, standardDeviation);
     }
@@ -88,7 +90,7 @@ namespace Optimization
       {
         // Choose x_best from top 100p% vectors
         var pBestIndex = (int) RandU(0.00000000001) * Population.Count;
-        var xBest = Population[Rand.Next(pBestIndex)].Position;
+        var xBest = Population[Random.Next(pBestIndex)].Position;
 
         // -- Mutation
         
@@ -96,11 +98,11 @@ namespace Optimization
         var choices = new List<Point>(Population);
         
         choices.RemoveAt(i);
-        var r1 = Rand.Next(0, choices.Count);
+        var r1 = Random.Next(0, choices.Count);
         var xR1 = choices[r1].Position;
         
         choices.RemoveAt(r1);
-        var r2 = Rand.Next(0, choices.Count);
+        var r2 = Random.Next(0, choices.Count);
         var xR2 = choices[r2].Position;
         
         // Create v
@@ -110,7 +112,7 @@ namespace Optimization
         // -- Crossover
 
         var uBuffer = new double[SearchSpace.Dimension];
-        var jRand = Rand.Next(SearchSpace.Dimension);
+        var jRand = Random.Next(SearchSpace.Dimension);
           
         for (var j = 0; j < SearchSpace.Dimension; j++)
         {

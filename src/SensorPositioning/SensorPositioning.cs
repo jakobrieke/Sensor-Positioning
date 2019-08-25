@@ -152,8 +152,8 @@ namespace SensorPositioning
     private Circle PlaceRandom(Circle obstacle)
     {
       obstacle.Position = new Vector2(
-        MTRandom.Uniform(0, FieldWidth), 
-        MTRandom.Uniform(0, FieldHeight));
+        RandomExtension.Uniform(0, FieldWidth), 
+        RandomExtension.Uniform(0, FieldHeight));
       return obstacle;
     }
 

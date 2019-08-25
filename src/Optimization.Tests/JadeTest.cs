@@ -87,7 +87,7 @@ namespace Optimization
     {
       var obj = new F7();
       var sp = new SearchSpace(5, 10);
-      var jade = new Jade(obj, sp) {C = 0.1, RandomSeed = 1234};
+      var jade = new Jade(obj, sp) {C = 0.1};
       jade.Init(20);
 
       RunTest(jade, 9E-4);

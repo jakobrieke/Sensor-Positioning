@@ -1,27 +1,38 @@
+using System;
+using MersenneTwister;
+
 namespace Optimization
 {
-  public static class MTRandom
+  public static class RandomExtension
   {
     /// <summary>
-    /// Create a uniform random number inside the interval [left, right].
-    /// The random number generation is uses a Mersenne Twister PRNG.
-    /// If the left border is greater than the right border they are
-    /// automatically switched.
+    /// Generates a random number in [left, right] using a Mersenne Twister
+    /// MT19937 with a 32 bit word.
+    /// If left > right the number is generated inside [right, left].
     /// </summary>
-    /// <param name="left">The left interval border. Default to 0.0</param>
-    /// <param name="right">The right interval border. Default to 1.0</param>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
     /// <returns></returns>
     public static double Uniform(double left = 0.0, double right = 1.0)
     {
-      if (left > right)
-      {
-        var buffer = left;
-        left = right;
-        right = buffer;
-      }
+      return Uniform(MTRandom.Create(
+        MTEdition.Original_19937), left, right);
+    }
+
+    /// <summary>
+    /// Generates a random number in [left, right] using a provided instance of
+    /// Random. If left > right the number is generated inside [right, left].
+    /// </summary>
+    /// <param name="random"></param>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns></returns>
+    public static double Uniform(Random random, double left = 0, 
+      double right = 1)
+    {
+      if (left < right) return left + random.NextDouble() * (right - left);
       
-      var rand = MersenneTwister.MTRandom.Create();
-      return left + rand.NextDouble() * (right - left);
+      return right + random.NextDouble() * (left - right);
     }
   }
 }
