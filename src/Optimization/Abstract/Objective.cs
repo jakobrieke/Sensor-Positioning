@@ -5,8 +5,6 @@ namespace Optimization
 {
   public abstract class Objective
   {
-    public uint Evaluations;
-    
     /// <summary>
     /// Evaluates the objective function at a given position.
     /// </summary>
