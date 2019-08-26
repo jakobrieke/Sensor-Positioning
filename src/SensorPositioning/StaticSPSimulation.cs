@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using charlie;
 using Cairo;
 using LinearAlgebra;
@@ -13,6 +12,9 @@ namespace SensorPositioning
 {
   /* Recent Changes
    *
+   * v2.1.1
+   * - Fix a bug that LibOptimization Jade implementation might not use the
+   *   specified Random instance
    * v2.1.0
    * - Use a Mersenne Twister 19937 with a 32 bit word as PRNG for all
    *   optimization algorithms
@@ -85,7 +87,7 @@ namespace SensorPositioning
 
     public override string GetMeta()
     {
-      return "Author: Jakob Rieke; Version v2.1.0; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v2.1.1; Deterministic: No"; 
     }
     
     public override string GetDescr()
