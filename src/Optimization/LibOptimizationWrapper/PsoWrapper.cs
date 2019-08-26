@@ -1,18 +1,15 @@
-using System;
 using LibOptimization.Optimization;
 
 namespace Optimization.LibOptimizationWrapper
 {
-  public class PsoWrapper : Optimization
+  public class PsoWrapper : StochisticOptimization
   {
     public readonly clsOptPSO Pso;
-    public double[] InitialPosition;
     public int SwarmSize = 40;
     public bool IsUseCriterion = false;
     public double W = 0.729;
     public double C1 = 1.49445;
     public double C2 = 1.49445;
-    public Random Random;
     private Point _best;
 
     public PsoWrapper(Objective fitness, SearchSpace searchSpace) : 
@@ -27,7 +24,6 @@ namespace Optimization.LibOptimizationWrapper
       
       ResetIterations();
       Pso.IsUseCriterion = IsUseCriterion;
-//      Pso.InitialPosition = SearchSpace.RandPos();
       Pso.SwarmSize = SwarmSize;
       Pso.C1 = C1;
       Pso.C2 = C2;

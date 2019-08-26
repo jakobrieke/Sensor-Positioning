@@ -1,9 +1,8 @@
-using System;
 using LibOptimization.Optimization;
 
 namespace Optimization.LibOptimizationWrapper
 {
-  public class JadeWrapper : Optimization
+  public class JadeWrapper : StochisticOptimization
   {
     public clsJADE Jade;
     public double[] InitialPosition;
@@ -11,7 +10,6 @@ namespace Optimization.LibOptimizationWrapper
     public bool IsUseCriterion = false;
     public double[] LowerBounds;
     public double[] UpperBounds;
-    public Random Random;
     public double C = 0.1;
     private Point _best;
 

@@ -15,8 +15,7 @@ namespace Optimization
       var obj = new clsBenchSphere(3);
       var jade = new clsJADE(obj)
       {
-        Random = MersenneTwister.MTRandom.Create(674901, 
-          MTEdition.Original_19937)
+        Random = MTRandom.Create(674901, MTEdition.Original_19937)
       };
       
       jade.Init();
@@ -37,8 +36,7 @@ namespace Optimization
       var sp = new SearchSpace(2, 100);
       var opt = new JadeWrapper(new SphereFunction(), sp)
       {
-        Random = MersenneTwister.MTRandom.Create(674901, 
-          MTEdition.Original_19937)
+        Random = MTRandom.Create(674901, MTEdition.Original_19937)
       };
 
       opt.Init();

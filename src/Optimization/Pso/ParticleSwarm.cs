@@ -12,7 +12,7 @@ namespace Optimization
   /// function. Also there is a topology defined between the particles which
   /// indicates which particle informs another particle.
   /// </summary>
-  public abstract class ParticleSwarm : Optimization
+  public abstract class ParticleSwarm : StochisticOptimization
   {
     /// <summary>
     /// A list of particles which make up the swarm.
@@ -25,8 +25,6 @@ namespace Optimization
     
     public double C2 = 1 / 2f + Log(2);  // ~1.49445
 
-    public Random Random;
-    
     /// <summary>
     /// The best known position in the search space.
     /// </summary>
@@ -49,12 +47,7 @@ namespace Optimization
     /// <param name="fitness"></param>
     public ParticleSwarm(SearchSpace searchSpace, Objective fitness) : 
       base(fitness, searchSpace)
-    {
-      SearchSpace = searchSpace;
-      Fitness = fitness;
-      Random = MersenneTwister.MTRandom.Create(
-        DateTime.Now.Millisecond, MTEdition.Cok_19937);
-    }
+    {}
 
     /// <summary>
     /// A function that defines how the velocity and the position of a

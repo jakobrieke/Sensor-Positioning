@@ -11,18 +11,11 @@ namespace Optimization
   {
     [Test] public static void Test()
     {
-      Console.WriteLine(1E-100 + 1E-60);
-      Console.WriteLine(1E-60);
-      Console.WriteLine(1E-30);
-      Console.WriteLine(1E-15);
-      Console.WriteLine(1E-7);
-    
       var obj = new clsBenchSphere(3);
       var pso = new clsOptPSO(obj) 
       {
         SwarmSize = 40,
-        Random = MersenneTwister.MTRandom.Create(674901,
-          MTEdition.Original_19937)
+        Random = MTRandom.Create(674901, MTEdition.Original_19937)
       };
       
       pso.Init();
@@ -44,8 +37,7 @@ namespace Optimization
       var opt = new PsoWrapper(obj, sp)
       {
         SwarmSize = 40,
-        Random = MersenneTwister.MTRandom.Create(674901, 
-          MTEdition.Original_19937)
+        Random = MTRandom.Create(674901, MTEdition.Original_19937)
       };
 
       opt.Init();

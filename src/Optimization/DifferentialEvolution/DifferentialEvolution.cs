@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using LinearAlgebra;
-using MersenneTwister;
 
 namespace Optimization
 {
-  public abstract class DifferentialEvolution : Optimization
+  public abstract class DifferentialEvolution : StochisticOptimization
   {
     public uint Generation { get; private set; }
     
@@ -22,13 +20,9 @@ namespace Optimization
     /// </summary>
     public List<double> F;
 
-    public Random Random;
-
     public DifferentialEvolution(Objective fitness, 
       SearchSpace searchSpace) : base(fitness, searchSpace)
-    {
-      Random = MTRandom.Create(MTEdition.Original_19937);
-    }
+    {}
 
     public virtual void Init(int populationSize)
     {
