@@ -23,8 +23,6 @@ namespace Optimization.LibOptimizationWrapper
 
     public override void Init()
     {
-      if (Random == null) Jade.Random = MersenneTwister.MTRandom.Create();
-      
       ResetIterations();
       Jade.C = C;
       Jade.IsUseCriterion = IsUseCriterion;
@@ -32,6 +30,7 @@ namespace Optimization.LibOptimizationWrapper
       Jade.UpperBounds = UpperBounds;
       Jade.PopulationSize = PopulationSize;
       Jade.InitialPosition = InitialPosition;
+      Jade.Random = Random;
       Jade.Init();
       _best = new Point(Jade.Result.ToArray(), Jade.Result.Value);
     }
