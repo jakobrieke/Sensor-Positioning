@@ -437,7 +437,6 @@ namespace SensorPositioning
     
     private void DrawSensors(Context cr)
     {
-      Console.WriteLine("Drawing");
       var shadows = _objective.NotPerceptible(_sensors);
       cr.SetSourceRGBA(0, 0, 0, 0.7);
       
