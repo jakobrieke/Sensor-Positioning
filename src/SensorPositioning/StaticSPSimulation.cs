@@ -273,15 +273,15 @@ namespace SensorPositioning
         {
           PopulationSize = 40,
           IsUseCriterion = false,
-          LowerBounds = _objective.Intervals().Select(i => i[0]).ToArray(),
-          UpperBounds = _objective.Intervals().Select(i => i[1]).ToArray()
           Random = MTRandom.Create(1234, MTEdition.Original_19937)
+//          LowerBounds = _objective.Intervals().Select(i => i[0]).ToArray(),
+//          UpperBounds = _objective.Intervals().Select(i => i[1]).ToArray()
         };
       }
-//      else if (optimizerName == "JADE")
-//      {
-//        _optimizer = new Jade(_objective, _objective.SearchSpace());
-//      }
+      else if (optimizerName == "JADE")
+      {
+        _optimizer = new Jade(_objective, _objective.SearchSpace());
+      }
       else
       {
         throw new Exception($"Optimizer {optimizerName} is not supported");
