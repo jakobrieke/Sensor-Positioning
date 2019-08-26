@@ -13,61 +13,67 @@ namespace SensorPositioning
 {
   /* Recent Changes
    *
+   * v2.1.0
+   * - Use a Mersenne Twister 19937 with a 32 bit word as PRNG for all
+   *   optimization algorithms
+   * - Add an option to set the seed used by the optimization algorithms
+   * - Restructure and unify code base
+   * - Add a hidden experimental version of a new JADE implementation
    * v2.0.0
-   * Rename options
+   * - Rename options
    *   PlayerSensorRange -> SensorRange,
    *   PlayerSensorFOV -> SensorFOV,
    *   PlayerSize -> ObstacleSize,
    *   ImpArea -> InterestingArea
    * v1.9.1
-   * Fix error in default configuration
-   * Split Update() into multiple methods
-   * v1.9.0
-   * Add option to hide grid
-   * Increase objective performance by removing unnecessary call to check
+   * - Fix error in default configuration
+   * - Split Update() into multiple methods
+   * - v1.9.0
+   * - Add option to hide grid
+   * - Increase objective performance by removing unnecessary call to check
    *   if a sensor is inside the given boundaries
    * v1.8.0
-   * Disable usage of convergence criterion for PSO and ADE
-   * Add objective evaluation count to logging
-   * Add an option to use a dynamic local search space on SPSO-2006
-   * Fix that start position is not updated correctly 
+   * - Disable usage of convergence criterion for PSO and ADE
+   * - Add objective evaluation count to logging
+   * - Add an option to use a dynamic local search space on SPSO-2006
+   * - Fix that start position is not updated correctly 
    * v1.7.2
-   * Parallelize function SensorPositioning.Shadows(sensors)
+   * - Parallelize function SensorPositioning.Shadows(sensors)
    * v1.7.1
-   * Tiny code optimizations
+   * - Tiny code optimizations
    * v1.7.0
-   * Add option to initialize and iterate the optimizer every simulation
+   * - Add option to initialize and iterate the optimizer every simulation
    * v1.6.0
-   * Change default Configuration
-   * Add experimental optimizer MinimalPSO
-   * Remove deprecated list of possible optimizers
-   * Add velocity to obstacles
-   * Remove sensor position option from config since it's not working
-   * Add option to draw start positions
-   * Add penalty for distance and rotation to sensor start position
+   * - Change default Configuration
+   * - Add experimental optimizer MinimalPSO
+   * - Remove deprecated list of possible optimizers
+   * - Add velocity to obstacles
+   * - Remove sensor position option from config since it's not working
+   * - Add option to draw start positions
+   * - Add penalty for distance and rotation to sensor start position
    * v1.5.1
-   * Restructure SensorPositionObj class
+   * - Restructure SensorPositionObj class
    * v1.5.0
-   * Fix comma in obstacles not logged correctly
-   * Add option to toggle if changes should be logged or not
-   * Save iterations when global best changes
+   * - Fix comma in obstacles not logged correctly
+   * - Add option to toggle if changes should be logged or not
+   * - Save iterations when global best changes
    * v1.4.1
-   * Translate LibOptimization to C#
+   * - Translate LibOptimization to C#
    * v1.4.0
-   * Add option to hide sensor lines
-   * Change colors of sensors and obstacles
-   * Add functionality to mark important areas with polygons
+   * - Add option to hide sensor lines
+   * - Change colors of sensors and obstacles
+   * - Add functionality to mark important areas with polygons
    *   -> important areas reduce the fitness function value by their area
-   * Change config attribute names "SizeTeamA", "SizeTeamB"
-   * Add option to set fixed positions for obstacles
-   * Change rendering color to red for sensor area
-   * Fix 'sometimes worse best' in PSO implementation
-   * Test standard PSO 2006 without neighbourhood -> did not work
-   * Fix standard PSO 2007 & 2006 implementation
-   * Render field centered to render area
-   * Test behaviour if fitness does not return +infinity when two sensors
+   * - Change config attribute names "SizeTeamA", "SizeTeamB"
+   * - Add option to set fixed positions for obstacles
+   * - Change rendering color to red for sensor area
+   * - Fix 'sometimes worse best' in PSO implementation
+   * - Test standard PSO 2006 without neighbourhood -> did not work
+   * - Fix standard PSO 2007 & 2006 implementation
+   * - Render field centered to render area
+   * - Test behaviour if fitness does not return +infinity when two sensors
    *   overlap -> optimization with LibOptimization.PSO is better
-   * Add punishment factor is added to fitness so that sensors are
+   * - Add punishment factor is added to fitness so that sensors are
    *   getting drawn into the field
    */
   public class StaticSpSimulation : AbstractSimulation
@@ -79,7 +85,7 @@ namespace SensorPositioning
 
     public override string GetMeta()
     {
-      return "Author: Jakob Rieke; Version v2.0.0; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v2.1.0; Deterministic: No"; 
     }
     
     public override string GetDescr()
@@ -93,7 +99,7 @@ namespace SensorPositioning
              "obstacles since they have a body.\n" +
              "\n" +
              "Known bugs:\n" +
-             "- Perceptible area is rendered black if polygon is not open";
+             "- Perceptible area is rendered black if area polygon is not open";
     }
     
     public override string GetConfig()
@@ -119,6 +125,9 @@ namespace SensorPositioning
         "StartPositionRotationWeight = 0\n" +
         "\n" +
         "# -- Optimizer configuration\n" +
+        "# The random seed greater than zero\n" +
+        "# Use -1 to use the current milliseconds as random seed\n" +
+        "OptimizationRandomSeed = -1\n" +
         "# The function used to optimize the problem,\n" +
         "# possible values are:\n" +
         "# PSO, SPSO-2006, SPSO-2007, SPSO-2011, ADE\n" +
@@ -243,19 +252,32 @@ namespace SensorPositioning
 
       var optimizerName = config.ContainsKey("Optimizer") ? 
         config["Optimizer"] : null;
+      
       var sp = new SearchSpace(_objective.Intervals());
+      
+      var optSeed = GetInt(config, "OptimizationRandomSeed", -1);
+      if (optSeed == -1) optSeed = DateTime.Now.Millisecond;
       
       if (optimizerName == "SPSO-2006")
       {
-        _optimizer = new StandardPso2006(sp, _objective);
+        _optimizer = new StandardPso2006(sp, _objective)
+        {
+          Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
+        };
       }
       else if (optimizerName == "SPSO-2007")
       {
-        _optimizer = new StandardPso2007(sp, _objective);
+        _optimizer = new StandardPso2007(sp, _objective)
+        {
+          Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
+        };
       }
       else if (optimizerName == "SPSO-2011")
       {
-        _optimizer = new StandardPso2011(sp, _objective);
+        _optimizer = new StandardPso2011(sp, _objective)
+        {
+          Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
+        };
       }
       else if (optimizerName == "PSO")
       {
@@ -264,7 +286,7 @@ namespace SensorPositioning
           SwarmSize = 40,
           IsUseCriterion = false,
 //          InitialPosition = _objective.SearchSpace().RandPos(),
-          Random = MTRandom.Create(1234, MTEdition.Original_19937)
+          Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
         };
       }
       else if (optimizerName == "ADE")
@@ -273,14 +295,17 @@ namespace SensorPositioning
         {
           PopulationSize = 40,
           IsUseCriterion = false,
-          Random = MTRandom.Create(1234, MTEdition.Original_19937)
+          Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
 //          LowerBounds = _objective.Intervals().Select(i => i[0]).ToArray(),
 //          UpperBounds = _objective.Intervals().Select(i => i[1]).ToArray()
         };
       }
       else if (optimizerName == "JADE")
       {
-        _optimizer = new Jade(_objective, _objective.SearchSpace());
+        _optimizer = new Jade(_objective, _objective.SearchSpace())
+        {
+          Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
+        };
       }
       else
       {

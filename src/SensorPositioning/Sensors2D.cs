@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Generic;
 using LinearAlgebra;
 using Vector2 = LinearAlgebra.Vector2;
