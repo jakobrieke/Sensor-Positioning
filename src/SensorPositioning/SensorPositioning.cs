@@ -6,73 +6,42 @@ using Optimization;
 
 namespace SensorPositioning
 {
-  public class Agent
-  {
-    public readonly double Range;
-    public readonly double Fov;
-    public double Rotation;
-    public Vector2 Position;
-    public double Size;
-
-    public Agent(double x, double y, double rotation, double range,
-      double fov, double size)
-    {
-      Range = range;
-      Fov = fov;
-      Rotation = rotation;
-      Position = new Vector2(x, y);
-      Size = size;
-    }
-
-    /// <summary>
-    /// Get a circle of the physical representation of the agent as a circle.
-    /// </summary>
-    /// <returns></returns>
-    public Circle ToCircle()
-    {
-      return new Circle(Position, Size);
-    }
-
-    /// <summary>
-    /// Get the area monitored by the sensor.
-    /// </summary>
-    /// <returns></returns>
-    public Arc AreaOfActivity()
-    {
-      return new Arc(Position, Range, Fov, Rotation - Fov / 2);
-    }
-
-    public override string ToString()
-    {
-      return "Position: " + Position + ", Size: " + Size +
-             ", Rotation: " + Rotation + ", Range: " + Range
-             + ", Fov: " + Fov;
-    }
-  }
-
   public class SensorPositionObj : Objective
   {
     public uint Evaluations { get; private set; }
+    
     public readonly List<Circle> Obstacles = new List<Circle>();
+    
     public readonly List<Polygon> InterestingAreas = new List<Polygon>();
+    
     public readonly List<Polygon> KnownAreas = new List<Polygon>();
+    
     public readonly Rectangle Field;
+    
     public readonly double FieldWidth;
+    
     public readonly double FieldHeight;
+    
     public readonly double SensorRange;
+    
     public readonly double SensorFov;
+    
     public readonly double ObjectSize;
+    
     private readonly uint _numberOfSensors;
+    
     /// <summary>
     /// If StartPosition is set to a value != null the distance is included
     /// into the result of the objective function.
     /// </summary>
     public List<Agent> StartPosition;
+    
     /// <summary>
     /// The weight by which the distance to the start position is taken into
     /// account.
     /// </summary>
     public double StartPositionDistanceWeight = 0.5;
+    
     public double StartPositionRotationWeight = 0.5;
 
     public SensorPositionObj(
