@@ -1,10 +1,34 @@
 import os
-from subprocess import Popen
 from os import path
 import shutil
 
-script_dir = os.path.dirname(os.path.realpath(__file__))
-config_dir = path.join(script_dir, "configs")
+# charlie_executable = "charlie"
+# charlie_executable = "/usr/bin/mono /home/pacosy/student01/" \
+#                      "charlie-v0.2.3/charlie.exe"
+# sim_path = path.join(
+#     script_dir,
+#     "sensor-positioning.dll:sensor_positioning.StaticSpSimulation")
+
+# def exec_charlie(iterations: int, runs: int, config_file: str,
+#                  result_dir_name: str):
+#     command = [
+#         charlie_executable, "--run", sim_path, str(iterations), str(runs),
+#         config_file, result_dir_name, "&> /dev/null"]
+#     Popen(command)
+
+
+# script_dir = os.path.dirname(os.path.realpath(__file__))
+config_dir = "configurations"
+
+if path.exists(config_dir):
+    print("Configs directory already exists, delete it? y/n")
+    if input() != 'y':
+        exit()
+    shutil.rmtree(config_dir)
+
+os.makedirs(config_dir)
+
+# Configuration template for Version 2.1.1
 config_template = """
 # -- Problem configuration
 NumberOfSensors = <nos>
@@ -24,6 +48,7 @@ StartPositionDistanceWeight = 0
 StartPositionRotationWeight = 0
 
 # -- Optimizer configuration
+OptimizationRandomSeed = -1
 Optimizer = <opt>
 # InitializeEachUpdate
 UpdatesPerIteration = 30
@@ -42,23 +67,8 @@ LogChanges
 LogRoundedPositions
 """
 
-charlie_executable = "charlie"
-# charlie_executable = "/usr/bin/mono /home/pacosy/student01/" \
-#                      "charlie-v0.2.3/charlie.exe"
-sim_path = path.join(
-    script_dir,
-    "sensor-positioning.dll:sensor_positioning.StaticSpSimulation")
 
-
-def exec_charlie(iterations: int, runs: int, config_file: str, 
-                 result_dir_name: str):
-    command = [
-        charlie_executable, "--run", sim_path, str(iterations), str(runs),
-        config_file, result_dir_name, "&> /dev/null"]
-    Popen(command)
-
-
-# -- Static configurations
+# -- Create static configurations
 
 static_configurations = [
     {"nos": 1, "noo": 1, "opt": "SPSO-2006"},
@@ -82,59 +92,20 @@ static_configurations = [
     {"nos": 8, "noo": 11, "opt": "SPSO-2006"},
     {"nos": 9, "noo": 11, "opt": "SPSO-2006"},
     {"nos": 10, "noo": 11, "opt": "SPSO-2006"},
-    {"nos": 1, "noo": 1, "opt": "ADE"},
-    {"nos": 2, "noo": 2, "opt": "ADE"},
-    {"nos": 3, "noo": 3, "opt": "ADE"},
-    {"nos": 4, "noo": 4, "opt": "ADE"},
-    {"nos": 5, "noo": 5, "opt": "ADE"},
-    {"nos": 6, "noo": 6, "opt": "ADE"},
-    {"nos": 7, "noo": 7, "opt": "ADE"},
-    {"nos": 8, "noo": 8, "opt": "ADE"},
-    {"nos": 9, "noo": 9, "opt": "ADE"},
-    {"nos": 10, "noo": 10, "opt": "ADE"},
-    {"nos": 11, "noo": 11, "opt": "ADE"},
-    {"nos": 1, "noo": 11, "opt": "ADE"},
-    {"nos": 2, "noo": 11, "opt": "ADE"},
-    {"nos": 3, "noo": 11, "opt": "ADE"},
-    {"nos": 4, "noo": 11, "opt": "ADE"},
-    {"nos": 5, "noo": 11, "opt": "ADE"},
-    {"nos": 6, "noo": 11, "opt": "ADE"},
-    {"nos": 7, "noo": 11, "opt": "ADE"},
-    {"nos": 8, "noo": 11, "opt": "ADE"},
-    {"nos": 9, "noo": 11, "opt": "ADE"},
-    {"nos": 10, "noo": 11, "opt": "ADE"},
-    {"nos": 1, "noo": 1, "opt": "PSO"},
-    {"nos": 2, "noo": 2, "opt": "PSO"},
-    {"nos": 3, "noo": 3, "opt": "PSO"},
-    {"nos": 4, "noo": 4, "opt": "PSO"},
-    {"nos": 5, "noo": 5, "opt": "PSO"},
-    {"nos": 6, "noo": 6, "opt": "PSO"},
-    {"nos": 7, "noo": 7, "opt": "PSO"},
-    {"nos": 8, "noo": 8, "opt": "PSO"},
-    {"nos": 9, "noo": 9, "opt": "PSO"},
-    {"nos": 10, "noo": 10, "opt": "PSO"},
-    {"nos": 11, "noo": 11, "opt": "PSO"},
-    {"nos": 1, "noo": 11, "opt": "PSO"},
-    {"nos": 2, "noo": 11, "opt": "PSO"},
-    {"nos": 3, "noo": 11, "opt": "PSO"},
-    {"nos": 4, "noo": 11, "opt": "PSO"},
-    {"nos": 5, "noo": 11, "opt": "PSO"},
-    {"nos": 6, "noo": 11, "opt": "PSO"},
-    {"nos": 7, "noo": 11, "opt": "PSO"},
-    {"nos": 8, "noo": 11, "opt": "PSO"},
-    {"nos": 9, "noo": 11, "opt": "PSO"},
-    {"nos": 10, "noo": 11, "opt": "PSO"},
+    # Configurations to to examine when agents start to block each other
+    {"nos": 1, "noo": 11, "opt": "SPSO-2006"},
+    {"nos": 2, "noo": 11, "opt": "SPSO-2006"},
+    {"nos": 3, "noo": 11, "opt": "SPSO-2006"},
+    {"nos": 4, "noo": 11, "opt": "SPSO-2006"},
+    {"nos": 5, "noo": 11, "opt": "SPSO-2006"},
+    {"nos": 6, "noo": 11, "opt": "SPSO-2006"},
+    {"nos": 7, "noo": 11, "opt": "SPSO-2006"},
+    {"nos": 8, "noo": 11, "opt": "SPSO-2006"},
+    {"nos": 9, "noo": 11, "opt": "SPSO-2006"},
+    {"nos": 10, "noo": 11, "opt": "SPSO-2006"},
 ]
-iterations = 0  # 1000
-runs = 1  # 100
-
-if path.exists(config_dir):
-    print("Configs directory already exists, overwrite? y/n")
-    if input() != 'y':
-        exit()
-    shutil.rmtree(config_dir)
-
-os.makedirs(config_dir)
+# iterations = 0  # 1000
+# runs = 1  # 100
 
 for config in static_configurations:
     result_dir_name = "static-" + str(config["nos"]) + \
@@ -150,9 +121,13 @@ for config in static_configurations:
     config_file_handler.write(config_text)
     config_file_handler.close()
 
-    exec_charlie(iterations, runs, config_file, result_dir_name)
+    # exec_charlie(iterations, runs, config_file, result_dir_name)
 
-# -- Dynamic configurations
+# -- Create dynamic configurations
+
+print("Do you want to create dynamic configurations? y/n")
+if input() != 'y':
+    exit()
 
 dynamic_configurations = [
     {"nos": 1, "noo": 1},
@@ -165,8 +140,8 @@ dynamic_configurations = [
     {"nos": 3, "noo": 2},
     {"nos": 3, "noo": 3},
 ]
-iterations = 1  # 1000
-runs = 1  # 100
+# iterations = 1  # 1000
+# runs = 1  # 100
 
 for config in dynamic_configurations:
     result_dir_name = "dynamic-" + str(config["nos"]) + \
@@ -182,4 +157,4 @@ for config in dynamic_configurations:
     config_file_handler.write(config_text)
     config_file_handler.close()
 
-    exec_charlie(iterations, runs, config_file, result_dir_name)
+    # exec_charlie(iterations, runs, config_file, result_dir_name)
