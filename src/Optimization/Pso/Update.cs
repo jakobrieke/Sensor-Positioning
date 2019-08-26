@@ -39,6 +39,7 @@ namespace Optimization
       else UpdateSpso2006(p, w, c1, c2, random);
     }
 
+    // Todo: Fix strong bias to (0, 0, ..., 0)
     public static void UpdateSpso2011(Particle particle,
       double w, double c1, double c2, Random random)
     {
