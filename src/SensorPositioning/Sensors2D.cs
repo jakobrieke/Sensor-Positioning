@@ -35,6 +35,11 @@ namespace SensorPositioning
       s1 = new Segment(tangs[0].End, s1.End);
       s2 = new Segment(tangs[1].End, s2.End);
 
+      // Since segment (s1.End, s2.End) might intersect with bounds, make
+      // sure that area "behind" that intersection is also included.
+      // Therefore two extra points are included:
+      // -> s1.End.Move(angle, d), s2.End.Move(angle, d),
+      
       var angle = Vector2.Angle(position, obstacle.Position);
       var result = new Polygon {
         s1.Start, s1.End,
@@ -88,6 +93,32 @@ namespace SensorPositioning
 
       return result;
     }
+
+    /// <summary>
+    /// Examines whether an arc or a circle are intersecting.
+    /// !!! Warning: This function currently only checks if the two radii of arc
+    /// and circle are intersecting and ignores the rotation of the arc.
+    /// </summary>
+    /// <param name="arc"></param>
+    /// <param name="circle"></param>
+    /// <returns></returns>
+    public static bool Intersecting(Arc arc, Circle circle)
+    {
+      if (Vector2.Distance(arc.Position, circle.Position) >=
+          arc.Radius) return false;
+      return true;
+      // Todo: Implement check for arc rotation
+      // Todo: Fix arc rotation is clockwise, angle anticlockwise
+      // -> use unit circle as reference
+//      var sensorHalfAngle = sensor.Angle / 2;
+//        var angle = 360 - Vector2.Angle(sensor.Position, obstacle.Position);
+//        Console.WriteLine("Rotation: " + sensor.Rotation);
+//        Console.WriteLine("Alpha: " + (sensor.Rotation + sensorHalfAngle));
+//        Console.WriteLine("Beta: " + (sensor.Rotation - sensorHalfAngle));
+//        Console.WriteLine("Angle: " + angle);
+//        if (sensor.Rotation + sensorHalfAngle < angle
+//            && sensor.Rotation - sensorHalfAngle > angle) continue;
+    }
     
     /// <summary>
     /// Calculate the area that is not perceptible by sensor.
@@ -105,26 +136,13 @@ namespace SensorPositioning
         return new List<Polygon> {bounds.ToPolygon()};
 
       var polygons = new List<Polygon>();
-//      var visited = 0;
-//      var sensorHalfAngle = sensor.Angle / 2;
       foreach (var obstacle in obstacles)
       {
         if (!bounds.Contains(obstacle.Position)) continue;
-        if (Vector2.Distance(sensor.Position, obstacle.Position) >=
-            sensor.Radius) continue;
-        // Todo: Fix arc rotation is clockwise, angle anticlockwise
-        // -> use unit circle as reference
-//        var angle = 360 - Vector2.Angle(sensor.Position, obstacle.Position);
-//        Console.WriteLine("Rotation: " + sensor.Rotation);
-//        Console.WriteLine("Alpha: " + (sensor.Rotation + sensorHalfAngle));
-//        Console.WriteLine("Beta: " + (sensor.Rotation - sensorHalfAngle));
-//        Console.WriteLine("Angle: " + angle);
-//        if (sensor.Rotation + sensorHalfAngle < angle
-//            && sensor.Rotation - sensorHalfAngle > angle) continue;
-//        visited++;
+        if (!Intersecting(sensor, obstacle)) continue;
+        
         polygons.Add(CalcBlockedArea(sensor.Position, obstacle, bounds));
       }
-//      Console.WriteLine("Visited: " + visited);
 
       // Add the area outside of the sensors area of activity
       polygons.AddRange(Polygon.Difference(
