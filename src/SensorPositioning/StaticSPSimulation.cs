@@ -451,14 +451,15 @@ namespace SensorPositioning
       cr.ClosePath();
     }
 
-    private void DrawImportantArea(Context cr)
+    private void DrawInterestingArea(Context cr)
     {
-      cr.SetSourceRGBA(0, 0, 0, 0.3);
+      cr.SetSourceRGBA(1, 1, 1, 0.5);
       foreach (var area in _objective.InterestingAreas)
       {
         DrawPolygon(cr, area);
-        cr.LineWidth = 4;
-        cr.Stroke();
+        cr.Fill();
+//        cr.LineWidth = 4;
+//        cr.Stroke();
       }
     }
     
@@ -533,7 +534,7 @@ namespace SensorPositioning
         (width - _objective.FieldHeight * _zoom) / 2);
       
       DrawCoordinateSystem(cr);
-      DrawImportantArea(cr);
+      DrawInterestingArea(cr);
       DrawSensors(cr);
       if (_drawStartPositions) DrawStartPosition(cr);
       DrawObstacles(cr);
