@@ -69,7 +69,8 @@ namespace Optimization
     public override double Eval(Vector position)
     {
       return position.Select((x, i) => 
-        i * Pow(x, 4) + RandomExtension.Uniform(0, 0.99999999999999)).Sum();
+        i * Pow(x, 4) 
+        + new MathNet.Numerics.Random.MersenneTwister().NextDouble()).Sum();
     }
   }
 }
