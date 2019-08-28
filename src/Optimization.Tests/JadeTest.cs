@@ -17,7 +17,7 @@ namespace Optimization
       
       Console.WriteLine($"i = 500, best = {jade.Best().Value}");
       Console.WriteLine($"Expected: {expected}");
-      Assert.True(jade.Best().Value <= expected);
+      Assert.LessOrEqual(jade.Best().Value, expected);
     }
     
     [Test] public static void TestInit()
@@ -90,7 +90,7 @@ namespace Optimization
       var jade = new Jade(obj, sp) {C = 0.1};
       jade.Init(20);
 
-      RunTest(jade, 9E-4);
+      RunTest(jade, 8.54E-4);
     }
   }
 }
