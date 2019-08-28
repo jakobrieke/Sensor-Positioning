@@ -39,7 +39,6 @@ namespace LinearAlgebra
       return new List<double>{Position.X, Position.Y, Radius, Angle, Rotation};
     }
     
-    // Todo: Fix method for Angle > 360°
     /// <summary>
     /// Return a polygon representation of the arc.
     /// </summary>
@@ -58,6 +57,8 @@ namespace LinearAlgebra
       if (precision < 0)
         throw new ArgumentException(
           "Precision can't be smaller than 0");
+      if (Angle > 360) throw new NotSupportedException(
+        "Angles > 360° are not supported for conversion to polygon");
       precision += 1;
 
       var result = new Polygon();
