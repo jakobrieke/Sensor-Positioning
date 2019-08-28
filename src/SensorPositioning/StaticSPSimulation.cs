@@ -132,7 +132,7 @@ namespace SensorPositioning
         "OptimizationRandomSeed = -1\n" +
         "# The function used to optimize the problem,\n" +
         "# possible values are:\n" +
-        "# PSO, SPSO-2006, SPSO-2007, SPSO-2011, ADE\n" +
+        "# PSO-global, SPSO-2006, SPSO-2007, SPSO-2011, JADE, JADE-with-archive\n" +
         "Optimizer = SPSO-2006\n" +
         "# If InitializeEachUpdate is not set, Updates\n" +
         "# per iteration is always one\n" +
@@ -281,7 +281,7 @@ namespace SensorPositioning
           Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
         };
       }
-      else if (optimizerName == "PSO")
+      else if (optimizerName == "PSO-global")
       {
         _optimizer = new PsoWrapper(_objective, sp)
         {
@@ -291,7 +291,7 @@ namespace SensorPositioning
           Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
         };
       }
-      else if (optimizerName == "ADE")
+      else if (optimizerName == "JADE-with-archive")
       {
         _optimizer = new JadeWrapper(_objective, sp)
         {
