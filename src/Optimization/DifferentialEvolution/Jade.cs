@@ -106,22 +106,18 @@ namespace Optimization
         var r2 = Random.Next(0, choices.Count);
         var xR2 = choices[r2].Position;
         
-        // Create v
         var x = Population[i].Position;
         var v = x + F[i] * (xBest - x) + F[i] * (xR1 - xR2);
         
         // -- Crossover
 
-        var uBuffer = new double[SearchSpace.Dimension];
+        var u = Vector.One(SearchSpace.Dimension);
         var jRand = Random.Next(SearchSpace.Dimension);
           
         for (var j = 0; j < SearchSpace.Dimension; j++)
         {
-          if (j == jRand || RandU() <= CR[i]) uBuffer[j] = v[j];
-          else uBuffer[j] = x[j];
+          u[j] = j == jRand || RandU() <= CR[i] ? v[j] : x[j];
         }
-
-        var u = new Vector(uBuffer);
 
         // -- Selection
         
@@ -130,12 +126,12 @@ namespace Optimization
         
         SCR.Add(CR[i]);
         SF.Add(F[i]);
+        Population.Sort();
       }
       
       µCr = (1 - C) * µCr + C * Mean(SCR);
       µF = (1 - C) * µF + C * LehmerMean(SF);
       
-      Population.Sort();
 //      base.Update();
     }
 
