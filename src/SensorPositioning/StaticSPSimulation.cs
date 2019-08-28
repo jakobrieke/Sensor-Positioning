@@ -12,8 +12,15 @@ namespace SensorPositioning
 {
   /* Recent Changes
    *
+   * v3.0.0
+   * - Rename optimization algorithm choices PSO and ADE to PSO-global and
+   *   JADE-with-archive
+   * - Fix JADE did not use normal distribution
+   * - Fix JADE changed the angle of sensors (FOV)
+   * - Add JADE as option to the config string
+   * - Render interesting areas as white surface
    * v2.1.1
-   * - Fix a bug that LibOptimization Jade implementation might not use the
+   * - Fix that LibOptimization Jade implementation might not use the
    *   specified Random instance
    * v2.1.0
    * - Use a Mersenne Twister 19937 with a 32 bit word as PRNG for all
@@ -87,7 +94,7 @@ namespace SensorPositioning
 
     public override string GetMeta()
     {
-      return "Author: Jakob Rieke; Version v2.1.1; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v3.0.0; Deterministic: No"; 
     }
     
     public override string GetDescr()
