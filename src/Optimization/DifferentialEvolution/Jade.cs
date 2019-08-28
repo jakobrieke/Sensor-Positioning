@@ -47,17 +47,17 @@ namespace Optimization
     {
       return RandomExtension.Uniform(Random, left, right);
     }
-
-    private double CauchyRand(double location = 0, double scale = 1)
-    {
-      return location + scale * Tan(
-               PI * RandomExtension.Uniform(Random, -0.5, 0.5));
-    }
-
-    // Todo: Use a normal distribution instead of a cauchy distribution.
+    
+    // Reminder: In previous implementation version Cauchy was used instead of
+    // Normal distribution, the JADE then sometimes manipulated the FOV
+    // attribute of sensors in the SensorPosition objective
+    // -> That should never happen, so why did it?
+    // -> Behaviour has not been noticed since moving to Normal distribution
+    // See Git log for further reference 
     private double RandN(double mean, double standardDeviation = 0.1)
     {
-      return CauchyRand(mean, standardDeviation);
+      return MathNet.Numerics.Distributions.Normal.Sample(
+        Random, mean, standardDeviation);
     }
 
     private static double Mean(List<double> values)
@@ -88,12 +88,13 @@ namespace Optimization
 
       for (var i = 0; i < Population.Count; i++)
       {
-        // Choose x_best from top 100p% vectors
-        var pBestIndex = (int) RandU(0.00000000001) * Population.Count;
-        var xBest = Population[Random.Next(pBestIndex)].Position;
-
         // -- Mutation
         
+        // Choose x_best from top 100p% vectors
+        var pBestIndex = (int) RandU(0, P) 
+                         * Population.Count;
+        var xBest = Population[pBestIndex].Position;
+
         // Choose r1 != r2 != i in {0, 1, ..., Population.Count - 1}
         var choices = new List<Point>(Population);
         

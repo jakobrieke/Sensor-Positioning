@@ -9,10 +9,8 @@
     
     <ItemGroup>
         <PackageReference Include="cairosharp" Version="3.22.24.37" />
+        <PackageReference Include="MathNet.Numerics" Version="4.8.1" />
         <PackageReference Include="MersenneTwister" Version="1.0.6" />
-    </ItemGroup>
-    
-    <ItemGroup>
         <PackageReference Include="nunit" Version="3.11.0" />
         <PackageReference Include="NUnit3TestAdapter" Version="3.11.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
