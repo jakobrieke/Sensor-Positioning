@@ -229,7 +229,7 @@ namespace SensorPositioning
       return others;
     }
     
-    public List<Polygon> NotPerceptible(List<Agent> agents)
+    public List<Polygon> Imperceptible(List<Agent> agents)
     {
       var area = agents.AsParallel().Select(sensor => Sensors2D.Imperceptible(
         sensor.AreaOfActivity(), Others(agents, sensor), Field)
@@ -266,18 +266,18 @@ namespace SensorPositioning
         return 0;
       });
 
-      var notPerceptible = NotPerceptible(agents);
+      var imperceptible = Imperceptible(agents);
       if (KnownAreas.Count > 0)
       {
-        notPerceptible = Polygon.Difference(
-          notPerceptible, KnownAreas);
+        imperceptible = Polygon.Difference(
+          imperceptible, KnownAreas);
       }
-      var notPerceptibleArea = Polygon.Area(notPerceptible);
+      var notPerceptibleArea = Polygon.Area(imperceptible);
 
       if (InterestingAreas.Count > 0)
       {
         var importantHidden = Polygon.Intersection(
-          InterestingAreas, notPerceptible);
+          InterestingAreas, imperceptible);
         penalty -= Polygon.Area(InterestingAreas) - Polygon.Area(importantHidden);
       }
 
