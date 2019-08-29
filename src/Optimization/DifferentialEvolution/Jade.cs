@@ -122,11 +122,13 @@ namespace Optimization
         // -- Selection
         
         var valueU = Fitness.Eval(u);
-        if (valueU < Population[i].Value) Population[i] = new Point(u, valueU);
-        
-        SCR.Add(CR[i]);
-        SF.Add(F[i]);
-        Population.Sort();
+        if (valueU < Population[i].Value)
+        {
+          Population[i] = new Point(u, valueU);
+          SCR.Add(CR[i]);
+          SF.Add(F[i]);
+          Population.Sort();
+        }
       }
       
       µCr = (1 - C) * µCr + C * Mean(SCR);
