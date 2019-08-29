@@ -9,10 +9,7 @@ namespace Optimization
     {
       Console.WriteLine($"i = 0, best = {pso.GlobalBestValue}");
       
-      for (var i = 0; i < 500; i++)
-      {
-        pso.Update();
-      }
+      pso.Iterate(500);
       
       Console.WriteLine($"i = 0, best = {pso.GlobalBestValue}");
       Console.WriteLine($"Expected: {expected}");

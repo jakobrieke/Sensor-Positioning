@@ -26,15 +26,24 @@ namespace Optimization
 
     public abstract void Init();
 
-    public abstract void Update();
+    protected abstract void Update();
 
     /// <summary>
-    /// Run n iterations on an initialized swarm.
+    /// Does n iterations
     /// </summary>
     /// <param name="n">The number of iterations to run. Defaults to 1.</param>
-    public void Iterate(uint n = 1)
+    public void Iterate(uint n)
     {
-      for (var i = 0; i < n; i++) Update();
+      for (var i = 0; i < n; i++) Iterate();
+    }
+
+    /// <summary>
+    /// Run one iteration on 
+    /// </summary>
+    public void Iterate()
+    {
+      Update();
+      Iteration++;
     }
 
     /// <summary>

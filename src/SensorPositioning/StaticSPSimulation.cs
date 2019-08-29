@@ -357,7 +357,7 @@ namespace SensorPositioning
     private void UpdateOptimizerStatic()
     {
       var lastBest = _optimizer.Best().Value;
-      _optimizer.Update();
+      _optimizer.Iterate();
       
       if (_logChanges && lastBest > _optimizer.Best().Value) 
       {

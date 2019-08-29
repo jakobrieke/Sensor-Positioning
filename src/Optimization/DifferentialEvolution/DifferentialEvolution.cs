@@ -47,7 +47,7 @@ namespace Optimization
       Init(40);
     }
 
-    public override void Update()
+    protected override void Update()
     {
       Mutation();
       Crossover();

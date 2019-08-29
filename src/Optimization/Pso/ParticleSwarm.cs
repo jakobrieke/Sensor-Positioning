@@ -224,7 +224,7 @@ namespace Optimization
     /// The iteration will update the particle positions, their previousBest,
     /// apply a confinement on the particles and update their localBests.
     /// </summary>
-    public override void Update()
+    protected override void Update()
     {
       var best = Particles[0];
       foreach (var particle in Particles)

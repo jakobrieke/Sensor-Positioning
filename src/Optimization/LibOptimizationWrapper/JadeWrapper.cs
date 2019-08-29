@@ -33,7 +33,7 @@ namespace Optimization.LibOptimizationWrapper
       _best = new Point(Jade.Result.ToArray(), Jade.Result.Value);
     }
 
-    public override void Update()
+    protected override void Update()
     {
       Jade.Iterate(1);
       _best = new Point(Jade.Result.ToArray(), Jade.Result.Value);

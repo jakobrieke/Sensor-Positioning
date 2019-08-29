@@ -33,7 +33,7 @@ namespace Optimization.LibOptimizationWrapper
       _best = new Point(Pso.Result.ToArray(), Pso.Result.Value);
     }
 
-    public override void Update()
+    protected override void Update()
     {
       Pso.Iterate(1);
       _best = new Point(Pso.Result.ToArray(), Pso.Result.Value);

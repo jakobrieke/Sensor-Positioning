@@ -10,10 +10,7 @@ namespace Optimization
     {
       Console.WriteLine($"i = 0, best = {jade.Best().Value}");
       
-      for (var i = 0; i < 500; i++)
-      {
-        jade.Update();
-      }
+      jade.Iterate(500);
       
       Console.WriteLine($"i = 500, best = {jade.Best().Value}");
       Console.WriteLine($"Expected: {expected}");
