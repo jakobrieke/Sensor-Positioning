@@ -103,6 +103,28 @@ static_configurations = [
     {"nos": 8, "noo": 11, "opt": "SPSO-2006"},
     {"nos": 9, "noo": 11, "opt": "SPSO-2006"},
     {"nos": 10, "noo": 11, "opt": "SPSO-2006"},
+    # Configurations for JADE
+    {"nos": 1, "noo": 1, "opt": "JADE"},
+    {"nos": 2, "noo": 2, "opt": "JADE"},
+    {"nos": 3, "noo": 3, "opt": "JADE"},
+    {"nos": 4, "noo": 4, "opt": "JADE"},
+    {"nos": 5, "noo": 5, "opt": "JADE"},
+    {"nos": 6, "noo": 6, "opt": "JADE"},
+    {"nos": 7, "noo": 7, "opt": "JADE"},
+    {"nos": 8, "noo": 8, "opt": "JADE"},
+    {"nos": 9, "noo": 9, "opt": "JADE"},
+    {"nos": 10, "noo": 10, "opt": "JADE"},
+    {"nos": 11, "noo": 11, "opt": "JADE"},
+    {"nos": 1, "noo": 11, "opt": "JADE"},
+    {"nos": 2, "noo": 11, "opt": "JADE"},
+    {"nos": 3, "noo": 11, "opt": "JADE"},
+    {"nos": 4, "noo": 11, "opt": "JADE"},
+    {"nos": 5, "noo": 11, "opt": "JADE"},
+    {"nos": 6, "noo": 11, "opt": "JADE"},
+    {"nos": 7, "noo": 11, "opt": "JADE"},
+    {"nos": 8, "noo": 11, "opt": "JADE"},
+    {"nos": 9, "noo": 11, "opt": "JADE"},
+    {"nos": 10, "noo": 11, "opt": "JADE"},
 ]
 # iterations = 0  # 1000
 # runs = 1  # 100
