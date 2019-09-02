@@ -108,28 +108,61 @@ namespace SensorPositioning
              "obstacles since they have a body.\n" +
              "\n" +
              "Known bugs:\n" +
-             "- Perceptible area is rendered black if area polygon is not open";
+             "- Perceptible area is rendered black if area polygon is not " +
+             "open\n" +
+             "- Optimization with CollisionPenaltyFct = 1 always leads to " +
+             "global best being +infinity";
     }
     
     public override string GetConfig()
     {
       return
         "# -- Problem configuration\n" +
-        "NumberOfSensors = 1\n" +
-        "NumberOfObstacles = 1\n" +
         "FieldHeight = 6\n" +
         "FieldWidth = 9\n" +
         "SensorRange = 12\n" +
         "SensorFOV = 56.3\n" +
+        // Todo: Separate object size into agent and obstacle size
         "ObjectSize = 0.1555\n" +
-        "# If ObstaclePositions is set NumberOfObstacles is\n" +
-        "# ignored\n" +
+        "\n" +
+        "# The number of agents / sensors to find the best\n" +
+        "# placement for\n" +
+        "NumberOfSensors = 1\n" +
+        "\n" +
+        "# The number of obstacles randomly distributed on\n" +
+        "# the field\n" +
+        "NumberOfObstacles = 1\n" +
+        "\n" +
+        "# An array of points with length >= 0\n" +
+        "# to create obstacles at fixed positions.\n" +
+        "# If set NumberOfObstacles is ignored\n" +
         "# ObstaclePositions = [[2, 1]]\n" +
+        "\n" +
         "# ObstacleVelocity = [0.1, 0.1]\n" +
+        "\n" +
+        "# The penalty applied if an agent is placed\n" +
+        "# outside the field, possible values are:\n" +
+        "# 0 := Add infinity\n" +
+        "# 1 := Add distance to center of field\n" +
+        "OutsideFieldPenaltyFct = 1\n" +
+        "\n" +
+        // Todo: Fix bug that global best is always +infinity if
+        // collision penalty function is set to 0
+        "# The penalty applied if an agent is placed\n" +
+        "# in collision with another agent or obstacle,\n" +
+        "# possible values are:\n" +
+        "# 0 := Add infinity\n" +
+        "# 1 := Add area of field\n" +
+        "CollisionPenaltyFct = 1\n" +
+        "\n" +
+        "# Multiple lists of points defining convex polygons of\n" +
+        "# areas of interest (these areas are valued higher\n" +
+        "# if seen by an agent\n" +
         "# InterestingArea01 = [[0, 0], [2, 0], [2, 1], [0, 1]]\n" +
         "# InterestingArea02 = [[0, 6], [2, 6], [2, 5], [0, 5]]\n" +
         "# InterestingArea03 = [[9, 0], [7, 0], [7, 1], [9, 1]]\n" +
         "# InterestingArea04 = [[9, 6], [9, 5], [7, 5], [7, 6]]\n" +
+        "\n" +
         "StartPositionDistanceWeight = 0\n" +
         "StartPositionRotationWeight = 0\n" +
         "\n" +
@@ -137,14 +170,18 @@ namespace SensorPositioning
         "# The random seed greater than zero\n" +
         "# Use -1 to use the current milliseconds as random seed\n" +
         "OptimizationRandomSeed = -1\n" +
+        "\n" +
         "# The function used to optimize the problem,\n" +
         "# possible values are:\n" +
         "# PSO-global, SPSO-2006, SPSO-2007, SPSO-2011, JADE, JADE-with-archive\n" +
         "Optimizer = SPSO-2006\n" +
+        "\n" +
         "# If InitializeEachUpdate is not set, Updates\n" +
         "# per iteration is always one\n" +
         "# InitializeEachUpdate\n" +
+        "\n" +
         "UpdatesPerIteration = 30\n" +
+        "\n" +
         "# If enabled the search space for SPSO-2006 is\n" +
         "# restricted to a rectangle around each of the\n" +
         "# sensors last positions\n" +
@@ -154,6 +191,7 @@ namespace SensorPositioning
         "Zoom = 80\n" +
         "DrawGrid\n" +
         "DrawSensorLines\n" +
+        "\n" +
         "# Draws the start position for the optimization\n" +
         "# Changes over time if InitializeEachUpdate is set\n" +
         "# DrawStartPositions\n" +
@@ -205,19 +243,21 @@ namespace SensorPositioning
       _drawGrid = config.ContainsKey("DrawGrid");
       
       // -- Initialize objective
-      
-      var numberOfSensors = GetInt(config, "NumberOfSensors", 1);
-      var numberOfObstacles = GetInt(config, "NumberOfObstacles", 1);
-      
+
       _objective = new SensorPositionObj(
-        (uint)numberOfSensors,
-        (uint)numberOfObstacles, 
+        GetUInt(config, "NumberOfSensors", 1), 
+        GetUInt(config, "NumberOfObstacles", 1), 
         GetDouble(config, "FieldWidth", 9),
         GetDouble(config, "FieldHeight", 6),
         GetDouble(config, "SensorRange", 12),
         GetDouble(config, "SensorFOV", 56.3),
         GetDouble(config, "ObjectSize", 0.1555)
         );
+
+      _objective.OutsideFieldPenaltyFct = GetUInt(
+        config, "OutsideFieldPenaltyFct", 1);
+      _objective.CollisionPenaltyFct = GetUInt(
+        config, "CollisionPenaltyFct", 1);
       
       // -- Initialize interesting areas
       

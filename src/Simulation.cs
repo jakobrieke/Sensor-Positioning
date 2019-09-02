@@ -65,6 +65,13 @@ namespace charlie
       if (!config.ContainsKey(key)) return backup;
       return int.TryParse(config[key], out var x) ? x : backup;
     }
+
+    public static uint GetUInt(Dictionary<string, string> config, 
+      string key, uint backup)
+    {
+      if (!config.ContainsKey(key)) return backup;
+      return uint.TryParse(config[key], out var x) ? x : backup;
+    }
     
     public static double[] ParseVector(string source)
     {

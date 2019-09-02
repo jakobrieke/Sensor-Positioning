@@ -44,6 +44,25 @@ namespace SensorPositioning
     
     public double StartPositionRotationWeight = 0.5;
 
+    /// <summary>
+    /// Defines the function which is applied agents in a placement
+    /// collide/intersect with each other or an obstacle. 
+    /// Possible values are:
+    /// 0 -> Positive infinity is added,
+    /// 1 -> The distance towards the center of the intersecting obstacle is
+    /// added.
+    /// </summary>
+    public uint CollisionPenaltyFct = 0;
+
+    /// <summary>
+    /// Defines the function which is applied if an agent is placed outside the
+    /// field. 
+    /// Possible values are:
+    /// 0 -> Positive infinity is added, 
+    /// 1 -> The distance towards the center is added
+    /// </summary>
+    public uint OutsideFieldPenaltyFct = 0;
+
     public SensorPositionObj(
       uint numberOfSensors, uint numberOfObstacles, 
       double fieldWidth, double fieldHeight, 
@@ -243,28 +262,40 @@ namespace SensorPositioning
 
       return result;
     }
-    
-    public override double Eval(Vector vector)
+
+    private double CalcPenalty(List<Agent> agents)
     {
-      var agents = ToAgents(vector.ToArray());
-      
-      var penalty = agents.Sum(sensor =>
+      return agents.Sum(agent =>
       {
-        var x = Field.Min.X + FieldWidth / 2;
-        var y = Field.Min.Y + FieldHeight / 2;
-        var dist = Vector2.Distance(new Vector2(x, y), sensor.Position);
+        // -- Test if the agent is outside of the field
 
-        if (!Field.Contains(sensor.Position, true))
-          return dist;
-
-        foreach (var obstacle in Others(agents, sensor))
+        if (!Field.Contains(agent.Position, true))
         {
-          var d = Vector2.Distance(obstacle.Position, sensor.Position);
-          if (d < obstacle.Radius + sensor.Size) return Field.Area() + d;
+          if (OutsideFieldPenaltyFct == 0) return double.PositiveInfinity;
+          
+          var x = Field.Min.X + FieldWidth / 2;
+          var y = Field.Min.Y + FieldHeight / 2;
+          return Vector2.Distance(new Vector2(x, y), agent.Position);
+        }
+
+        // -- Test if the agent collides with any obstacle
+        
+        foreach (var obstacle in Others(agents, agent))
+        {
+          if (CollisionPenaltyFct == 0) return double.PositiveInfinity;
+
+          var d = Vector2.Distance(obstacle.Position, agent.Position);
+          if (d < obstacle.Radius + agent.Size) return Field.Area() + d;
         }
 
         return 0;
       });
+    }
+    
+    public override double Eval(Vector vector)
+    {
+      var agents = ToAgents(vector.ToArray());
+      var penalty = CalcPenalty(agents);
 
       var imperceptible = Imperceptible(agents);
       if (KnownAreas.Count > 0)
