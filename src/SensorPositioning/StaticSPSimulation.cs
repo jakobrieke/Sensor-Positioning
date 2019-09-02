@@ -142,18 +142,20 @@ namespace SensorPositioning
         "\n" +
         "# The penalty applied if an agent is placed\n" +
         "# outside the field, possible values are:\n" +
-        "# 0 := Add infinity\n" +
-        "# 1 := Add distance to center of field\n" +
-        "OutsideFieldPenaltyFct = 1\n" +
+        "# 0 := Add no penalty\n" +
+        "# 1 := Add infinity\n" +
+        "# 2 := Add distance to center of field\n" +
+        "OutsideFieldPenaltyFct = 2\n" +
         "\n" +
         // Todo: Fix bug that global best is always +infinity if
         // collision penalty function is set to 0
         "# The penalty applied if an agent is placed\n" +
         "# in collision with another agent or obstacle,\n" +
         "# possible values are:\n" +
-        "# 0 := Add infinity\n" +
-        "# 1 := Add area of field\n" +
-        "CollisionPenaltyFct = 1\n" +
+        "# 0 := Add no penalty\n" +
+        "# 1 := Add infinity\n" +
+        "# 2 := Add area of field\n" +
+        "CollisionPenaltyFct = 2\n" +
         "\n" +
         "# Multiple lists of points defining convex polygons of\n" +
         "# areas of interest (these areas are valued higher\n" +

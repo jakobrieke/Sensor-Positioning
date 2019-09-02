@@ -271,7 +271,8 @@ namespace SensorPositioning
 
         if (!Field.Contains(agent.Position, true))
         {
-          if (OutsideFieldPenaltyFct == 0) return double.PositiveInfinity;
+          if (OutsideFieldPenaltyFct == 0) return 0;
+          if (OutsideFieldPenaltyFct == 1) return double.PositiveInfinity;
           
           var x = Field.Min.X + FieldWidth / 2;
           var y = Field.Min.Y + FieldHeight / 2;
@@ -282,7 +283,8 @@ namespace SensorPositioning
         
         foreach (var obstacle in Others(agents, agent))
         {
-          if (CollisionPenaltyFct == 0) return double.PositiveInfinity;
+          if (OutsideFieldPenaltyFct == 0) return 0;
+          if (CollisionPenaltyFct == 1) return double.PositiveInfinity;
 
           var d = Vector2.Distance(obstacle.Position, agent.Position);
           if (d < obstacle.Radius + agent.Size) return Field.Area() + d;
