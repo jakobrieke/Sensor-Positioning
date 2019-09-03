@@ -204,7 +204,7 @@ namespace SensorPositioning
     {
       foreach (var o2 in obstacles)
       {
-        if (o == o2) continue;
+        if (o.Equals(o2)) continue;
 
         var d = Vector2.Distance(o2.Position, o.Position);
         if (d < o2.Radius + o.Radius) return true;
