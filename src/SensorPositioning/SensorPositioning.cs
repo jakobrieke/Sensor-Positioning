@@ -132,7 +132,8 @@ namespace SensorPositioning
     }
 
     /// <summary>
-    /// Scatter a number of obstacles randomly over the field without collision.
+    /// Generates a number of randomly not intersecting obstacles on the field
+    /// and replaces the previous obstacles.
     /// </summary>
     /// <param name="numberOfObstacles"></param>
     public void SetObstaclesRandom(double numberOfObstacles)
@@ -141,9 +142,7 @@ namespace SensorPositioning
 
       for (var i = 0; i < numberOfObstacles; i++)
       {
-        var obstacle = new Circle(new Vector2(0, 0), ObjectSize);
-        obstacle = WithoutIntersection(Obstacles);
-        Obstacles.Add(obstacle);
+        Obstacles.Add(WithoutIntersection(Obstacles));
       }
     }
 
