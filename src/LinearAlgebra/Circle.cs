@@ -94,7 +94,8 @@ namespace LinearAlgebra
     
     public static bool operator ==(Circle c1, Circle c2)
     {
-      return c1.Position == c2.Position && c1.Radius == c2.Radius;
+      return c1.Position == c2.Position 
+             && Math.Abs(c1.Radius - c2.Radius) < Defs.Precision;
     }
 
     public static bool operator !=(Circle c1, Circle c2)
