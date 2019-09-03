@@ -8,12 +8,13 @@ namespace SensorPositioning
   public static class Sensors2D
   {
     /// <summary>
-    /// The precision with which a sensor arc is converted into a polygon.
+    /// Defines the precision with which a sensor arc is converted into a
+    /// polygon.
     /// </summary>
     public static int SensorArcPrecision = 10;
     
     /// <summary>
-    /// Calculate the area that is blocked trough an obstacle.
+    /// Calculates the area that is blocked trough an obstacle.
     /// </summary>
     /// <remarks>The position has to be inside the bounds.</remarks>
     /// <param name="position"></param>
@@ -50,7 +51,7 @@ namespace SensorPositioning
     }
     
     /// <summary>
-    /// Calculate the area that is blocked trough an obstacle.
+    /// Calculates the area that is blocked trough an obstacle.
     /// </summary>
     /// <param name="position"></param>
     /// <param name="obstacle"></param>
@@ -68,7 +69,7 @@ namespace SensorPositioning
     }
 
     /// <summary>
-    /// Calculate the area perceptible by a sensor.
+    /// Calculates the area perceptible by a sensor.
     /// </summary>
     /// <param name="sensor"></param>
     /// <param name="obstacles"></param>
@@ -121,7 +122,7 @@ namespace SensorPositioning
     }
     
     /// <summary>
-    /// Calculate the area that is not perceptible by sensor.
+    /// Calculates the area that is not perceptible by a sensor.
     /// </summary>
     /// <param name="sensor"></param>
     /// <param name="obstacles"></param>

@@ -247,8 +247,6 @@ namespace SensorPositioning
       // -- Initialize objective
 
       _objective = new SensorPositionObj(
-        GetUInt(config, "NumberOfSensors", 1), 
-        GetUInt(config, "NumberOfObstacles", 1), 
         GetDouble(config, "FieldWidth", 9),
         GetDouble(config, "FieldHeight", 6),
         GetDouble(config, "SensorRange", 12),
@@ -256,6 +254,8 @@ namespace SensorPositioning
         GetDouble(config, "ObjectSize", 0.1555)
         );
 
+      _objective.SetObstaclesRandom(GetUInt(config, "NumberOfObstacles", 1));
+      
       _objective.OutsideFieldPenaltyFct = GetUInt(
         config, "OutsideFieldPenaltyFct", 1);
       _objective.CollisionPenaltyFct = GetUInt(
@@ -303,8 +303,9 @@ namespace SensorPositioning
 
       var optimizerName = config.ContainsKey("Optimizer") ? 
         config["Optimizer"] : null;
-      
-      var sp = new SearchSpace(_objective.Intervals());
+
+      var sp = _objective.SearchSpace(
+        GetUInt(config, "NumberOfSensors", 1));
       
       var optSeed = GetInt(config, "OptimizationRandomSeed", -1);
       if (optSeed == -1) optSeed = DateTime.Now.Millisecond;
@@ -353,7 +354,7 @@ namespace SensorPositioning
       }
       else if (optimizerName == "JADE")
       {
-        _optimizer = new Jade(_objective, _objective.SearchSpace())
+        _optimizer = new Jade(_objective, sp)
         {
           Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
         };

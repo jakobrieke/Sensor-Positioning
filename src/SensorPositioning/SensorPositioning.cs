@@ -6,46 +6,94 @@ using Optimization;
 
 namespace SensorPositioning
 {
+  public class ToManyAttempts : Exception
+  {
+    public ToManyAttempts(string message) : base(message) {}
+  }
+  
   public class SensorPositionObj : Objective
   {
+    /// <summary>
+    /// Gets the number of evaluations that were done on this function.
+    /// </summary>
     public uint Evaluations { get; private set; }
     
+    /// <summary>
+    /// Gets the list of obstacles.
+    /// Note that this list can be modified between evaluations of this
+    /// function.
+    /// </summary>
     public readonly List<Circle> Obstacles = new List<Circle>();
     
+    /// <summary>
+    /// Gets a list of polygons marking interesting areas on the field.
+    /// These areas are valued higher if they are under perception by an agent.
+    /// </summary>
     public readonly List<Polygon> InterestingAreas = new List<Polygon>();
     
+    /// <summary>
+    /// Gets a list of polygons which are marked as known on the field.
+    /// This means these areas are assumed to be known to the agents and
+    /// therefor always added to the perceived area of the sensor.
+    /// </summary>
     public readonly List<Polygon> KnownAreas = new List<Polygon>();
     
+    /// <summary>
+    /// Gets the area that is examined by the sensors.
+    /// </summary>
     public readonly Rectangle Field;
     
+    /// <summary>
+    /// Gets the width of the examined area.
+    /// </summary>
     public readonly double FieldWidth;
     
+    /// <summary>
+    /// Gets the height of the examined area.
+    /// </summary>
     public readonly double FieldHeight;
     
+    /// <summary>
+    /// Gets the range of an agents sensor which is used to create new
+    /// instances of agents when this instance is evaluated. 
+    /// </summary>
     public readonly double SensorRange;
     
+    /// <summary>
+    /// Gets the field of view of an agents sensor which is used to create new
+    /// instances of agents when this instance is evaluated. 
+    /// </summary>
     public readonly double SensorFov;
     
-    public readonly double ObjectSize;
-    
-    private readonly uint _numberOfSensors;
-    
     /// <summary>
-    /// If StartPosition is set to a value != null the distance is included
-    /// into the result of the objective function.
+    /// Gets the size of an agents body.
+    /// </summary>
+    public readonly double ObjectSize;
+
+    /// <summary>
+    /// Gets the start position which is used as a reference point to value
+    /// each agents position and rotation by it's distance to that reference
+    /// point.
+    /// It is ignored if set to null.
+    /// Note that the length of StartPosition should equal the length of agents
+    /// that are placed on evaluation of this instance.
     /// </summary>
     public List<Agent> StartPosition;
     
     /// <summary>
-    /// The weight by which the distance to the start position is taken into
-    /// account.
+    /// Gets or sets the weight by which the distance to the start position is
+    /// taken into account.
     /// </summary>
     public double StartPositionDistanceWeight = 0.5;
     
+    /// <summary>
+    /// Gets or sets the weight by which the distance to the start position is
+    /// taken into account.
+    /// </summary>
     public double StartPositionRotationWeight = 0.5;
 
     /// <summary>
-    /// Defines the function which is applied agents in a placement
+    /// Gets or sets the function which is applied agents in a placement
     /// collide/intersect with each other or an obstacle. 
     /// Possible values are:
     /// 0 -> Positive infinity is added,
@@ -55,8 +103,9 @@ namespace SensorPositioning
     public uint CollisionPenaltyFct = 0;
 
     /// <summary>
-    /// Defines the function which is applied if an agent is placed outside the
-    /// field. 
+    /// Gets or sets the function which is applied if the center of an agents
+    /// body is outside the examined field.
+    /// Whereby the borders belong to the field.
     /// Possible values are:
     /// 0 -> Positive infinity is added, 
     /// 1 -> The distance towards the center is added
@@ -64,12 +113,10 @@ namespace SensorPositioning
     public uint OutsideFieldPenaltyFct = 0;
 
     public SensorPositionObj(
-      uint numberOfSensors, uint numberOfObstacles, 
       double fieldWidth, double fieldHeight, 
       double sensorRange, double sensorFov,
       double objectSize)
     {
-      _numberOfSensors = numberOfSensors;
       FieldWidth = fieldWidth;
       FieldHeight = fieldHeight;
       Field = new Rectangle(0, 0, 
@@ -77,7 +124,6 @@ namespace SensorPositioning
       SensorRange = sensorRange;
       SensorFov = sensorFov;
       ObjectSize = objectSize;
-      SetObstaclesRandom(numberOfObstacles);
     }
 
     /// <summary>
@@ -91,11 +137,16 @@ namespace SensorPositioning
       for (var i = 0; i < numberOfObstacles; i++)
       {
         var obstacle = new Circle(new Vector2(0, 0), ObjectSize);
-        obstacle = PlaceWithoutCollision(obstacle, Obstacles);
+        obstacle = WithoutIntersection(Obstacles);
         Obstacles.Add(obstacle);
       }
     }
 
+    /// <summary>
+    /// Replaces the current obstacles with a new list of obstacles.
+    /// Their radius is defined by ObjectSize.
+    /// </summary>
+    /// <param name="positions"></param>
     public void SetObstacles(double[][] positions)
     {
       Obstacles.Clear();
@@ -107,42 +158,34 @@ namespace SensorPositioning
     }
 
     /// <summary>
-    /// Place an object randomly without collision inside the environment.
+    /// Places an obstacle randomly without intersection inside the environment.
     /// </summary>
     /// <remarks>
-    /// Warning, this function is not deterministic and might not
-    /// terminate if Env.Field is to small.
-    /// The object can also be placed on the edges of the field.
+    /// After 10,000 attempts the 
     /// </remarks>
-    /// <param name="obstacle">The object to place.</param>
     /// <param name="obstacles"></param>
-    private Circle PlaceWithoutCollision(Circle obstacle, 
-      List<Circle> obstacles)
+    private Circle WithoutIntersection(List<Circle> obstacles)
     {
-      var collided = true;
-      while (collided)
+      for (var i = 0; i < 10000; i++)
       {
-        obstacle = PlaceRandom(obstacle);
-        collided = CheckCollision(obstacle, obstacles);
+        var obstacle = AtRandomPosition();
+        if (!CheckCollision(obstacle, obstacles)) return obstacle;
       }
-
-      return obstacle;
+      throw new ToManyAttempts(
+        "After 10,000 attempts no suitable position for a new " +
+        "obstacle could be found.");
     }
 
     /// <summary>
-    /// Place an object randomly inside the environment. This might
-    /// cause a collision.
+    /// Generates a new obstacle at a random position.
     /// </summary>
-    /// <remarks>
-    /// The object can also be placed on the edges of the field.
-    /// </remarks>
-    /// <param name="obstacle"></param>
-    private Circle PlaceRandom(Circle obstacle)
+    /// <returns></returns>
+    private Circle AtRandomPosition()
     {
-      obstacle.Position = new Vector2(
-        RandomExtension.Uniform(0, FieldWidth), 
-        RandomExtension.Uniform(0, FieldHeight));
-      return obstacle;
+      return new Circle(
+        RandomExtension.Uniform(0, FieldWidth),
+        RandomExtension.Uniform(0, FieldHeight),
+        ObjectSize);
     }
 
     /// <summary>
@@ -167,59 +210,44 @@ namespace SensorPositioning
     }
 
     /// <summary>
-    /// Generate a list of sensors from a vector with length % 3 == 0. 
+    /// Generate a list of agents from a vector with length n * 3, n >= 0. 
     /// </summary>
     /// <param name="vector"></param>
     public List<Agent> ToAgents(double[] vector)
     {
-      var sensors = new List<Agent>();
+      var agents = new List<Agent>();
       for (var i = 0; i < vector.Length; i += 3)
       {
         var sensor = new Agent(
           vector[i], vector[i + 1], vector[i + 2], 
           SensorRange, SensorFov, ObjectSize);
-        sensors.Add(sensor);
+        agents.Add(sensor);
       }
 
-      return sensors;
+      return agents;
     }
 
     /// <summary>
-    /// Get the bodies of a list of sensors.
-    /// The reason to do so is that since agents carrying sensors also have a
-    /// body and therefor represent an obstacle they have to be taken into
-    /// account when calculating the shadow for a list of sensors.
-    /// </summary>
-    /// <returns>
-    /// A list of circles where each circle represents an
-    /// obstacle in the problem environment.
-    /// </returns>
-    public List<Circle> AllObstacles(List<Agent> agents)
-    {
-      var allObstacles = agents.Select(s => s.ToCircle()).ToList();
-      allObstacles.AddRange(Obstacles);
-      return allObstacles;
-    }
-    
-    /// <summary>
-    /// Get the value of F(..) in percent.
+    /// Calculates how many per cent of the fields area a given value is. 
     /// </summary>
     /// <param name="value"></param>
     /// <param name="round"></param>
     /// <returns></returns>
-    public double Normalize(double value, bool round = true)
+    public double PerCent(double value, bool round = true)
     {
       if (round) return Math.Round(value / Field.Area() * 100, 2);
       return value / Field.Area() * 100;
     }
 
     /// <summary>
-    /// Get the search space of the problem instance.
+    /// Creates search space intervals for a certain number of sensors, based
+    /// on the instances field.
     /// </summary>
+    /// <param name="numberOfSensors"></param>
     /// <returns></returns>
-    public double[][] Intervals()
+    public double[][] Intervals(uint numberOfSensors)
     {
-      var intervals = new double[_numberOfSensors * 3][];
+      var intervals = new double[numberOfSensors * 3][];
       for (var i = 0; i < intervals.Length; i += 3)
       {
         intervals[i] = new[] {Field.Min.X, Field.Max.X};
@@ -230,12 +258,17 @@ namespace SensorPositioning
       return intervals;
     }
 
-    public SearchSpace SearchSpace()
+    /// <summary>
+    /// Creates a search space based on the instances field.  
+    /// </summary>
+    /// <param name="numberOfSensors"></param>
+    /// <returns></returns>
+    public SearchSpace SearchSpace(uint numberOfSensors)
     {
-      return new SearchSpace(Intervals());
+      return new SearchSpace(Intervals(numberOfSensors));
     }
 
-    public List<Circle> Others(List<Agent> agents, Agent agent)
+    private List<Circle> Others(List<Agent> agents, Agent agent)
     {
       var others = new List<Circle>();
       others.AddRange(Obstacles);
@@ -248,6 +281,11 @@ namespace SensorPositioning
       return others;
     }
     
+    /// <summary>
+    /// Gets the imperceptible area for a list of agents for this instance.
+    /// </summary>
+    /// <param name="agents"></param>
+    /// <returns></returns>
     public List<Polygon> Imperceptible(List<Agent> agents)
     {
       var area = agents.AsParallel().Select(sensor => Sensors2D.Imperceptible(
@@ -294,6 +332,16 @@ namespace SensorPositioning
       });
     }
     
+    /// <summary>
+    /// Evaluates this instance at a certain "position" that is for a given
+    /// configuration (positions and rotations) of agents.
+    /// </summary>
+    /// <param name="vector">
+    /// A vector of size n * 3, n >= 0 structured like
+    /// (x1, y1, rot1, x2, y2, rot2, ..., xn, yn, rotn). 
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public override double Eval(Vector vector)
     {
       var agents = ToAgents(vector.ToArray());
