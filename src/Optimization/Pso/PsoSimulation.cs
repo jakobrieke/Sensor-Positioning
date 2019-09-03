@@ -2,46 +2,56 @@ using System;
 using System.Collections.Generic;
 using charlie;
 using Cairo;
+using LinearAlgebra;
+using SensorPositioning;
 
 namespace Optimization
-{ 
+{
   public class PsoSimulation : AbstractSimulation
   {
     private ParticleSwarm _swarm;
     private int _xOffset;
     private int _yOffset;
     private double _size;
-    private Color[][] _bg;
-    private int _rasterSize;
     private double _gridSize;
+    private Color[][] _grid;
+    private int _rasterSize;
+    private double _zoom;
     
     public override string GetTitle()
     {
-      return "SWAAARM";
+      return "Particle Swarm Optimization";
     }
 
     public override string GetDescr()
     {
-      return "Present yourself with a particle swarm and never forget to be " +
-             "amazing.";
+      return
+        "Shows a particle swarm searching for the minimum of a two " +
+        "dimensional function. Points with lower (better) values are painted " +
+        "darker.";
     }
 
     public override string GetConfig()
     {
-      return "XOffset = 200\n" +
-             "YOffset = 200\n" +
-             "# The level of detail the function is rasterized at\n" +
-             "RasterSize = 100\n" +
-             "# The examined optimization function:\n" +
-             "# - SphereFct      (0)\n" +
-             "# - McCormick      (-1.9133)\n" +
-             "# - HimmelbauFct   (0)\n" +
-             "# f(3, 2), f(-2.8, 3.1), f(-3.7, -3.2), f(3.5, -1.8) =~ 0\n" +
-             "# - ThreeHumpCamel (0)\n" +
-             "# - HoelderTable   (-19.2085)\n" +
-             "Function = HimmelblauFct\n" +
-             "SwarmSize = 40\n" +
-             "SearchSpaceSize = 400";
+      return
+        "# The level of detail the function is rasterised with\n" + 
+        "Resolution = 100\n" +
+        "\n" +
+        "# The examined optimization function:\n" +
+        "# - Sphere\n" +
+        "# - F2\n" +
+        "# - F3\n" +
+        "# - Rosenbrock\n" +
+        "# - F6\n" +
+        "# - F7\n" +
+        "Function = Sphere\n" +
+        "\n" +
+        "SwarmSize = 40\n" +
+        "SearchSpaceSize = 400" +
+        "\n" +
+        "XOffset = 0\n" +
+        "YOffset = 0\n" +
+        "Zoom = 2";
     }
 
     private void RasterFunction()
@@ -67,14 +77,14 @@ namespace Optimization
         }
       }
       
-      _bg = new Color[_rasterSize][];
-      for (var i = 0; i < _bg.Length; i++)
+      _grid = new Color[_rasterSize][];
+      for (var i = 0; i < _grid.Length; i++)
       {
-        _bg[i] = new Color[_rasterSize];
-        for (var j = 0; j < _bg[i].Length; j++)
+        _grid[i] = new Color[_rasterSize];
+        for (var j = 0; j < _grid[i].Length; j++)
         {
           var value = (values[i][j] - min) / (max - min);
-          _bg[i][j] = new Color(value / 1.5, value / 3, value / 3);
+          _grid[i][j] = new Color(value / 1.5, value / 3, value / 3);
         }
       }
     }
@@ -94,20 +104,21 @@ namespace Optimization
       _xOffset = GetInt(config, "XOffset", 200);
       _yOffset = GetInt(config, "YOffset", 200);
       _size = GetInt(config, "SearchSpaceSize", 400);
-      _rasterSize = GetInt(config, "RasterSize", 100);
+      _rasterSize = GetInt(config, "Resolution", 100);
       _gridSize = _size / _rasterSize;
+      _zoom = GetDouble(config, "Zoom", 0); 
       
       var possibleValues = new Dictionary<string,
         Objective>
       {
-        {"SphereFct", new SphereFunction()},
+        {"Sphere", new SphereFunction()},
         {"F2", new F2()},
         {"F3", new F3()},
         {"Rosenbrock", new F5()},
         {"F6", new F6()},
         {"F7", new F7()},
       };
-      var fct = GetAnyOf(config, "Function", possibleValues, "SphereFct");
+      var fct = GetAnyOf(config, "Function", possibleValues, "Sphere");
       var swarmSize = GetInt(config, "SwarmSize", 40);
       
       var sp = new SearchSpace(2, _size / 2);
@@ -124,12 +135,17 @@ namespace Optimization
 
     public override void Render(Context cr, int width, int height)
     {
-      // Render background
-      for (var i = 0; i < _bg.Length; i++)
+      cr.Save();
+      cr.Scale(_zoom, _zoom);
+      cr.Translate(200, 200);
+      
+      // -- Render background
+      
+      for (var i = 0; i < _grid.Length; i++)
       {
-        for (var j = 0; j < _bg[i].Length; j++)
+        for (var j = 0; j < _grid[i].Length; j++)
         {
-          cr.SetSourceColor(_bg[i][j]);
+          cr.SetSourceColor(_grid[i][j]);
           cr.Rectangle(
             _xOffset - _size / 2 + i * _gridSize, 
             _yOffset - _size / 2 + j * _gridSize, 
@@ -138,7 +154,8 @@ namespace Optimization
         }
       }
       
-      // Render particles
+      // -- Render particles
+      
       foreach (var p in _swarm.Particles)
       {
         cr.SetSourceColor(new Color(0.769, 0.282, 0.295));
@@ -146,25 +163,33 @@ namespace Optimization
         cr.Arc(
           _xOffset + p.Position[0], 
           _yOffset + p.Position[1], 
-          3, 0, 2 * Math.PI);
+          3 / _zoom, 0, 2 * Math.PI);
         cr.ClosePath();
         cr.Fill();
       }
       
-      // Render global best status message
-      var globalBest = "Best: (";
+      cr.Restore();
+      RenderGui(cr);
+    }
+
+    public void RenderGui(Context cr)
+    {
+      cr.Scale(1.7, 1.7);
+      cr.SetSourceRGB(.7, .7, .7);
+      cr.SetFontSize(13);
+      
+      var globalBestText = "Best: (";
+      
       for (var i = 0; i < _swarm.GlobalBest.Length; i++)
       {
-        globalBest += Math.Round(_swarm.GlobalBest[i], 3);
-        if (i < _swarm.GlobalBest.Length - 1) globalBest += " ";
+        globalBestText += Math.Round(_swarm.GlobalBest[i], 3);
+        if (i < _swarm.GlobalBest.Length - 1) globalBestText += " ";
       }
 
-      globalBest += ")  " + Math.Round(_swarm.GlobalBestValue, 3);
+      globalBestText += ")  " + _swarm.GlobalBestValue;
       
-      cr.SetSourceColor(new Color(.7, .7, .7));
-      cr.SetFontSize(13);
       cr.MoveTo(12, 20);
-      cr.ShowText(globalBest);
+      cr.ShowText(globalBestText);
     }
   }
 }
