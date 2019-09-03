@@ -54,19 +54,20 @@ namespace SensorPositioning
     public readonly double FieldHeight;
     
     /// <summary>
-    /// Gets the range of an agents sensor which is used to create new
-    /// instances of agents when this instance is evaluated. 
+    /// Gets the range of an agents sensor. It is used to create agent
+    /// instances when Eval is called. 
     /// </summary>
     public readonly double SensorRange;
     
     /// <summary>
-    /// Gets the field of view of an agents sensor which is used to create new
-    /// instances of agents when this instance is evaluated. 
+    /// Gets the field of view of an agents sensor. It is used to create agent
+    /// instances when Eval is called.  
     /// </summary>
     public readonly double SensorFov;
     
     /// <summary>
-    /// Gets the size of an agents body.
+    /// Gets the field of view of an agents sensor. It is used to create agent
+    /// instances when Eval is called and when setting up random obstacles.  
     /// </summary>
     public readonly double ObjectSize;
 
@@ -84,33 +85,35 @@ namespace SensorPositioning
     /// Gets or sets the weight by which the distance to the start position is
     /// taken into account.
     /// </summary>
-    public double StartPositionDistanceWeight = 0.5;
+    public double StartPositionDistanceWeight = 0;
     
     /// <summary>
     /// Gets or sets the weight by which the distance to the start position is
     /// taken into account.
     /// </summary>
-    public double StartPositionRotationWeight = 0.5;
+    public double StartPositionRotationWeight = 0;
 
     /// <summary>
     /// Gets or sets the function which is applied agents in a placement
     /// collide/intersect with each other or an obstacle. 
     /// Possible values are:
-    /// 0 -> Positive infinity is added,
-    /// 1 -> The distance towards the center of the intersecting obstacle is
+    /// 0 -> Nothing is added,
+    /// 1 -> Positive infinity is added,
+    /// 2 -> The distance towards the center of the intersecting obstacle is
     /// added.
     /// </summary>
-    public uint CollisionPenaltyFct = 0;
+    public uint CollisionPenaltyFct = 2;
 
     /// <summary>
     /// Gets or sets the function which is applied if the center of an agents
     /// body is outside the examined field.
     /// Whereby the borders belong to the field.
     /// Possible values are:
-    /// 0 -> Positive infinity is added, 
-    /// 1 -> The distance towards the center is added
+    /// 0 -> Nothing is added, 
+    /// 1 -> Positive infinity is added, 
+    /// 2 -> The distance towards the center is added
     /// </summary>
-    public uint OutsideFieldPenaltyFct = 0;
+    public uint OutsideFieldPenaltyFct = 2;
 
     /// <summary>
     /// Gets or sets a random instance used to generate obstacle positions.
