@@ -174,10 +174,6 @@ namespace SensorPositioning
         "StartPositionRotationWeight = 0\n" +
         "\n" +
         "# -- Optimizer configuration\n" +
-        "# The random seed greater than zero\n" +
-        "# Use -1 to use the current milliseconds as random seed\n" +
-        "OptimizationRandomSeed = -1\n" +
-        "\n" +
         "# The function used to optimize the problem,\n" +
         "# possible values are:\n" +
         "# PSO-global, SPSO-2006, SPSO-2007, SPSO-2011, JADE, JADE-with-archive\n" +
@@ -317,29 +313,26 @@ namespace SensorPositioning
 
       var sp = _objective.SearchSpace(
         GetUInt(config, "NumberOfSensors", 1));
-      
-      var optRandSeed = GetInt(config, "OptimizationRandomSeed", -1);
-      if (optRandSeed == -1) optRandSeed = DateTime.Now.Millisecond;
-      
+
       if (optimizerName == "SPSO-2006")
       {
         _optimizer = new StandardPso2006(sp, _objective)
         {
-          Random = MTRandom.Create(optRandSeed, MTEdition.Original_19937)
+          Random = MTRandom.Create(MTEdition.Original_19937)
         };
       }
       else if (optimizerName == "SPSO-2007")
       {
         _optimizer = new StandardPso2007(sp, _objective)
         {
-          Random = MTRandom.Create(optRandSeed, MTEdition.Original_19937)
+          Random = MTRandom.Create(MTEdition.Original_19937)
         };
       }
       else if (optimizerName == "SPSO-2011")
       {
         _optimizer = new StandardPso2011(sp, _objective)
         {
-          Random = MTRandom.Create(optRandSeed, MTEdition.Original_19937)
+          Random = MTRandom.Create(MTEdition.Original_19937)
         };
       }
       else if (optimizerName == "PSO-global")
@@ -349,7 +342,7 @@ namespace SensorPositioning
           SwarmSize = 40,
           IsUseCriterion = false,
 //          InitialPosition = _objective.SearchSpace().RandPos(),
-          Random = MTRandom.Create(optRandSeed, MTEdition.Original_19937)
+          Random = MTRandom.Create(MTEdition.Original_19937)
         };
       }
       else if (optimizerName == "JADE-with-archive")
@@ -358,7 +351,7 @@ namespace SensorPositioning
         {
           PopulationSize = 40,
           IsUseCriterion = false,
-          Random = MTRandom.Create(optRandSeed, MTEdition.Original_19937)
+          Random = MTRandom.Create(MTEdition.Original_19937)
 //          LowerBounds = _objective.Intervals().Select(i => i[0]).ToArray(),
 //          UpperBounds = _objective.Intervals().Select(i => i[1]).ToArray()
         };
@@ -367,7 +360,7 @@ namespace SensorPositioning
       {
         _optimizer = new Jade(_objective, sp)
         {
-          Random = MTRandom.Create(optRandSeed, MTEdition.Original_19937)
+          Random = MTRandom.Create(MTEdition.Original_19937)
         };
       }
       else
