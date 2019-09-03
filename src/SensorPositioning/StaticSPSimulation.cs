@@ -220,7 +220,7 @@ namespace SensorPositioning
     private bool _logClearText;
     private bool _logEvaluations;
     private bool _logRoundedPositions;
-    private List<Agent> _sensors;
+    private List<Agent> _agents;
     private Vector2 _obstacleStartVelocity;
     private List<Vector2> _obstacleVelocities;
     /// <summary>
@@ -235,7 +235,7 @@ namespace SensorPositioning
       Sensors2D.SensorArcPrecision = 2;
       
       _changes = new List<Tuple<int, double>>();
-      _sensors = new List<Agent>();
+      _agents = new List<Agent>();
       _logChanges = config.ContainsKey("LogChanges");
       _logClearText = config.ContainsKey("LogClearText");
       _logRoundedPositions = config.ContainsKey("LogRoundedPositions");
@@ -369,8 +369,8 @@ namespace SensorPositioning
       }
       
       _optimizer.Init();
-      _sensors = _objective.ToAgents(_optimizer.Best().Position.ToArray());
-      _objective.StartPosition = _sensors;
+      _agents = _objective.ToAgents(_optimizer.Best().Position.ToArray());
+      _objective.StartPosition = _agents;
 
       _initEachUpdate = config.ContainsKey("InitializeEachUpdate");
       _updatesPerIteration = (uint) GetInt(config, 
@@ -416,7 +416,7 @@ namespace SensorPositioning
     private void UpdateOptimizerDynamic()
     {
       var lastBest = _optimizer.Best().Value;
-      _objective.StartPosition = _sensors;
+      _objective.StartPosition = _agents;
       
       if (_optimizer.GetType() == typeof(StandardPso2006) 
           && _dynamicSearchSpaceRange != Vector2.Zero)
@@ -425,7 +425,7 @@ namespace SensorPositioning
         var intervals = pso.SearchSpace.Intervals;
         for (var i = 0; i < intervals.Length; i += 3)
         {
-          var pos = _sensors[i / 3].Position;
+          var pos = _agents[i / 3].Position;
 //            var rot = _sensors[i / 3].Rotation;
           intervals[i] = new []
           {
@@ -458,7 +458,7 @@ namespace SensorPositioning
       if (_initEachUpdate) UpdateOptimizerDynamic();
       else UpdateOptimizerStatic();
 
-      _sensors = _objective.ToAgents(_optimizer.Best().Position.ToArray());
+      _agents = _objective.ToAgents(_optimizer.Best().Position.ToArray());
     }
 
     private void DrawCoordinateSystem(Context cr)
@@ -519,7 +519,7 @@ namespace SensorPositioning
     
     private void DrawSensors(Context cr)
     {
-      var shadows = _objective.Imperceptible(_sensors);
+      var shadows = _objective.Imperceptible(_agents);
       cr.SetSourceRGBA(0, 0, 0, 0.7);
       
       foreach (var polygon in shadows)
@@ -529,7 +529,7 @@ namespace SensorPositioning
         cr.Fill();
       }
       
-      foreach (var sensor in _sensors)
+      foreach (var sensor in _agents)
       {
         if (_drawSensorLines)
         {
@@ -598,7 +598,7 @@ namespace SensorPositioning
     {
       var sensorPositions = "[";
       var i = 1;
-      foreach (var sensor in _sensors)
+      foreach (var sensor in _agents)
       {
         sensorPositions += _logRoundedPositions ?
           $"[{Math.Round(sensor.Position.X, 2)}, " +
@@ -606,7 +606,7 @@ namespace SensorPositioning
           $"{Math.Round(sensor.Rotation, 2)}]" :
           $"[{sensor.Position.X}, {sensor.Position.Y}, {sensor.Rotation}]";
         
-        if (i++ < _sensors.Count) sensorPositions += ", ";
+        if (i++ < _agents.Count) sensorPositions += ", ";
       }
       sensorPositions += "]";
       
