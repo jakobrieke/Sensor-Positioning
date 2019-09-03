@@ -112,6 +112,11 @@ namespace SensorPositioning
     /// </summary>
     public uint OutsideFieldPenaltyFct = 0;
 
+    /// <summary>
+    /// Gets or sets a random instance used to generate obstacle positions.
+    /// </summary>
+    public Random Random;
+
     public SensorPositionObj(
       double fieldWidth, double fieldHeight, 
       double sensorRange, double sensorFov,
@@ -119,11 +124,11 @@ namespace SensorPositioning
     {
       FieldWidth = fieldWidth;
       FieldHeight = fieldHeight;
-      Field = new Rectangle(0, 0, 
-        FieldWidth, FieldHeight);
+      Field = new Rectangle(0, 0, FieldWidth, FieldHeight);
       SensorRange = sensorRange;
       SensorFov = sensorFov;
       ObjectSize = objectSize;
+      Random = new MathNet.Numerics.Random.MersenneTwister();
     }
 
     /// <summary>
@@ -183,8 +188,8 @@ namespace SensorPositioning
     private Circle AtRandomPosition()
     {
       return new Circle(
-        RandomExtension.Uniform(0, FieldWidth),
-        RandomExtension.Uniform(0, FieldHeight),
+        RandomExtension.Uniform(Random, 0, FieldWidth),
+        RandomExtension.Uniform(Random, 0, FieldHeight),
         ObjectSize);
     }
 

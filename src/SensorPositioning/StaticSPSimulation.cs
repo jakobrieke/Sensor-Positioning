@@ -133,6 +133,11 @@ namespace SensorPositioning
         "# the field\n" +
         "NumberOfObstacles = 1\n" +
         "\n" +
+        "# The seed used to generate randomly placed\n" +
+        "# obstacles on the field\n" +
+        "# If set to -1 the current time is used\n" +
+        "ObstaclePlacementRandomSeed = -1\n" +
+        "\n" +
         "# An array of points with length >= 0\n" +
         "# to create obstacles at fixed positions.\n" +
         "# If set NumberOfObstacles is ignored\n" +
@@ -253,13 +258,19 @@ namespace SensorPositioning
         GetDouble(config, "SensorFOV", 56.3),
         GetDouble(config, "ObjectSize", 0.1555)
         );
-
-      _objective.SetObstaclesRandom(GetUInt(config, "NumberOfObstacles", 1));
       
       _objective.OutsideFieldPenaltyFct = GetUInt(
         config, "OutsideFieldPenaltyFct", 1);
       _objective.CollisionPenaltyFct = GetUInt(
         config, "CollisionPenaltyFct", 1);
+      
+      var obstRandSeed = GetInt(config, "ObstaclePlacementRandomSeed", -1);
+      if (obstRandSeed == -1) obstRandSeed = DateTime.Now.Millisecond;
+      
+      _objective.Random = new MathNet.Numerics.Random.MersenneTwister(
+        obstRandSeed);
+      
+      _objective.SetObstaclesRandom(GetUInt(config, "NumberOfObstacles", 1));
       
       // -- Initialize interesting areas
       
@@ -307,28 +318,28 @@ namespace SensorPositioning
       var sp = _objective.SearchSpace(
         GetUInt(config, "NumberOfSensors", 1));
       
-      var optSeed = GetInt(config, "OptimizationRandomSeed", -1);
-      if (optSeed == -1) optSeed = DateTime.Now.Millisecond;
+      var optRandSeed = GetInt(config, "OptimizationRandomSeed", -1);
+      if (optRandSeed == -1) optRandSeed = DateTime.Now.Millisecond;
       
       if (optimizerName == "SPSO-2006")
       {
         _optimizer = new StandardPso2006(sp, _objective)
         {
-          Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
+          Random = MTRandom.Create(optRandSeed, MTEdition.Original_19937)
         };
       }
       else if (optimizerName == "SPSO-2007")
       {
         _optimizer = new StandardPso2007(sp, _objective)
         {
-          Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
+          Random = MTRandom.Create(optRandSeed, MTEdition.Original_19937)
         };
       }
       else if (optimizerName == "SPSO-2011")
       {
         _optimizer = new StandardPso2011(sp, _objective)
         {
-          Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
+          Random = MTRandom.Create(optRandSeed, MTEdition.Original_19937)
         };
       }
       else if (optimizerName == "PSO-global")
@@ -338,7 +349,7 @@ namespace SensorPositioning
           SwarmSize = 40,
           IsUseCriterion = false,
 //          InitialPosition = _objective.SearchSpace().RandPos(),
-          Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
+          Random = MTRandom.Create(optRandSeed, MTEdition.Original_19937)
         };
       }
       else if (optimizerName == "JADE-with-archive")
@@ -347,7 +358,7 @@ namespace SensorPositioning
         {
           PopulationSize = 40,
           IsUseCriterion = false,
-          Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
+          Random = MTRandom.Create(optRandSeed, MTEdition.Original_19937)
 //          LowerBounds = _objective.Intervals().Select(i => i[0]).ToArray(),
 //          UpperBounds = _objective.Intervals().Select(i => i[1]).ToArray()
         };
@@ -356,7 +367,7 @@ namespace SensorPositioning
       {
         _optimizer = new Jade(_objective, sp)
         {
-          Random = MTRandom.Create(optSeed, MTEdition.Original_19937)
+          Random = MTRandom.Create(optRandSeed, MTEdition.Original_19937)
         };
       }
       else
