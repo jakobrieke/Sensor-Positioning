@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using charlie;
 using Cairo;
 using LinearAlgebra;
@@ -208,7 +209,7 @@ namespace SensorPositioning
         "LogRoundedPositions";
     }
 
-    private Optimization.Optimization _optimizer;
+    private SwarmOptimization _optimizer;
     private SensorPositionObj _objective;
     private int _zoom;
     private bool _drawSensorLines;
@@ -337,27 +338,27 @@ namespace SensorPositioning
           Random = MTRandom.Create(MTEdition.Original_19937)
         };
       }
-      else if (optimizerName == "PSO-global")
-      {
-        _optimizer = new PsoWrapper(_objective, sp)
-        {
-          SwarmSize = 40,
-          IsUseCriterion = false,
-//          InitialPosition = _objective.SearchSpace().RandPos(),
-          Random = MTRandom.Create(MTEdition.Original_19937)
-        };
-      }
-      else if (optimizerName == "JADE-with-archive")
-      {
-        _optimizer = new JadeWrapper(_objective, sp)
-        {
-          PopulationSize = 40,
-          IsUseCriterion = false,
-          Random = MTRandom.Create(MTEdition.Original_19937)
-//          LowerBounds = _objective.Intervals().Select(i => i[0]).ToArray(),
-//          UpperBounds = _objective.Intervals().Select(i => i[1]).ToArray()
-        };
-      }
+//      else if (optimizerName == "PSO-global")
+//      {
+//        _optimizer = new PsoWrapper(_objective, sp)
+//        {
+//          SwarmSize = 40,
+//          IsUseCriterion = false,
+////          InitialPosition = _objective.SearchSpace().RandPos(),
+//          Random = MTRandom.Create(MTEdition.Original_19937)
+//        };
+//      }
+//      else if (optimizerName == "JADE-with-archive")
+//      {
+//        _optimizer = new JadeWrapper(_objective, sp)
+//        {
+//          PopulationSize = 40,
+//          IsUseCriterion = false,
+//          Random = MTRandom.Create(MTEdition.Original_19937)
+////          LowerBounds = _objective.Intervals().Select(i => i[0]).ToArray(),
+////          UpperBounds = _objective.Intervals().Select(i => i[1]).ToArray()
+//        };
+//      }
       else if (optimizerName == "JADE")
       {
         _optimizer = new Jade(_objective, sp)
@@ -370,7 +371,47 @@ namespace SensorPositioning
         throw new Exception($"Optimizer {optimizerName} is not supported");
       }
       
-      _optimizer.Init();
+      // Initialize a swarm with 40 particles
+      // Take care that all particles have a valid configuration
+      var positions = new Vector[40];
+
+      for (var i = 0; i < positions.Length; i++)
+      {
+        for (var tries = 0; tries < 1000; tries++)
+        {
+          positions[i] = sp.RandPos(_objective.Random);
+          var agentObstacles = new List<Circle>();
+          
+          for (var j = 0; j < sp.Dimension; j += 3)
+          {
+            agentObstacles.Add(new Circle(positions[i][j], 
+              positions[i][j + 1], _objective.ObjectSize));
+          }
+
+          var validConfiguration = true;
+          
+          foreach (var obstacle in agentObstacles)
+          {
+            if (_objective.CheckCollision(obstacle,
+              _objective.Obstacles.Concat(agentObstacles).ToList()))
+            {
+              validConfiguration = false;
+              break;
+            }
+          }
+
+          if (validConfiguration) break;
+
+          if (tries == 999)
+          {
+            throw new TooManyAttempts(
+              "Failed to initialize the optimization algorithm, could " +
+              "not place all particles without collision.");
+          }
+        }
+      }
+      _optimizer.Init(positions);
+      
       _agents = _objective.ToAgents(_optimizer.Best().Position.ToArray());
       _objective.StartPosition = _agents;
 

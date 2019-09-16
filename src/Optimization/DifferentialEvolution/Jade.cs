@@ -28,12 +28,12 @@ namespace Optimization
     {
     }
 
-    public override void Init(int populationSize)
+    public override void Init(Vector[] positions)
     {
-      base.Init(populationSize);
+      base.Init(positions);
       µCr = 0.5;
       µF = 0.6;
-      P = Max(0.05, 3.0 / populationSize);
+      P = Max(0.05, 3.0 / positions.Length);
       Population.Sort();
     }
     

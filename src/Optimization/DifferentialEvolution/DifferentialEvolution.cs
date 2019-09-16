@@ -3,10 +3,8 @@ using LinearAlgebra;
 
 namespace Optimization
 {
-  public abstract class DifferentialEvolution : StochisticOptimization
+  public abstract class DifferentialEvolution : SwarmOptimization
   {
-    public uint Generation { get; private set; }
-    
     public List<Point> Population;
     
     /// <summary>
@@ -24,10 +22,11 @@ namespace Optimization
       SearchSpace searchSpace) : base(fitness, searchSpace)
     {}
 
-    public virtual void Init(int populationSize)
+    public override void Init(Vector[] startPositions)
     {
+      var populationSize = startPositions.Length;
+      
       ResetIterations();
-      Generation = 0;
       Population = new List<Point>(populationSize);
       CR = new List<double>(populationSize);
       F = new List<double>(populationSize);
@@ -42,17 +41,11 @@ namespace Optimization
       }
     }
 
-    public override void Init()
-    {
-      Init(40);
-    }
-
     protected override void Update()
     {
       Mutation();
       Crossover();
       Selection();
-      Generation++;
     }
     
     public abstract Vector Mutation();

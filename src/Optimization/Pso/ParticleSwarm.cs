@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LinearAlgebra;
 using MersenneTwister;
 using static System.Math;
 
@@ -12,7 +13,7 @@ namespace Optimization
   /// function. Also there is a topology defined between the particles which
   /// indicates which particle informs another particle.
   /// </summary>
-  public abstract class ParticleSwarm : StochisticOptimization
+  public abstract class ParticleSwarm : SwarmOptimization
   {
     /// <summary>
     /// A list of particles which make up the swarm.
@@ -145,7 +146,7 @@ namespace Optimization
     /// <param name="startVelocity">
     /// An array of initial velocities for each particle.
     /// </param>
-    public void Init(double[][] startPosition, double[][] startVelocity)
+    public void Init(Vector[] startPosition, double[][] startVelocity)
     { 
       Particles = new List<Particle>(startPosition.Length);
 
@@ -153,7 +154,7 @@ namespace Optimization
       {
         var particle = new Particle
         {
-          Position = startPosition[i],
+          Position = startPosition[i].ToArray(),
           LastPosition = new double[SearchSpace.Dimension],
           Velocity = startVelocity[i],
           PreviousBest = new double[SearchSpace.Dimension],
@@ -182,7 +183,7 @@ namespace Optimization
     /// Initialize the swarm with a list of start positions for each particle.
     /// </summary>
     /// <param name="startPosition"></param>
-    public void Init(double[][] startPosition)
+    public override void Init(Vector[] startPosition)
     {
       var startVelocity = new double[startPosition.Length][];
       for (var i = 0; i < startVelocity.Length; i++)
@@ -196,27 +197,6 @@ namespace Optimization
         }
       }
       Init(startPosition, startVelocity);
-    }
-    
-    /// <summary>
-    /// Initialize a swarm with n particles.
-    /// This creates n particles and initializes them with random values 
-    /// inside the search space.
-    /// </summary>
-    /// <param name="numberOfParticles"></param>
-    public void Init(int numberOfParticles)
-    {
-      var startPosition = new double[numberOfParticles][];
-      for (var i = 0; i < numberOfParticles; i++)
-      {
-        startPosition[i] = SearchSpace.RandPos(Random);
-      }
-      Init(startPosition);
-    }
-
-    public override void Init()
-    {
-      Init(40);
     }
 
     /// <summary>
