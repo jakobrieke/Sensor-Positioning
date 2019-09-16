@@ -217,18 +217,17 @@ namespace SensorPositioning
     }
 
     /// <summary>
-    /// Generate a list of agents from a vector with length n * 3, n >= 0. 
+    /// Generates a list of agents from a vector with length n * 3, n >= 0. 
     /// </summary>
     /// <param name="vector"></param>
     public List<Agent> ToAgents(double[] vector)
     {
       var agents = new List<Agent>();
+
       for (var i = 0; i < vector.Length; i += 3)
       {
-        var sensor = new Agent(
-          vector[i], vector[i + 1], vector[i + 2], 
-          SensorRange, SensorFov, ObjectSize);
-        agents.Add(sensor);
+        agents.Add(new Agent(vector[i], vector[i + 1], vector[i + 2],
+          SensorRange, SensorFov, ObjectSize));
       }
 
       return agents;
@@ -275,14 +274,20 @@ namespace SensorPositioning
       return new SearchSpace(Intervals(numberOfSensors));
     }
 
-    private List<Circle> Others(List<Agent> agents, Agent agent)
+    /// <summary>
+    /// Creates a set of circles from "agents" without "agent".
+    /// </summary>
+    /// <param name="agents"></param>
+    /// <param name="agent"></param>
+    /// <returns></returns>
+    private List<Circle> OtherObstacles(List<Agent> agents, Agent agent)
     {
       var others = new List<Circle>();
       others.AddRange(Obstacles);
         
-      foreach (var s in agents)
+      foreach (var agent2 in agents)
       {
-        if (s != agent) others.Add(s.ToCircle());
+        if (agent2 != agent) others.Add(agent2.ToCircle());
       }
 
       return others;
@@ -295,8 +300,8 @@ namespace SensorPositioning
     /// <returns></returns>
     public List<Polygon> Imperceptible(List<Agent> agents)
     {
-      var area = agents.AsParallel().Select(sensor => Sensors2D.Imperceptible(
-        sensor.AreaOfActivity(), Others(agents, sensor), Field)
+      var area = agents.AsParallel().Select(agent => Sensors2D.Imperceptible(
+        agent.AreaOfActivity(), OtherObstacles(agents, agent), Field)
       ).ToList();
       
       var result = area[0];
@@ -308,38 +313,35 @@ namespace SensorPositioning
       return result;
     }
 
-    private double CalcPenalty(List<Agent> agents)
+    private double OutsideFieldPenalty(Agent agent)
     {
-      return agents.Sum(agent =>
+      if (Field.Contains(agent.Position)) return -1;
+
+      if (OutsideFieldPenaltyFct == 0) return 0;
+      if (OutsideFieldPenaltyFct == 1) return double.PositiveInfinity;
+      if (OutsideFieldPenaltyFct == 2) return Field.Area() + 1;
+
+      var x = Field.Min.X + FieldWidth / 2;
+      var y = Field.Min.Y + FieldHeight / 2;
+      return Vector2.Distance(new Vector2(x, y), agent.Position)
+             + Field.Area();
+    }
+
+    private double CollisionPenalty(Agent agent, List<Circle> obstacles)
+    {
+      foreach (var obstacle in obstacles)
       {
-        // -- Test if the agent is outside of the field
-
-        if (!Field.Contains(agent.Position, true))
-        {
-          if (OutsideFieldPenaltyFct == 0) return 0;
-          if (OutsideFieldPenaltyFct == 1) return double.PositiveInfinity;
-          if (OutsideFieldPenaltyFct == 2) return Field.Area() + 1;
+        var d = Vector2.Distance(obstacle.Position, agent.Position);
+        if (d >= obstacle.Radius + agent.Size) continue;
           
-          var x = Field.Min.X + FieldWidth / 2;
-          var y = Field.Min.Y + FieldHeight / 2;
-          return Vector2.Distance(new Vector2(x, y), agent.Position)
-            + Field.Area();
-        }
-
-        // -- Test if the agent collides with any obstacle
+        if (CollisionPenaltyFct == 0) return 0;
+        if (CollisionPenaltyFct == 1)  return double.PositiveInfinity;
+        if (CollisionPenaltyFct == 2)  return Field.Area() + 1;
         
-        foreach (var obstacle in Others(agents, agent))
-        {
-          if (OutsideFieldPenaltyFct == 0) return 0;
-          if (CollisionPenaltyFct == 1) return double.PositiveInfinity;
-          if (CollisionPenaltyFct == 2) return Field.Area() + 1;
+        return Field.Area() + d;
+      }
 
-          var d = Vector2.Distance(obstacle.Position, agent.Position);
-          if (d < obstacle.Radius + agent.Size) return Field.Area() + d;
-        }
-
-        return 0;
-      });
+      return -1;
     }
     
     /// <summary>
@@ -355,42 +357,41 @@ namespace SensorPositioning
     public override double Eval(Vector vector)
     {
       var agents = ToAgents(vector.ToArray());
-      var penalty = CalcPenalty(agents);
-
-      var imperceptible = Imperceptible(agents);
-      if (KnownAreas.Count > 0)
+      var imperceptibleArea = new List<List<Polygon>>();
+      var penalty = 0.0;
+      
+      foreach (var agent in agents)
       {
-        imperceptible = Polygon.Difference(
-          imperceptible, KnownAreas);
-      }
-      var notPerceptibleArea = Polygon.Area(imperceptible);
-
-      if (InterestingAreas.Count > 0)
-      {
-        var importantHidden = Polygon.Intersection(
-          InterestingAreas, imperceptible);
-        penalty -= Polygon.Area(InterestingAreas) - Polygon.Area(importantHidden);
-      }
-
-      if (StartPosition != null)
-      {
-        if (StartPosition.Count != agents.Count) throw new Exception(
-          "StartPosition and vector should have the same length " +
-          $"{StartPosition.Count} != {agents.Count}");
-
-        for (var i = 0; i < StartPosition.Count; i++)
+        var outsideFieldPenalty = OutsideFieldPenalty(agent);
+        if (outsideFieldPenalty >= 0)
         {
-          var d = Vector2.Distance(StartPosition[i].Position,
-            agents[i].Position);
-          var rotDiff = Math.Abs(
-            StartPosition[i].Rotation - agents[i].Rotation);
-          penalty += rotDiff * StartPositionRotationWeight + 
-                     d * StartPositionDistanceWeight;
+          penalty += outsideFieldPenalty;
+          continue;
         }
+
+        var collisionPenalty = CollisionPenalty(
+          agent, OtherObstacles(agents, agent));
+        if (collisionPenalty >= 0)
+        {
+          penalty += collisionPenalty;
+          continue;
+        }
+
+        imperceptibleArea.Add(Sensors2D.Imperceptible(
+          agent.AreaOfActivity(), OtherObstacles(agents, agent), Field));
       }
 
       Evaluations++;
-      return penalty + notPerceptibleArea;
+      
+      if (imperceptibleArea.Count == 0) return penalty;
+      
+      var result = imperceptibleArea[0];
+      for (var i = 1; i < imperceptibleArea.Count; i++)
+      {
+        result = Polygon.Intersection(result, imperceptibleArea[i]);
+      }
+      
+      return Polygon.Area(result) + penalty;
     }
   }
 }
