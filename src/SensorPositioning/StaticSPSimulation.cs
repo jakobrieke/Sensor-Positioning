@@ -152,7 +152,7 @@ namespace SensorPositioning
         "# 1 := Add infinity\n" +
         "# 2 := Add area of field + 1\n" +
         "# 3 := Add area of field + distance to center of field\n" +
-        "OutsideFieldPenaltyFct = 2\n" +
+        "OutsideFieldPenaltyFct = 3\n" +
         "\n" +
         // Todo: Fix bug that global best is always +infinity if
         // collision penalty function is set to 0
@@ -163,7 +163,7 @@ namespace SensorPositioning
         "# 1 := Add infinity\n" +
         "# 2 := Add area of field + 1\n" +
         "# 3 := Add area of field + distance to collider\n" +
-        "CollisionPenaltyFct = 2\n" +
+        "CollisionPenaltyFct = 3\n" +
         "\n" +
         "# Multiple lists of points defining convex polygons of\n" +
         "# areas of interest (these areas are valued higher\n" +
