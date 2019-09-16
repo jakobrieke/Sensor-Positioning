@@ -7,5 +7,5 @@ images=$(ls ~/.charlie/SensorPositioning.StaticSpSimulation/*.png)
 for image in $images
 do
     echo $image
-    mogrify -crop 800x550+0+125 $image
+    mogrify -flip -crop 800x550+0+125 $image
 done
