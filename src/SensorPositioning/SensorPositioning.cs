@@ -6,9 +6,9 @@ using Optimization;
 
 namespace SensorPositioning
 {
-  public class ToManyAttempts : Exception
+  public class TooManyAttempts : Exception
   {
-    public ToManyAttempts(string message) : base(message) {}
+    public TooManyAttempts(string message) : base(message) {}
   }
   
   public class SensorPositionObj : Objective
@@ -165,7 +165,8 @@ namespace SensorPositioning
     }
 
     /// <summary>
-    /// Places an obstacle randomly without intersection inside the environment.
+    /// Generates an obstacle at a random position without intersecting with
+    /// any obstacle in "obstacles".
     /// </summary>
     /// <remarks>
     /// After 10,000 attempts the 
@@ -178,13 +179,13 @@ namespace SensorPositioning
         var obstacle = AtRandomPosition();
         if (!CheckCollision(obstacle, obstacles)) return obstacle;
       }
-      throw new ToManyAttempts(
+      throw new TooManyAttempts(
         "After 10,000 attempts no suitable position for a new " +
         "obstacle could be found.");
     }
 
     /// <summary>
-    /// Generates a new obstacle at a random position.
+    /// Generates an obstacle at a random position.
     /// </summary>
     /// <returns></returns>
     private Circle AtRandomPosition()
@@ -197,12 +198,12 @@ namespace SensorPositioning
 
     /// <summary>
     /// Check if a given object collides with any object inside the
-    /// problem environment. If the object already exists inside the environment
+    /// problem environment. If the object is contained in "obstacles"
     /// it won't collide with itself.
     /// </summary>
     /// <param name="o"></param>
     /// <param name="obstacles"></param>
-    /// <returns></returns>
+    /// <returns>True if a collision occurs, otherwise false.</returns>
     public bool CheckCollision(Circle o, List<Circle> obstacles)
     {
       foreach (var o2 in obstacles)
