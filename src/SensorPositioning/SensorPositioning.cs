@@ -318,10 +318,12 @@ namespace SensorPositioning
         {
           if (OutsideFieldPenaltyFct == 0) return 0;
           if (OutsideFieldPenaltyFct == 1) return double.PositiveInfinity;
+          if (OutsideFieldPenaltyFct == 2) return Field.Area() + 1;
           
           var x = Field.Min.X + FieldWidth / 2;
           var y = Field.Min.Y + FieldHeight / 2;
-          return Vector2.Distance(new Vector2(x, y), agent.Position);
+          return Vector2.Distance(new Vector2(x, y), agent.Position)
+            + Field.Area();
         }
 
         // -- Test if the agent collides with any obstacle
@@ -330,6 +332,7 @@ namespace SensorPositioning
         {
           if (OutsideFieldPenaltyFct == 0) return 0;
           if (CollisionPenaltyFct == 1) return double.PositiveInfinity;
+          if (CollisionPenaltyFct == 2) return Field.Area() + 1;
 
           var d = Vector2.Distance(obstacle.Position, agent.Position);
           if (d < obstacle.Radius + agent.Size) return Field.Area() + d;
