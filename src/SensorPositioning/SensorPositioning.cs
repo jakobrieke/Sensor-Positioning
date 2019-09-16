@@ -392,6 +392,35 @@ namespace SensorPositioning
         result = Polygon.Intersection(result, imperceptibleArea[i]);
       }
       
+      // -- Apply interesting areas
+      
+      if (InterestingAreas.Count > 0)
+      {
+        var importantHidden = Polygon.Intersection(
+          InterestingAreas, result);
+        penalty -= Polygon.Area(InterestingAreas) - Polygon.Area(importantHidden);
+      }
+
+      // -- Apply reference point / start position
+
+      if (StartPosition != null)
+      {
+        if (StartPosition.Count != agents.Count)
+          throw new Exception(
+            "StartPosition and vector should have the same length " +
+            $"{StartPosition.Count} != {agents.Count}");
+
+        for (var i = 0; i < StartPosition.Count; i++)
+        {
+          var d = Vector2.Distance(StartPosition[i].Position,
+            agents[i].Position);
+          var rotDiff = Math.Abs(
+            StartPosition[i].Rotation - agents[i].Rotation);
+          penalty += rotDiff * StartPositionRotationWeight +
+                     d * StartPositionDistanceWeight;
+        }
+      }
+
       return Polygon.Area(result) + penalty;
     }
   }
