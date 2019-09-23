@@ -4,15 +4,20 @@ using System.Linq;
 using charlie;
 using Cairo;
 using LinearAlgebra;
-using MersenneTwister;
 using Optimization;
-using Optimization.LibOptimizationWrapper;
-using MTRandom = MersenneTwister.MTRandom;
 
 namespace SensorPositioning
 {
   /* Recent Changes
    *
+   * v3.2.0
+   * - Flip render output
+   * - Remove options for JADE-with-archive and PSO-global
+   * - Update known bugs
+   * - Fix collision penalty increases when objects are further away
+   * - Fix JADE not using provided start positions
+   * - Fix Simulation initialization uses Random instance from objective for
+   *   swarm start positions;
    * v3.1.0
    * - ?
    * v3.0.0
@@ -97,7 +102,7 @@ namespace SensorPositioning
 
     public override string GetMeta()
     {
-      return "Author: Jakob Rieke; Version v3.1.0; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v3.2.0; Deterministic: No"; 
     }
     
     public override string GetDescr()
