@@ -165,7 +165,7 @@ for i in range(repetitions):
             exit()
 
     print("Random seed: " + str(random_seed) +
-          ", Done: " + str(100 * percent / (repetitions * 2)) + " %")
+          ", Done: " + str(100 * percent / repetitions) + " %")
     percent += 1
 
 os.remove(config_file)
