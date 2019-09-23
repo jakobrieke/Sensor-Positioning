@@ -1,0 +1,160 @@
+import sys
+import os
+from os import path
+from subprocess import Popen, PIPE
+
+
+# Configuration template for Version 2.1.1
+config_template = """
+# -- Problem configuration
+FieldHeight = 6
+FieldWidth = 9
+SensorRange = 12
+SensorFOV = 56.3
+ObjectSize = 0.1555
+
+# The number of agents / sensors to find the best
+# placement for
+NumberOfSensors = <number-of-sensors>
+
+# The number of obstacles randomly distributed on
+# the field
+NumberOfObstacles = <number-of-obstacles>
+
+# The seed used to generate randomly placed
+# obstacles on the field
+# If set to -1 the current time is used
+ObstaclePlacementRandomSeed = <obstacle-randome-seed>
+
+# An array of points with length >= 0
+# to create obstacles at fixed positions.
+# If set NumberOfObstacles is ignored
+# ObstaclePositions = [[2, 1]]
+
+# ObstacleVelocity = [0.1, 0.1]
+
+# The penalty applied if an agent is placed
+# outside the field, possible values are:
+# 0 := Add no penalty
+# 1 := Add infinity
+# 2 := Add area of field + 1
+# 3 := Add area of field + distance to center of field
+OutsideFieldPenaltyFct = 3
+
+# The penalty applied if an agent is placed
+# in collision with another agent or obstacle,
+# possible values are:
+# 0 := Add no penalty
+# 1 := Add infinity
+# 2 := Add area of field + 1
+# 3 := Add area of field + distance to collider
+CollisionPenaltyFct = 3
+
+# Multiple lists of points defining convex polygons of
+# areas of interest (these areas are valued higher
+# if seen by an agent
+# InterestingArea01 = [[0, 0], [2, 0], [2, 1], [0, 1]]
+# InterestingArea02 = [[0, 6], [2, 6], [2, 5], [0, 5]]
+# InterestingArea03 = [[9, 0], [7, 0], [7, 1], [9, 1]]
+# InterestingArea04 = [[9, 6], [9, 5], [7, 5], [7, 6]]
+
+StartPositionDistanceWeight = <start-position-distance-weight>
+StartPositionRotationWeight = <start-position-rotation-weight>
+
+# -- Optimizer configuration
+# The function used to optimize the problem,
+# possible values are:
+# SPSO-2006, SPSO-2007, SPSO-2011, JADE
+Optimizer = <optimization-algorithm>
+
+# If InitializeEachUpdate is not set, Updates
+# per iteration is always one
+# InitializeEachUpdate
+# UpdatesPerIteration = 30
+
+# If enabled the search space for SPSO-2006 is
+# restricted to a rectangle around each of the
+# sensors last positions
+# DynamicSearchSpaceRange = [0.1, 0.1]
+
+# -- Rendering configuration
+Zoom = 80
+<draw-grid>
+DrawSensorLines
+
+# Draws the start position for the optimization
+# Changes over time if InitializeEachUpdate is set
+# DrawStartPositions
+
+# -- Logging configuration
+LogChanges
+# LogClearText
+LogEvaluations
+LogRoundedPositions
+"""
+
+
+def input_str(name: str, default_value: str):
+    return input(name + " (" + str(default_value) + "): ") or default_value
+
+
+def input_int(name: str, default_value: int):
+    return int(input(name + " (" + str(default_value) + "): ") or default_value)
+
+
+def input_bool(name: str):
+    return input(name + " (y): ") == "y"
+
+
+NumberOfSensors = input_int("Number of sensors", 1)
+NumberOfObstacles = input_int("Number of obstacles", 1)
+# ObstacleRandomSeed = input_int("Obstacle random seed", -1)
+DistanceWeight = input_int("Distance weight", 0)
+RotationWeight = input_int("Rotation weight", 0)
+# draw_grid = input_bool("Draw grid")
+repetitions = input_int("Repetitions", 1000)
+iterations = input_int("Iterations", 600)
+output_directory = input_str("Output directory", "Debug")
+
+if len(sys.argv) != 2:
+    print("Missing path to configuration")
+    exit()
+
+cwd = os.getcwd()
+# script_dir = os.path.dirname(os.path.realpath(__file__))
+config_file = os.path.join(cwd, "temp.conf")
+sim_path = path.join(
+    cwd, sys.argv[1],
+    "sensor-positioning.dll:SensorPositioning.StaticSpSimulation")
+
+percent = 0
+
+for i in range(repetitions):
+    for optimizer in ["SPSO-2006", "JADE"]:
+        config_text = config_template \
+            .replace('<number-of-sensors>', str(NumberOfSensors)) \
+            .replace('<number-of-obstacles>', str(NumberOfObstacles)) \
+            .replace('<obstacle-randome-seed>', str(i)) \
+            .replace('<start-position-distance-weight>', str(DistanceWeight)) \
+            .replace('<start-position-rotation-weight>', str(RotationWeight)) \
+            .replace('<draw-grid>', "DrawGrid") \
+            .replace('<optimization-algorithm>', optimizer)
+
+        config_file_handler = open(config_file, 'w+')
+        config_file_handler.write(config_text)
+        config_file_handler.close()
+
+        command = [
+            "charlie", "--run", sim_path, str(iterations), str(1),
+            config_file, output_directory + "-" + optimizer]
+
+        process = Popen(command, stdout=PIPE, stderr=PIPE)
+        out, err = process.communicate()
+        if err:
+            print("ERROR: " + err)
+            exit()
+
+    print("Done: " + str(100 * percent / (repetitions * 2)) + " %")
+    percent += 1
+
+os.remove(config_file)
