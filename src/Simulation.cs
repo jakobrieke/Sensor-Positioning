@@ -153,7 +153,10 @@ namespace charlie
         }
         _surface = new ImageSurface(Format.ARGB32, width, height);
         _ctx = new Context(_surface);
-//        _ctx.Scale(2, 2);
+        
+        _ctx.Translate(0, height);
+        _ctx.Scale(1, -1);
+        
         Render(_ctx, width, height);
         return _surface.Data;
       }
