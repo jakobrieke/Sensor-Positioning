@@ -114,7 +114,9 @@ namespace SensorPositioning
              "- Perceptible area is rendered black if area polygon is not " +
              "open\n" +
              "- Optimization with CollisionPenaltyFct = 1 always leads to " +
-             "global best being +infinity";
+             "global best being +infinity\n" +
+             "- The SPSO-2011 implementation has a strong bias or does not " +
+             "work at all";
     }
     
     public override string GetConfig()
@@ -181,7 +183,7 @@ namespace SensorPositioning
         "# -- Optimizer configuration\n" +
         "# The function used to optimize the problem,\n" +
         "# possible values are:\n" +
-        "# PSO-global, SPSO-2006, SPSO-2007, SPSO-2011, JADE, JADE-with-archive\n" +
+        "# SPSO-2006, SPSO-2007, SPSO-2011, JADE\n" +
         "Optimizer = SPSO-2006\n" +
         "\n" +
         "# If InitializeEachUpdate is not set, Updates\n" +
