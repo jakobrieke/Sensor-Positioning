@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+
+# Description:
+# A simple script to run a wide range of network positioning scenarios
+#
+# Usage:
+# > run_scenario <build-folder>
+# > export <directory-to-charlie-installation> run_scenario <build-folder>
+
 import sys
 import os
 from os import path
