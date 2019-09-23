@@ -339,7 +339,7 @@ namespace SensorPositioning
         if (CollisionPenaltyFct == 1)  return double.PositiveInfinity;
         if (CollisionPenaltyFct == 2)  return Field.Area() + 1;
         
-        return Field.Area() + d;
+        return Field.Area() + obstacle.Radius + agent.Size - d;
       }
 
       return -1;
