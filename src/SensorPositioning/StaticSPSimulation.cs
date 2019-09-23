@@ -13,6 +13,8 @@ namespace SensorPositioning
 {
   /* Recent Changes
    *
+   * v3.1.0
+   * - ?
    * v3.0.0
    * - Rename optimization algorithm choices PSO and ADE to PSO-global and
    *   JADE-with-archive
@@ -95,7 +97,7 @@ namespace SensorPositioning
 
     public override string GetMeta()
     {
-      return "Author: Jakob Rieke; Version v3.0.0; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v3.1.0; Deterministic: No"; 
     }
     
     public override string GetDescr()
