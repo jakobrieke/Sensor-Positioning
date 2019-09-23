@@ -311,7 +311,7 @@ namespace SensorPositioning
         _obstacleVelocities.Add(_obstacleStartVelocity);
       }
       
-      // -- Initialize optimizer
+      // -- Initialize optimization algorithm
 
       var optimizerName = config.ContainsKey("Optimizer") ? 
         config["Optimizer"] : null;
@@ -321,52 +321,19 @@ namespace SensorPositioning
 
       if (optimizerName == "SPSO-2006")
       {
-        _optimizer = new StandardPso2006(sp, _objective)
-        {
-          Random = MTRandom.Create(MTEdition.Original_19937)
-        };
+        _optimizer = new StandardPso2006(sp, _objective);
       }
       else if (optimizerName == "SPSO-2007")
       {
-        _optimizer = new StandardPso2007(sp, _objective)
-        {
-          Random = MTRandom.Create(MTEdition.Original_19937)
-        };
+        _optimizer = new StandardPso2007(sp, _objective);
       }
       else if (optimizerName == "SPSO-2011")
       {
-        _optimizer = new StandardPso2011(sp, _objective)
-        {
-          Random = MTRandom.Create(MTEdition.Original_19937)
-        };
+        _optimizer = new StandardPso2011(sp, _objective);
       }
-//      else if (optimizerName == "PSO-global")
-//      {
-//        _optimizer = new PsoWrapper(_objective, sp)
-//        {
-//          SwarmSize = 40,
-//          IsUseCriterion = false,
-////          InitialPosition = _objective.SearchSpace().RandPos(),
-//          Random = MTRandom.Create(MTEdition.Original_19937)
-//        };
-//      }
-//      else if (optimizerName == "JADE-with-archive")
-//      {
-//        _optimizer = new JadeWrapper(_objective, sp)
-//        {
-//          PopulationSize = 40,
-//          IsUseCriterion = false,
-//          Random = MTRandom.Create(MTEdition.Original_19937)
-////          LowerBounds = _objective.Intervals().Select(i => i[0]).ToArray(),
-////          UpperBounds = _objective.Intervals().Select(i => i[1]).ToArray()
-//        };
-//      }
       else if (optimizerName == "JADE")
       {
-        _optimizer = new Jade(_objective, sp)
-        {
-          Random = MTRandom.Create(MTEdition.Original_19937)
-        };
+        _optimizer = new Jade(_objective, sp);
       }
       else
       {
@@ -381,7 +348,7 @@ namespace SensorPositioning
       {
         for (var tries = 0; tries < 1000; tries++)
         {
-          positions[i] = sp.RandPos(_objective.Random);
+          positions[i] = sp.RandPos(_optimizer.Random);
           var agentObstacles = new List<Circle>();
           
           for (var j = 0; j < sp.Dimension; j += 3)

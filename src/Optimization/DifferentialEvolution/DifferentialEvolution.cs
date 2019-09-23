@@ -35,9 +35,8 @@ namespace Optimization
       {
         CR.Add(1);
         F.Add(1);
-        
-        var pos = new Vector(SearchSpace.RandPos(Random));
-        Population.Add(new Point(pos, Fitness.Eval(pos)));
+        Population.Add(new Point(startPositions[i], 
+          Fitness.Eval(startPositions[i])));
       }
     }
 

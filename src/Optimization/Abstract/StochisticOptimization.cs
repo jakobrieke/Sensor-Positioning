@@ -10,8 +10,7 @@ namespace Optimization
     protected StochisticOptimization(Objective fitness, 
       SearchSpace searchSpace) : base(fitness, searchSpace)
     {
-      Random = MTRandom.Create(
-        DateTime.Now.Millisecond, MTEdition.Original_19937);
+      Random = MTRandom.Create(MTEdition.Original_19937);
     }
   }
 }
