@@ -2,7 +2,7 @@ import sys
 import os
 from os import path
 from subprocess import Popen, PIPE
-
+from random import randrange
 
 # Configuration template for Version 2.1.1
 config_template = """
@@ -130,11 +130,12 @@ sim_path = path.join(
 percent = 0
 
 for i in range(repetitions):
+    random_seed = randrange(1000000)
     for optimizer in ["SPSO-2006", "JADE"]:
         config_text = config_template \
             .replace('<number-of-sensors>', str(NumberOfSensors)) \
             .replace('<number-of-obstacles>', str(NumberOfObstacles)) \
-            .replace('<obstacle-randome-seed>', str(i)) \
+            .replace('<obstacle-randome-seed>', str(random_seed)) \
             .replace('<start-position-distance-weight>', str(DistanceWeight)) \
             .replace('<start-position-rotation-weight>', str(RotationWeight)) \
             .replace('<draw-grid>', "DrawGrid") \
@@ -154,7 +155,8 @@ for i in range(repetitions):
             print("ERROR: " + err)
             exit()
 
-    print("Done: " + str(100 * percent / (repetitions * 2)) + " %")
+    print("Random seed: " + str(random_seed) +
+          ", Done: " + str(100 * percent / (repetitions * 2)) + " %")
     percent += 1
 
 os.remove(config_file)
