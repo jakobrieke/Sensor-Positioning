@@ -123,7 +123,6 @@ def print_status(message: str):
 
 NumberOfSensors = input_int("Number of sensors", 1)
 NumberOfObstacles = input_int("Number of obstacles", 1)
-# ObstacleRandomSeed = input_int("Obstacle random seed", -1)
 DistanceWeight = input_int("Distance weight", 0)
 RotationWeight = input_int("Rotation weight", 0)
 # draw_grid = input_bool("Draw grid")
