@@ -109,11 +109,11 @@ namespace SensorPositioning
     {
       return "A group of agents and obstacles are placed inside a plain, " +
              "now the agents have to be placed in a way that the area which " +
-             "is monitored by them is maximized. The monitored area here is " +
-             "white and the non monitored area is gray." +
+             "is perceptible to them is maximized. The perceptible area is " +
+             "shown in white and the imperceptible area is gray." +
              "All obstacles are circles with the same radius and all sensors " +
              "have the same field of view. Note that agents themselves are " +
-             "obstacles since they have a body.\n" +
+             "obstacles since they are modeled with a body.\n" +
              "\n" +
              "Known bugs:\n" +
              "- Perceptible area is rendered black if area polygon is not " +
