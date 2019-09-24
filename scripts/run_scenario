@@ -139,8 +139,8 @@ sim_path = path.join(
 percent = 0
 
 for i in range(repetitions):
-    random_seed = randrange(1000000)
     for optimizer in ["SPSO-2006", "JADE"]:
+    random_seed = randrange(1000000000)
         config_text = config_template \
             .replace('<number-of-sensors>', str(NumberOfSensors)) \
             .replace('<number-of-obstacles>', str(NumberOfObstacles)) \
