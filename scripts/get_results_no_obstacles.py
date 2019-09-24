@@ -34,7 +34,14 @@ for sensors in results:
   for degree in possible_angles:
     left = degree - allowed_deviation
     right = degree + allowed_deviation
-    value = abs(sensors[0][2]) % 360
+    
+    # -- Cleanup values to be in range [0, 360)
+    value = sensors[0][2]
+    
+    while value < 0:
+      value += 360
+    value = value % 360
+    
     if left <= value <= right:
       occurences[i] += 1
       break
