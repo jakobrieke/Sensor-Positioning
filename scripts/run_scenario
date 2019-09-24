@@ -12,6 +12,7 @@ import os
 from os import path
 from subprocess import Popen, PIPE
 from random import randrange
+from datetime import datetime as dt
 
 # Configuration template for Version 3.2.0
 config_template = """
@@ -115,6 +116,11 @@ def input_bool(name: str):
     return input(name + " (y): ") == "y"
 
 
+def print_status(message: str):
+    print('\r', end="")
+    print(message, end="", flush=True)
+
+
 NumberOfSensors = input_int("Number of sensors", 1)
 NumberOfObstacles = input_int("Number of obstacles", 1)
 # ObstacleRandomSeed = input_int("Obstacle random seed", -1)
@@ -139,9 +145,11 @@ sim_path = path.join(
     "sensor-positioning.dll:SensorPositioning.StaticSpSimulation")
 
 percent = 0
+total_time = 0
 
 for i in range(repetitions):
     random_seed = randrange(1000000000)
+    start_time = dt.now()
     for optimizer in optimization_algorithms:
         config_text = config_template \
             .replace('<number-of-sensors>', str(NumberOfSensors)) \
@@ -166,8 +174,16 @@ for i in range(repetitions):
             print("ERROR: " + err)
             exit()
 
-    print("Random seed: " + str(random_seed) +
-          ", Done: " + str(100 * percent / repetitions) + " %")
+    # Todo: Catch keyboard interrupts
     percent += 1
+    total_time += (dt.now() - start_time).total_seconds()
+    average_time = round(total_time / (i + 1), 4)
+    expected_time = round(repetitions * average_time, 4)
+    print_status(
+        "Done: " + str(100 * percent / repetitions) + "%" +
+        ", Time: " + str(average_time) + "s" +
+        ", Expected time: " + str(expected_time) + "s"
+    )
 
+print()
 os.remove(config_file)
