@@ -121,6 +121,8 @@ NumberOfObstacles = input_int("Number of obstacles", 1)
 DistanceWeight = input_int("Distance weight", 0)
 RotationWeight = input_int("Rotation weight", 0)
 # draw_grid = input_bool("Draw grid")
+optimization_algorithms = input_str("Optimization alg.", "SPSO-2006, JADE")\
+    .replace(" ", "").split(",")
 repetitions = input_int("Repetitions", 1000)
 iterations = input_int("Iterations", 600)
 output_directory = input_str("Output directory", "Debug")
@@ -139,8 +141,8 @@ sim_path = path.join(
 percent = 0
 
 for i in range(repetitions):
-    for optimizer in ["SPSO-2006", "JADE"]:
     random_seed = randrange(1000000000)
+    for optimizer in optimization_algorithms:
         config_text = config_template \
             .replace('<number-of-sensors>', str(NumberOfSensors)) \
             .replace('<number-of-obstacles>', str(NumberOfObstacles)) \
