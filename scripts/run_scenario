@@ -174,11 +174,12 @@ for i in range(repetitions):
 
     # Todo: Catch keyboard interrupts
     percent += 1
+    percentage = round(100 * percent / repetitions, 2)
     total_time += (dt.now() - start_time).total_seconds()
     average_time = round(total_time / (i + 1), 4)
     expected_time = round(repetitions * average_time, 4)
     print_status(
-        "Done: " + str(100 * percent / repetitions) + "%" +
+        "Done: " + str(percentage) + "%" +
         ", Time: " + str(average_time) + "s" +
         ", Expected time: " + str(expected_time) + "s"
     )
