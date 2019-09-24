@@ -2,7 +2,7 @@
 
 # Removes faulty .log files from
 # ~/.charlie/SensorPositioning.StaticSpSimulation/**
-# A file is faulty, if the simulation terminated to early
+# A file is faulty, if the simulation was interrupted
 
 import os
 from os import path
