@@ -358,7 +358,7 @@ namespace SensorPositioning
     public override double Eval(Vector vector)
     {
       var agents = ToAgents(vector.ToArray());
-      var imperceptibleArea = new List<List<Polygon>>();
+      var polygonLists = new List<List<Polygon>>();
       var penalty = 0.0;
       
       foreach (var agent in agents)
@@ -378,18 +378,18 @@ namespace SensorPositioning
           continue;
         }
 
-        imperceptibleArea.Add(Sensors2D.Imperceptible(
+        polygonLists.Add(Sensors2D.Imperceptible(
           agent.AreaOfActivity(), OtherObstacles(agents, agent), Field));
       }
 
       Evaluations++;
       
-      if (imperceptibleArea.Count == 0) return penalty;
+      if (polygonLists.Count == 0) return penalty;
       
-      var result = imperceptibleArea[0];
-      for (var i = 1; i < imperceptibleArea.Count; i++)
+      var imperceptibleArea = polygonLists[0];
+      for (var i = 1; i < polygonLists.Count; i++)
       {
-        result = Polygon.Intersection(result, imperceptibleArea[i]);
+        imperceptibleArea = Polygon.Intersection(imperceptibleArea, polygonLists[i]);
       }
       
       // -- Apply interesting areas
@@ -397,7 +397,7 @@ namespace SensorPositioning
       if (InterestingAreas.Count > 0)
       {
         var importantHidden = Polygon.Intersection(
-          InterestingAreas, result);
+          InterestingAreas, imperceptibleArea);
         penalty -= Polygon.Area(InterestingAreas) - Polygon.Area(importantHidden);
       }
 
@@ -421,7 +421,7 @@ namespace SensorPositioning
         }
       }
 
-      return Polygon.Area(result) + penalty;
+      return Polygon.Area(imperceptibleArea) + penalty;
     }
   }
 }
