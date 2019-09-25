@@ -573,12 +573,14 @@ namespace SensorPositioning
     {
       foreach (var sensor in _objective.StartPosition)
       {
-        cr.SetSourceRGB(0.753, 0.274, 0.275);
         cr.Arc(
           sensor.Position.X * _zoom,
           sensor.Position.Y * _zoom,
           sensor.Size * _zoom, 0, 2 * Math.PI);
         cr.ClosePath();
+        cr.SetSourceRGBA(0.753, 0.274, 0.275, 0.3);
+        cr.FillPreserve();
+        cr.SetSourceRGB(0.753, 0.274, 0.275);
         cr.SetDash(new double[]{4}, 0);
         cr.LineWidth = 1;
         cr.Stroke();
