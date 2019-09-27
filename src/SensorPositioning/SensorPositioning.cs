@@ -396,9 +396,8 @@ namespace SensorPositioning
       
       if (InterestingAreas.Count > 0)
       {
-        var importantHidden = Polygon.Intersection(
-          InterestingAreas, imperceptibleArea);
-        penalty -= Polygon.Area(InterestingAreas) - Polygon.Area(importantHidden);
+        penalty -= Polygon.Area(Polygon.Difference(
+          InterestingAreas, imperceptibleArea));
       }
 
       // -- Apply reference point / start position
