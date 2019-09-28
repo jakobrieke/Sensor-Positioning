@@ -40,6 +40,7 @@ if __name__ == "__main__":
     faulty_files = get_faulty_files(True)
 
     # -- Ask user if he wants to remove files
-    if len(faulty_files) > 0 and input("Remove files (y/n): ") == "y":
+    if len(faulty_files) > 0 and input("Remove (" + str(len(faulty_files)) 
+                                       + ") files (y/n): ") == "y":
         for faulty_file in faulty_files:
             os.remove(faulty_file)
