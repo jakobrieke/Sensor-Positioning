@@ -4,7 +4,7 @@ import sys
 import os.path as path
 import numpy as np
 import matplotlib.pyplot as plt
-from plot_comparison import retrieve_results, get_title
+from merge_results import retrieve_results
 
 if __name__ == "__main__":
     if len(sys.argv) == 1 or len(sys.argv) == 2 and sys.argv[1] == '--help':
@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     directory = simDataDirectories[0]
     simRunResult = retrieve_results(path.join(CWD, directory))
-    title = get_title(directory)
+    title = simRunResult['title']
 
     for sim_run in simRunResult['sensor_positions']:
         for obstacle in sim_run:
