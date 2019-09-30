@@ -5,15 +5,18 @@ namespace Optimization
 {
   [TestFixture] public class Spso2006Test
   {
-    private static void RunTest(ParticleSwarm pso, double expected)
+    private static void RunTest(ParticleSwarm pso, double expected, 
+      uint iterations = 500)
     {
       Console.WriteLine($"i = 0, best = {pso.GlobalBestValue}");
       
-      pso.Iterate(500);
+      pso.Iterate(iterations);
       
-      Console.WriteLine($"i = 0, best = {pso.GlobalBestValue}");
+      Console.WriteLine($"i = 500, best = {pso.Best().Value}");
       Console.WriteLine($"Expected: {expected}");
-      Assert.True(pso.GlobalBestValue < expected);
+      
+      var value = Math.Abs(pso.Best().Value);
+      Assert.LessOrEqual(value, expected);
     }
     
     [Test] public static void TestOnSphereFunction()
@@ -47,6 +50,106 @@ namespace Optimization
       pso.Init(40);
       
       RunTest(pso, 2E-12);
+    }
+    
+    [Test] public static void TestOnF4()
+    {
+      var obj = new F4();
+      var sp = new SearchSpace(5, 100);
+      var pso = new StandardPso2006(sp, obj);
+      pso.Init(20);
+
+      RunTest(pso, 7.67E-22);
+    }
+    
+    [Test] public static void TestOnF5()
+    {
+      var obj = new F5();
+      var sp = new SearchSpace(5, 10);
+      var pso = new StandardPso2006(sp, obj);
+      pso.Init(20);
+
+      RunTest(pso, 3.5E-1);
+    }
+    
+    [Test] public static void TestOnF6()
+    {
+      var obj = new F6();
+      var sp = new SearchSpace(5, 10);
+      var pso = new StandardPso2006(sp, obj);
+      pso.Init(20);
+
+      RunTest(pso, 0);
+    }
+    
+    [Test] public static void TestOnF7()
+    {
+      var obj = new F7();
+      var sp = new SearchSpace(5, 10);
+      var pso = new StandardPso2006(sp, obj);
+      pso.Init(20);
+
+      RunTest(pso, 8.54E-4);
+    }
+    
+    [Test] public static void TestOnF8()
+    {
+      var obj = new F8();
+      var sp = new SearchSpace(5, 500);
+      var pso = new StandardPso2006(sp, obj);
+      pso.Init(20);
+
+      RunTest(pso, 2.37E+1);
+    }
+    
+    [Test] public static void TestOnF9()
+    {
+      var obj = new F9();
+      var sp = new SearchSpace(5, 5.12);
+      var pso = new StandardPso2006(sp, obj);
+      pso.Init(20);
+
+      RunTest(pso, 0);
+    }
+    
+    [Test] public static void TestOnF10()
+    {
+      var obj = new F10();
+      var sp = new SearchSpace(5, 32);
+      var pso = new StandardPso2006(sp, obj);
+      pso.Init(20);
+
+      RunTest(pso, 2.81E-15);
+    }
+    
+    [Test] public static void TestOnF11()
+    {
+      var obj = new F11();
+      var sp = new SearchSpace(5, 600);
+      var pso = new StandardPso2006(sp, obj);
+      pso.Init(20);
+
+      RunTest(pso, 1.48E-4, 1000);
+    }
+    
+    [Test] public static void TestOnF12()
+    {
+      var obj = new F12();
+      var sp = new SearchSpace(5, 50);
+      var pso = new StandardPso2006(sp, obj);
+      pso.Init(20);
+
+      RunTest(pso, 9.424E-32);
+    }
+    
+    [Test] public static void TestOnF13()
+    {
+      var obj = new F13();
+      var sp = new SearchSpace(5, 50);
+      var pso = new StandardPso2006(sp, obj);
+      pso.Init(20);
+
+      RunTest(pso, 1.35E-32);
     }
   }
 }
