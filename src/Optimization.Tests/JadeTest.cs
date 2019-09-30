@@ -68,6 +68,16 @@ namespace Optimization
 
       RunTest(jade, 8E-37);
     }
+
+    [Test] public static void TestOnF4()
+    {
+      var obj = new F4();
+      var sp = new SearchSpace(5, 100);
+      var jade = new Jade(obj, sp);
+      jade.Init(20);
+
+      RunTest(jade, 7.67E-22);
+    }
     
     [Test] public static void TestOnF5()
     {
@@ -77,17 +87,6 @@ namespace Optimization
       jade.Init(20);
 
       RunTest(jade, 3.5E-1);
-    }
-
-    [Test]
-    public static void TestOnF4()
-    {
-      var obj = new F4();
-      var sp = new SearchSpace(5, 100);
-      var jade = new Jade(obj, sp);
-      jade.Init(20);
-
-      RunTest(jade, 7.67E-22);
     }
     
     [Test] public static void TestOnF6()
