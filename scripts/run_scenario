@@ -63,10 +63,7 @@ CollisionPenaltyFct = 3
 # Multiple lists of points defining convex polygons of
 # areas of interest (these areas are valued higher
 # if seen by an agent
-# InterestingArea01 = [[0, 0], [2, 0], [2, 1], [0, 1]]
-# InterestingArea02 = [[0, 6], [2, 6], [2, 5], [0, 5]]
-# InterestingArea03 = [[9, 0], [7, 0], [7, 1], [9, 1]]
-# InterestingArea04 = [[9, 6], [9, 5], [7, 5], [7, 6]]
+<marked-area>
 
 StartPositionDistanceWeight = <start-position-distance-weight>
 StartPositionRotationWeight = <start-position-rotation-weight>
@@ -105,15 +102,53 @@ LogRoundedPositions
 
 
 def input_str(name: str, default_value: str):
+    """Gets an string or a default value by the user"""
     return input(name + " (" + str(default_value) + "): ") or default_value
 
 
 def input_int(name: str, default_value: int):
+    """Gets an integer or a default value from the user."""
     return int(input(name + " (" + str(default_value) + "): ") or default_value)
 
 
 def input_bool(name: str):
+    """Gets a boolean value from the user."""
     return input(name + " (y): ") == "y"
+
+
+def input_polygon(name: str, default_value: str):
+    """Gets a list of points e.g [[0, 0], [2.0, 0], [2, 1], [0, 1]], which
+    describe a polygon from the user.
+    If no input is provided, the default value is used."""
+    polygon = input_str(name, str(default_value))
+
+    if polygon == default_value:
+        return default_value
+
+    point_list = polygon\
+        .replace(' ', '')\
+        .replace('],', ';')\
+        .replace(']', '').replace('[', '').split(';')
+
+    if len(point_list) < 3:
+        return None
+
+    result = []
+
+    for point in point_list:
+        point = point.split(',')
+        if len(point) != 2:
+            return None
+        try:
+            result.append([float(point[0]), float(point[1])])
+        except ValueError:
+            return None
+
+    return str(result)
+
+
+def print_warning(message: str):
+    print("\033[93m {}\033[00m" .format(message))
 
 
 def print_status(message: str):
@@ -121,68 +156,100 @@ def print_status(message: str):
     print(message, end="", flush=True)
 
 
-NumberOfSensors = input_int("Number of sensors", 1)
-NumberOfObstacles = input_int("Number of obstacles", 1)
-DistanceWeight = input_int("Distance weight", 0)
-RotationWeight = input_int("Rotation weight", 0)
-# draw_grid = input_bool("Draw grid")
-optimization_algorithms = input_str("Optimization alg.", "SPSO-2006, JADE")\
-    .replace(" ", "").split(",")
-repetitions = input_int("Repetitions", 1000)
-iterations = input_int("Iterations", 600)
-output_directory = input_str("Output directory", "Debug")
+def print_help():
+    print("Usage: run_scenario <build-dir>")
 
-if len(sys.argv) != 2:
-    print("Missing path to configuration")
-    exit()
 
-cwd = os.getcwd()
-config_file = os.path.join(cwd, "temp.conf")
-sim_path = path.join(
-    cwd, sys.argv[1],
-    "sensor-positioning.dll:SensorPositioning.StaticSpSimulation")
+def main():
+    percent = 0
+    total_time = 0
 
-percent = 0
-total_time = 0
+    print_status("Started")
+    for i in range(repetitions):
+        random_seed = randrange(1000000000)
+        start_time = dt.now()
+        for optimizer in optimization_algorithms:
+            config_text = config_template \
+                .replace('<number-of-sensors>', str(NumberOfSensors)) \
+                .replace('<number-of-obstacles>', str(NumberOfObstacles)) \
+                .replace('<obstacle-randome-seed>', str(random_seed)) \
+                .replace('<start-position-distance-weight>', str(DistanceWeight)) \
+                .replace('<start-position-rotation-weight>', str(RotationWeight)) \
+                .replace('<draw-grid>', "DrawGrid") \
+                .replace('<optimization-algorithm>', optimizer)
 
-for i in range(repetitions):
-    random_seed = randrange(1000000000)
-    start_time = dt.now()
-    for optimizer in optimization_algorithms:
-        config_text = config_template \
-            .replace('<number-of-sensors>', str(NumberOfSensors)) \
-            .replace('<number-of-obstacles>', str(NumberOfObstacles)) \
-            .replace('<obstacle-randome-seed>', str(random_seed)) \
-            .replace('<start-position-distance-weight>', str(DistanceWeight)) \
-            .replace('<start-position-rotation-weight>', str(RotationWeight)) \
-            .replace('<draw-grid>', "DrawGrid") \
-            .replace('<optimization-algorithm>', optimizer)
+            if not marked_area or marked_area == "[]":
+                config_text = config_text.replace('<marked-area>', '')
+            else:
+                config_text = config_text.replace(
+                    '<marked-area>', 'InterestingArea = ' + str(marked_area))
 
-        config_file_handler = open(config_file, 'w+')
-        config_file_handler.write(config_text)
-        config_file_handler.close()
+            config_file_handler = open(config_file, 'w+')
+            config_file_handler.write(config_text)
+            config_file_handler.close()
 
-        command = [
-            "charlie", "--run", sim_path, str(iterations), str(1),
-            config_file, output_directory + "-" + optimizer]
+            command = [
+                "charlie", "--run", sim_path, str(iterations), str(1),
+                config_file, output_directory + "-" + optimizer]
 
-        process = Popen(command, stdout=PIPE, stderr=PIPE)
-        out, err = process.communicate()
-        if err:
-            print("ERROR: " + err)
-            exit()
+            process = Popen(command, stdout=PIPE, stderr=PIPE)
+            out, err = process.communicate()
+            if err:
+                print("ERROR: " + err)
+                exit()
 
-    # Todo: Catch keyboard interrupts
-    percent += 1
-    percentage = round(100 * percent / repetitions, 2)
-    total_time += (dt.now() - start_time).total_seconds()
-    average_time = round(total_time / (i + 1), 4)
-    expected_time = round(repetitions * average_time, 4)
-    print_status(
-        "Done: " + str(percentage) + "%" +
-        ", Time: " + str(average_time) + "s" +
-        ", Expected time: " + str(expected_time) + "s"
-    )
+        percent += 1
+        percentage = round(100 * percent / repetitions, 2)
+        total_time += (dt.now() - start_time).total_seconds()
+        average_time = round(total_time / (i + 1), 4)
+        expected_time = round(repetitions * average_time, 4)
+        print_status(
+            "Done: " + str(percentage) + "%" +
+            ", Time: " + str(average_time) + "s" +
+            ", Expected time: " + str(expected_time) + "s"
+        )
 
-print()
-os.remove(config_file)
+    print()
+    os.remove(config_file)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print_help()
+        exit()
+
+    try:
+        NumberOfSensors = input_int("Number of sensors", 1)
+        NumberOfObstacles = input_int("Number of obstacles", 1)
+        marked_area = input_polygon("Marked area", "[]")
+        if marked_area is None:
+            print_warning("Invalid polygon, using no marked area.")
+        DistanceWeight = input_int("Distance weight", 0)
+        RotationWeight = input_int("Rotation weight", 0)
+        optimization_algorithms = input_str(
+            "Optimization alg.", "SPSO-2006, JADE").replace(" ", "").split(",")
+        repetitions = input_int("Repetitions", 1000)
+        iterations = input_int("Iterations", 600)
+        output_directory = input_str("Output directory", "Debug")
+    except KeyboardInterrupt:
+        print("\nAbort")
+        exit()
+
+    cwd = os.getcwd()
+    config_file = os.path.join(
+        cwd,
+        "temp-a" + str(NumberOfSensors) + "-o" + str(NumberOfObstacles) +
+        "-" + dt.now().isoformat() + ".conf")
+    sim_path = path.join(
+        cwd, sys.argv[1],
+        "sensor-positioning.dll:SensorPositioning.StaticSpSimulation")
+
+    try:
+        main()
+    except KeyboardInterrupt:
+        os.remove(config_file)
+        print_warning("\nSimulation stopped, please remove corrupted files "
+                      "with 'cleanup.py'")
+        exit()
+    except SystemExit:
+        os.remove(config_file)
