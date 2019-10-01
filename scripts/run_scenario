@@ -218,7 +218,7 @@ if __name__ == "__main__":
         exit()
 
     try:
-        NumberOfSensors = input_int("Number of sensors", 1)
+        NumberOfSensors = input_int("Number of agents", 1)
         NumberOfObstacles = input_int("Number of obstacles", 1)
         marked_area = input_polygon("Marked area", "[]")
         if marked_area is None:
