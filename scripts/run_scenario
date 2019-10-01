@@ -5,7 +5,6 @@
 #
 # Usage:
 # > run_scenario <build-folder>
-# > export <directory-to-charlie-installation> run_scenario <build-folder>
 
 import sys
 import os
