@@ -55,6 +55,7 @@ import xml.etree.ElementTree as ET
 import os.path as path
 import os
 import sys
+import statsmodels.stats.api as sms
 
 
 def get_alg_and_group_size(sim_title: str):
@@ -110,13 +111,11 @@ def retrieve_results(sim_data_directory: str):
     start_areas = []
     final_areas = []
     # The average improvement of the sensor positions in all simulations
-    # Improvement here is defined as difference between
+    # Improvement here is defined as mean-difference between
     # start area and final area
     average_improvement = 0
     # Total time for all simulations in sec
     total_time = 0
-    # Average time for all simulations in sec
-    # totalAverageTime = 0
 
     sensor_positions = []
     obstacle_positions = []
@@ -145,6 +144,7 @@ def retrieve_results(sim_data_directory: str):
     average_time = total_time / sim_count
     title = path.split(sim_data_directory)[-1]
     alg_group_size = get_alg_and_group_size(title)
+    conf_interval = sms.DescrStatsW(final_areas).tconfint_mean()
 
     return {
         "title": title,
@@ -156,7 +156,7 @@ def retrieve_results(sim_data_directory: str):
         "final_areas": final_areas,
         "average_start_areas": sum(start_areas) / sim_count,
         "average_final_areas": sum(final_areas) / sim_count,
-        "confidence_interval": -1,
+        "confidence_interval": sum(final_areas) / sim_count - conf_interval[0],
         "average_improvement": average_improvement,
         "totalTimeInSec": total_time,
         "averageTimeInSec": average_time,
@@ -168,7 +168,7 @@ def retrieve_results(sim_data_directory: str):
 if __name__ == "__main__":
 
     if len(sys.argv) == 1 or len(sys.argv) == 2 and sys.argv[1] == '--help':
-        print("Usage: merge_results <directories-containing-simulation-logs>")
+        print("Usage: merge_results <directories containing simulation logs>")
         exit()
 
     CWD = path.dirname(path.realpath(__file__))
