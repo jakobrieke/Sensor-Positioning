@@ -72,26 +72,24 @@ def get_alg_and_group_size(sim_title: str):
 
 def parse_positions(positions_str: str):
     result = []
-
-    positions_str = positions_str[1:-1]
-    positions = positions_str.split('],')
+    positions = positions_str[1:-1].split('],')
 
     if positions[0] == '':
         return []
 
     for position_str in positions:
-        sensor = {}
+        agents = {}
         position_str = position_str.replace('[', '')
         position_str = position_str.replace(']', '')
 
         values = position_str.split(',')
-        sensor['x'] = float(values[0])
-        sensor['y'] = float(values[1])
+        agents['x'] = float(values[0])
+        agents['y'] = float(values[1])
 
         if len(values) == 3:
-            sensor['rotation'] = float(values[2])
+            agents['rotation'] = float(values[2])
 
-        result.append(sensor)
+        result.append(agents)
 
     return result
 
@@ -151,13 +149,14 @@ def retrieve_results(sim_data_directory: str):
     return {
         "title": title,
         "algorithm": alg_group_size[0],
-        "sensors": str(alg_group_size[1]),
+        "agents": str(alg_group_size[1]),
         "obstacles": str(alg_group_size[2]),
         "sim_count": sim_count,
         "start_areas": start_areas,
         "final_areas": final_areas,
         "average_start_areas": sum(start_areas) / sim_count,
         "average_final_areas": sum(final_areas) / sim_count,
+        "confidence_interval": -1,
         "average_improvement": average_improvement,
         "totalTimeInSec": total_time,
         "averageTimeInSec": average_time,
@@ -178,10 +177,11 @@ if __name__ == "__main__":
     print("Title, "
           "Repetitions, "
           "Algorithm, "
-          "Sensors, "
+          "Agents, "
           "Obstacles, "
           "Start Area, "
           "Final Area, "
+          "Confidence Interval, "
           "Improvement, "
           "Total Time, "
           "Average Time")
@@ -194,10 +194,11 @@ if __name__ == "__main__":
         print(str(results['title']) + ", "
               + str(results["sim_count"]) + ", "
               + str(results["algorithm"]) + ", "
-              + str(results["sensors"]) + ", "
+              + str(results["agents"]) + ", "
               + str(results["obstacles"]) + ", "
               + str(results["average_start_areas"]) + ", "
               + str(results["average_final_areas"]) + ", "
+              + str(results["confidence_interval"]) + ", "
               + str(results["average_improvement"]) + ", "
               + str(results["totalTimeInSec"]) + ", "
               + str(results["averageTimeInSec"]))
