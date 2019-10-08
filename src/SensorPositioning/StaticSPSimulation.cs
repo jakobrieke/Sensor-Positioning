@@ -230,7 +230,8 @@ namespace SensorPositioning
     /// <summary>
     /// A list of all changes in the optimum found by the optimizer.
     /// </summary>
-    private List<Tuple<int, double>> _changes;
+    private List<Tuple<int, double, double, double>> _changes;
+    private List<Polygon> _unseenArea;
     private bool _logChanges;
     private bool _logClearText;
     private bool _logEvaluations;
@@ -249,7 +250,7 @@ namespace SensorPositioning
     {
       Sensors2D.SensorArcPrecision = 2;
       
-      _changes = new List<Tuple<int, double>>();
+      _changes = new List<Tuple<int, double, double, double>>();
       _agents = new List<Agent>();
       _logChanges = config.ContainsKey("LogChanges");
       _logClearText = config.ContainsKey("LogClearText");
@@ -423,15 +424,24 @@ namespace SensorPositioning
       }
     }
 
+    private void AddChange(double lastBest)
+    {
+      // Todo: Add real values for unseenArea and unseenMarkedArea
+      _changes.Add(new Tuple<int, double, double, double>(
+        _optimizer.Iteration,
+        lastBest - _optimizer.Best().Value,
+        0, // unseenArea, 
+        0)); // unseenMarkedArea));
+    }
+
     private void UpdateOptimizerStatic()
     {
       var lastBest = _optimizer.Best().Value;
       _optimizer.Iterate();
       
-      if (_logChanges && lastBest > _optimizer.Best().Value) 
+      if (_logChanges && _optimizer.Best().Value < lastBest) 
       {
-        _changes.Add(new Tuple<int, double>(
-          _optimizer.Iteration, lastBest - _optimizer.Best().Value));
+        AddChange(lastBest);
       }
     }
     
@@ -466,11 +476,7 @@ namespace SensorPositioning
       _optimizer.Init();
       _optimizer.Iterate(_updatesPerIteration);
 
-      if (_logChanges) 
-      {
-        _changes.Add(new Tuple<int, double>(
-          _optimizer.Iteration, lastBest - _optimizer.Best().Value));
-      }
+      if (_logChanges) AddChange(lastBest);
     }
     
     public override void Update(long deltaTime)
@@ -649,9 +655,11 @@ namespace SensorPositioning
 
       var changes = "[";
       i = 1;
-      foreach (var (iteration, improvement) in _changes)
+      foreach (var (iteration, improvement, 
+        unseenArea, unseenMarkedArea) in _changes)
       {
-        changes += $"[{iteration}, {improvement}]";
+        changes += $"[{iteration}, {improvement}, " +
+                   $"{unseenArea}, {unseenMarkedArea}]";
         if (i++ < _changes.Count) changes += ", ";
       }
       changes += "]";
