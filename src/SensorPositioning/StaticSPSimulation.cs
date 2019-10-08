@@ -115,6 +115,9 @@ namespace SensorPositioning
              "have the same field of view. Note that agents themselves are " +
              "obstacles since they are modeled with a body.\n" +
              "\n" +
+             "Notes:\n" +
+             "- Marked areas are called 'interesting areas'\n" +
+             "\n" +
              "Known bugs:\n" +
              "- Perceptible area is rendered black if area polygon is not " +
              "open\n" +
@@ -659,7 +662,8 @@ namespace SensorPositioning
           $"sensors: {sensorPositions}\n" +
           $"obstacles: {obstaclePositions}\n" +
           (_logChanges ? $"changes: {changes}\n" : "") + 
-          "global-best: " + _optimizer.Best().Value;
+          (_logEvaluations ? $"objective-evaluations: {_objective.Evaluations}\n" : "") +
+          $"global-best: {_optimizer.Best().Value}";
       }
       
       return 
@@ -669,7 +673,7 @@ namespace SensorPositioning
         (_logEvaluations ? 
           $"<objective-evaluations>{_objective.Evaluations}" +
           "</objective-evaluations>\n" : "") +
-        "<global-best>" + _optimizer.Best().Value + "</global-best>";
+        $"<global-best>{_optimizer.Best().Value}</global-best>";
     }
   }
 }
