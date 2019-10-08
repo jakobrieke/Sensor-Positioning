@@ -55,6 +55,8 @@ import xml.etree.ElementTree as ET
 import os.path as path
 import os
 import sys
+import re
+import csv
 import statsmodels.stats.api as sms
 
 
@@ -71,27 +73,46 @@ def get_alg_and_group_size(sim_title: str):
     return ['-'.join(buffer[4:]), buffer[0], buffer[2]]
 
 
-def parse_positions(positions_str: str):
+def parse_list_of_tuples(list_string: str, parse_fct=None):
+    """
+    Parses a list of tuples like "[[1.12, 4.1], [5, 1.4, 3]]". It's possible to
+    pass a custom parse function which takes a list of strings of arbitrary
+    length and returns a new object.
+    Without a custom parse function a list of lists of floats is returned.
+    """
+    values = re.sub("[\\[\\] ]", "", list_string.replace("],", ";")).split(";")
     result = []
-    positions = positions_str[1:-1].split('],')
+    if values[0] == '':
+        return result
+    for value in values:
+        str_tuple = value.split(',')
 
-    if positions[0] == '':
-        return []
+        if parse_fct is not None:
+            result.append(parse_fct(str_tuple))
+            continue
 
-    for position_str in positions:
-        agents = {}
-        position_str = position_str.replace('[', '')
-        position_str = position_str.replace(']', '')
+        float_tuple = []
+        for i in range(len(str_tuple)):
+            float_tuple.append(float(str_tuple[i]))
+        result.append(float_tuple)
+    return result
 
-        values = position_str.split(',')
-        agents['x'] = float(values[0])
-        agents['y'] = float(values[1])
 
-        if len(values) == 3:
-            agents['rotation'] = float(values[2])
-
-        result.append(agents)
-
+def mean_changes(changes: list, iterations: int):
+    iterations += 1  # Include iteration 0 (start state)
+    result = [0] * iterations
+    for repetition in changes:
+        index = 0
+        value = repetition[index][1]
+        for i in range(iterations):
+            result[i] += value
+            if repetition[index] == repetition[-1]:
+                continue
+            if i + 1 == repetition[index + 1][0]:
+                index += 1
+                value -= repetition[index][1]
+    for i in range(iterations):
+        result[i] /= len(changes)
     return result
 
 
@@ -119,9 +140,9 @@ def retrieve_results(sim_data_directory: str):
 
     sensor_positions = []
     obstacle_positions = []
+    changes = []
 
     for file in sim_data_files:
-        # try:
         root = ET.parse(file).getroot()
         total_time += int(root.find('elapsed-time').text)
         iterations = root.findall('iteration')
@@ -131,13 +152,19 @@ def retrieve_results(sim_data_directory: str):
         final_areas.append(final_area)
         average_improvement += start_area - final_area
 
-        sensor_positions.append(parse_positions(
+        sensor_positions.append(parse_list_of_tuples(
             iterations[1].find('sensors').text))
-        obstacle_positions.append(parse_positions(
+        obstacle_positions.append(parse_list_of_tuples(
             iterations[1].find('obstacles').text))
-        # except ValueError as error:
-        #     print("Error parsing file: " + file)
-        #     print('"' + error + '"')
+        changes.append(parse_list_of_tuples(
+            iterations[1].find('changes').text,
+            lambda x: [int(x[0]), float(x[1])]))
+
+    for i in range(len(changes)):
+        changes[i].insert(0, [0, start_areas[i]])
+
+    # Todo: Get iteration count dynamically
+    m_changes = mean_changes(changes, 600)
 
     average_improvement /= sim_count
     total_time = total_time / 1000
@@ -161,14 +188,16 @@ def retrieve_results(sim_data_directory: str):
         "totalTimeInSec": total_time,
         "averageTimeInSec": average_time,
         "sensor_positions": sensor_positions,
-        "obstacle_positions": obstacle_positions
+        "obstacle_positions": obstacle_positions,
+        "mean_changes": m_changes
     }
 
 
 if __name__ == "__main__":
 
     if len(sys.argv) == 1 or len(sys.argv) == 2 and sys.argv[1] == '--help':
-        print("Usage: merge_results <directories containing simulation logs>")
+        print("Usage: merge_results <directories containing simulation logs>"
+              "<output name>")
         exit()
 
     CWD = path.dirname(path.realpath(__file__))
@@ -184,7 +213,8 @@ if __name__ == "__main__":
           "Confidence Interval, "
           "Improvement, "
           "Total Time, "
-          "Average Time")
+          "Average Time, "
+          "Changes")
 
     for directory in simDataDirectories:
         if not os.path.isdir(directory):
@@ -201,4 +231,5 @@ if __name__ == "__main__":
               + str(results["confidence_interval"]) + ", "
               + str(results["average_improvement"]) + ", "
               + str(results["totalTimeInSec"]) + ", "
-              + str(results["averageTimeInSec"]))
+              + str(results["averageTimeInSec"]) + ", "
+              + ';'.join(str(x) for x in results["mean_changes"]))
