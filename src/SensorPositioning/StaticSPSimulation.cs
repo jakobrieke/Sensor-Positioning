@@ -151,6 +151,9 @@ namespace SensorPositioning
         "# If set to -1 the current time is used\n" +
         "ObstaclePlacementRandomSeed = -1\n" +
         "\n" +
+        // Todo: Merge random and fixed obstacles instead of only one or
+        // the other
+        // Todo: Add option to define individual sizes for obstacles
         "# An array of points with length >= 0\n" +
         "# to create obstacles at fixed positions.\n" +
         "# If set NumberOfObstacles is ignored\n" +
