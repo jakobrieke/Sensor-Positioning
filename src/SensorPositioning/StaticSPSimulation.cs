@@ -159,8 +159,6 @@ namespace SensorPositioning
         "# If set NumberOfObstacles is ignored\n" +
         "# ObstaclePositions = [[2, 1]]\n" +
         "\n" +
-        "# ObstacleVelocity = [0.1, 0.1]\n" +
-        "\n" +
         "# The penalty applied if an agent is placed\n" +
         "# outside the field, possible values are:\n" +
         "# 0 := Add no penalty\n" +
@@ -197,17 +195,6 @@ namespace SensorPositioning
         "# SPSO-2006, SPSO-2007, SPSO-2011, JADE\n" +
         "Optimizer = SPSO-2006\n" +
         "\n" +
-        "# If InitializeEachUpdate is not set, Updates\n" +
-        "# per iteration is always one\n" +
-        "# InitializeEachUpdate\n" +
-        "\n" +
-        "UpdatesPerIteration = 30\n" +
-        "\n" +
-        "# If enabled the search space for SPSO-2006 is\n" +
-        "# restricted to a rectangle around each of the\n" +
-        "# sensors last positions\n" +
-        "# DynamicSearchSpaceRange = [0.1, 0.1]\n" +
-        "\n" +
         "# -- Rendering configuration\n" +
         "Zoom = 80\n" +
         "DrawGrid\n" +
@@ -240,14 +227,6 @@ namespace SensorPositioning
     private bool _logEvaluations;
     private bool _logRoundedPositions;
     private List<Agent> _agents;
-    private Vector2 _obstacleStartVelocity;
-    private List<Vector2> _obstacleVelocities;
-    /// <summary>
-    /// Indicates if the optimizer should be initialized again each update.
-    /// </summary>
-    private bool _initEachUpdate;
-    private uint _updatesPerIteration;
-    private Vector2 _dynamicSearchSpaceRange;
 
     public override void Init(Dictionary<string, string> config)
     {
@@ -316,15 +295,7 @@ namespace SensorPositioning
         "StartPositionDistanceWeight", 0);
       _objective.StartPositionRotationWeight = GetDouble(config, 
         "StartPositionRotationWeight", 0);
-      
-      _obstacleStartVelocity = GetVector(config, "ObstacleVelocity") ?? 
-                          Vector2.Zero;
-      _obstacleVelocities = new List<Vector2>(_objective.Obstacles.Count);
-      for (var i = 0; i < _objective.Obstacles.Count; i++)
-      {
-        _obstacleVelocities.Add(_obstacleStartVelocity);
-      }
-      
+
       // -- Initialize optimization algorithm
 
       var optimizerName = config.ContainsKey("Optimizer") ? 
@@ -397,34 +368,6 @@ namespace SensorPositioning
       
       _agents = _objective.ToAgents(_optimizer.Best().Position.ToArray());
       _objective.StartPosition = _agents;
-
-      _initEachUpdate = config.ContainsKey("InitializeEachUpdate");
-      _updatesPerIteration = (uint) GetInt(config, 
-        "UpdatesPerIteration", 30);
-      _dynamicSearchSpaceRange =
-        GetVector(config, "DynamicSearchSpaceRange") ?? Vector2.Zero;
-    }
-
-    private void UpdateObstacles()
-    {
-      for (var i = 0; i < _objective.Obstacles.Count; i++)
-      {
-        var o = _objective.Obstacles[i];
-        var p = new Particle
-        {
-          LastPosition = o.Position, 
-          Position = o.Position + _obstacleVelocities[i], 
-          Velocity = _obstacleVelocities[i]
-        };
-        var sp = new SearchSpace(new[]
-        {
-          new[] {0, _objective.FieldWidth}, new[] {0, _objective.FieldHeight}
-        });
-        Confinement.Bounce(p, sp);
-        
-        _obstacleVelocities[i] = p.Velocity;
-        _objective.Obstacles[i] = new Circle(p.Position, o.Radius);
-      }
     }
 
     private void AddChange(double lastBest)
@@ -437,7 +380,7 @@ namespace SensorPositioning
         0)); // unseenMarkedArea));
     }
 
-    private void UpdateOptimizerStatic()
+    public override void Update(long deltaTime)
     {
       var lastBest = _optimizer.Best().Value;
       _optimizer.Iterate();
@@ -446,48 +389,6 @@ namespace SensorPositioning
       {
         AddChange(lastBest);
       }
-    }
-    
-    private void UpdateOptimizerDynamic()
-    {
-      var lastBest = _optimizer.Best().Value;
-      _objective.StartPosition = _agents;
-      
-      if (_optimizer.GetType() == typeof(StandardPso2006) 
-          && _dynamicSearchSpaceRange != Vector2.Zero)
-      {
-        var pso = (StandardPso2006) _optimizer;
-        var intervals = pso.SearchSpace.Intervals;
-        for (var i = 0; i < intervals.Length; i += 3)
-        {
-          var pos = _agents[i / 3].Position;
-//            var rot = _sensors[i / 3].Rotation;
-          intervals[i] = new []
-          {
-            pos.X - _dynamicSearchSpaceRange.X, 
-            pos.X + _dynamicSearchSpaceRange.X
-          }; // x
-          intervals[i + 1] = new []
-          {
-            pos.Y - _dynamicSearchSpaceRange.Y, 
-            pos.Y + _dynamicSearchSpaceRange.Y
-          }; // y
-          intervals[i + 2] = new []{0.0, 360}; // rotation
-        }
-      }
-      
-      _optimizer.Init();
-      _optimizer.Iterate(_updatesPerIteration);
-
-      if (_logChanges) AddChange(lastBest);
-    }
-    
-    public override void Update(long deltaTime)
-    {
-      UpdateObstacles();
-      
-      if (_initEachUpdate) UpdateOptimizerDynamic();
-      else UpdateOptimizerStatic();
 
       _agents = _objective.ToAgents(_optimizer.Best().Position.ToArray());
     }
