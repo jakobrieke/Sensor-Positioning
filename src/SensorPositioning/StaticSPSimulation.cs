@@ -10,6 +10,10 @@ namespace SensorPositioning
 {
   /* Recent Changes
    *
+   * v4.0.0
+   * - Rename options
+   *   InterestingArea -> MarkedAreas
+   *   
    * v3.2.0
    * - Flip render output
    * - Remove options for JADE-with-archive and PSO-global
@@ -181,10 +185,10 @@ namespace SensorPositioning
         "# Multiple lists of points defining convex polygons of\n" +
         "# areas of interest (these areas are valued higher\n" +
         "# if seen by an agent\n" +
-        "# InterestingArea01 = [[0, 0], [2, 0], [2, 1], [0, 1]]\n" +
-        "# InterestingArea02 = [[0, 6], [2, 6], [2, 5], [0, 5]]\n" +
-        "# InterestingArea03 = [[9, 0], [7, 0], [7, 1], [9, 1]]\n" +
-        "# InterestingArea04 = [[9, 6], [9, 5], [7, 5], [7, 6]]\n" +
+        "# MarkedArea01 = [[0, 0], [2, 0], [2, 1], [0, 1]]\n" +
+        "# MarkedArea02 = [[0, 6], [2, 6], [2, 5], [0, 5]]\n" +
+        "# MarkedArea03 = [[9, 0], [7, 0], [7, 1], [9, 1]]\n" +
+        "# MarkedArea04 = [[9, 6], [9, 5], [7, 5], [7, 6]]\n" +
         "\n" +
         "StartPositionDistanceWeight = 0\n" +
         "StartPositionRotationWeight = 0\n" +
@@ -266,11 +270,11 @@ namespace SensorPositioning
       
       _objective.SetObstaclesRandom(GetUInt(config, "NumberOfObstacles", 1));
       
-      // -- Initialize interesting areas
+      // -- Initialize marked areas
       
       foreach (var key in config.Keys)
       {
-        if (!key.StartsWith("InterestingArea")) continue;
+        if (!key.StartsWith("MarkedArea")) continue;
 
         var matrix = ParseMatrix(config[key]);
         if (matrix == null || matrix.Length < 3) continue;
@@ -280,7 +284,7 @@ namespace SensorPositioning
         {
           impArea.Add(new Vector2(row[0], row[1]));
         }
-        _objective.InterestingAreas.Add(impArea);
+        _objective.MarkedAreas.Add(impArea);
       }
       
       // -- Initialize obstacles from positions
@@ -437,10 +441,10 @@ namespace SensorPositioning
       cr.ClosePath();
     }
 
-    private void DrawInterestingArea(Context cr)
+    private void DrawMarkedAreas(Context cr)
     {
       cr.SetSourceRGBA(1, 1, 1, 0.5);
-      foreach (var area in _objective.InterestingAreas)
+      foreach (var area in _objective.MarkedAreas)
       {
         DrawPolygon(cr, area);
         cr.Fill();
@@ -522,7 +526,7 @@ namespace SensorPositioning
         (width - _objective.FieldHeight * _zoom) / 2);
       
       DrawCoordinateSystem(cr);
-      DrawInterestingArea(cr);
+      DrawMarkedAreas(cr);
       DrawSensors(cr);
       if (_drawStartPositions) DrawStartPosition(cr);
       DrawObstacles(cr);

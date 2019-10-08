@@ -26,10 +26,10 @@ namespace SensorPositioning
     public readonly List<Circle> Obstacles = new List<Circle>();
     
     /// <summary>
-    /// Gets a list of polygons marking interesting areas on the field.
+    /// Gets a list of polygons marking more interesting areas on the field.
     /// These areas are valued higher if they are under perception by an agent.
     /// </summary>
-    public readonly List<Polygon> InterestingAreas = new List<Polygon>();
+    public readonly List<Polygon> MarkedAreas = new List<Polygon>();
     
     /// <summary>
     /// Gets a list of polygons which are marked as known on the field.
@@ -361,6 +361,8 @@ namespace SensorPositioning
       var polygonLists = new List<List<Polygon>>();
       var penalty = 0.0;
       
+      // -- Apply penalties and calculate unseen (imperceptible) area (f1) 
+      
       foreach (var agent in agents)
       {
         var outsideFieldPenalty = OutsideFieldPenalty(agent);
@@ -392,15 +394,15 @@ namespace SensorPositioning
         imperceptibleArea = Polygon.Intersection(imperceptibleArea, polygonLists[i]);
       }
       
-      // -- Apply interesting areas
+      // -- Apply marked areas (f2)
       
-      if (InterestingAreas.Count > 0)
+      if (MarkedAreas.Count > 0)
       {
         penalty -= Polygon.Area(Polygon.Difference(
-          InterestingAreas, imperceptibleArea));
+          MarkedAreas, imperceptibleArea));
       }
 
-      // -- Apply reference point / start position
+      // -- Apply distance weights (f3)
 
       if (StartPosition != null)
       {
