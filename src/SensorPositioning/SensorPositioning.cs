@@ -398,6 +398,7 @@ namespace SensorPositioning
       
       if (MarkedAreas.Count > 0)
       {
+        // unseen area - seen marked area
         penalty -= Polygon.Area(Polygon.Difference(
           MarkedAreas, imperceptibleArea));
       }
