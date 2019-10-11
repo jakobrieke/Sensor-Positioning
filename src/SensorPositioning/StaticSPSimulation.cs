@@ -121,7 +121,7 @@ namespace SensorPositioning
 
     public override string GetMeta()
     {
-      return "Author: Jakob Rieke; Version v3.2.0; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v4.0.0; Deterministic: No"; 
     }
     
     public override string GetDescr()
