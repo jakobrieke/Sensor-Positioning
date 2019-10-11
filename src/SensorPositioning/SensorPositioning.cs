@@ -85,13 +85,13 @@ namespace SensorPositioning
     /// Gets or sets the weight by which the distance to the start position is
     /// taken into account.
     /// </summary>
-    public double StartPositionDistanceWeight = 0;
+    public double AllowedDistance = 0;
     
     /// <summary>
     /// Gets or sets the weight by which the distance to the start position is
     /// taken into account.
     /// </summary>
-    public double StartPositionRotationWeight = 0;
+    public double AllowedRotation = 0;
 
     /// <summary>
     /// Gets or sets the function which is applied agents in a placement
@@ -414,12 +414,21 @@ namespace SensorPositioning
 
         for (var i = 0; i < StartPosition.Count; i++)
         {
-          var d = Vector2.Distance(StartPosition[i].Position,
-            agents[i].Position);
-          var rotDiff = Math.Abs(
-            StartPosition[i].Rotation - agents[i].Rotation);
-          penalty += rotDiff * StartPositionRotationWeight +
-                     d * StartPositionDistanceWeight;
+          if (AllowedDistance >= 0)
+          {
+            var d = Vector2.Distance(StartPosition[i].Position,
+              agents[i].Position);
+            
+            if (d > AllowedDistance) penalty += FieldHeight * FieldWidth;
+          }
+
+          if (AllowedRotation >= 0)
+          {
+            var rotDiff = Math.Abs(
+              StartPosition[i].Rotation - agents[i].Rotation);
+            
+            if (rotDiff > AllowedRotation) penalty += FieldHeight * FieldWidth;
+          }
         }
       }
 

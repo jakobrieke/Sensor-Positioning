@@ -11,10 +11,13 @@ namespace SensorPositioning
   /* Recent Changes
    *
    * v4.0.0
+   * - Modify distance weight options to use a maximum allowed distance instead
    * - Log initial state as change
    * - Log seen area and seen marked area in percentage of their total area
    * - Rename options
    *   - InterestingArea -> MarkedAreas
+   *   - StartPositionDistanceWeight -> AllowedDistance
+   *   - StartPositionRotationWeight -> AllowedRotation
    * - Remove options
    *   - ObstacleVelocity
    *   - InitializeEachIteration
@@ -121,7 +124,7 @@ namespace SensorPositioning
 
     public override string GetMeta()
     {
-      return "Author: Jakob Rieke; Version v3.2.0; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v4.0.0; Deterministic: No"; 
     }
     
     public override string GetDescr()
@@ -205,8 +208,8 @@ namespace SensorPositioning
         "# MarkedArea03 = [[9, 0], [7, 0], [7, 1], [9, 1]]\n" +
         "# MarkedArea04 = [[9, 6], [9, 5], [7, 5], [7, 6]]\n" +
         "\n" +
-        "StartPositionDistanceWeight = 0\n" +
-        "StartPositionRotationWeight = 0\n" +
+        "AllowedDistance = -1\n" +
+        "AllowedRotation = -1\n" +
         "\n" +
         "# -- Optimizer configuration\n" +
         "# The function used to optimize the problem,\n" +
@@ -310,10 +313,10 @@ namespace SensorPositioning
         _objective.SetObstacles(obstaclePositions);
       }
       
-      _objective.StartPositionDistanceWeight = GetDouble(config, 
-        "StartPositionDistanceWeight", 0);
-      _objective.StartPositionRotationWeight = GetDouble(config, 
-        "StartPositionRotationWeight", 0);
+      _objective.AllowedDistance = GetDouble(config, 
+        "AllowedDistance", -1);
+      _objective.AllowedRotation = GetDouble(config, 
+        "AllowedRotation", -1);
 
       // -- Initialize optimization algorithm
 
@@ -482,22 +485,22 @@ namespace SensorPositioning
         cr.Fill();
       }
       
-      foreach (var sensor in _agents)
+      foreach (var agent in _agents)
       {
         if (_drawSensorLines)
         {
           cr.SetSourceRGB(1, 0, 0);
           cr.SetDash(new double[]{10}, 0);
           cr.LineWidth = .4;
-          DrawPolygon(cr, sensor.AreaOfActivity().ToPolygon());
+          DrawPolygon(cr, agent.AreaOfActivity().ToPolygon());
           cr.Stroke();
         }
 
         cr.SetSourceRGB(0.753, 0.274, 0.275);
         cr.Arc(
-          sensor.Position.X * _zoom,
-          sensor.Position.Y * _zoom,
-          sensor.Size * _zoom, 0, 2 * Math.PI);
+          agent.Position.X * _zoom,
+          agent.Position.Y * _zoom,
+          agent.Size * _zoom, 0, 2 * Math.PI);
         cr.ClosePath();
         cr.Fill();
       }
@@ -505,18 +508,26 @@ namespace SensorPositioning
 
     private void DrawStartPosition(Context cr)
     {
-      foreach (var sensor in _objective.StartPosition)
+      foreach (var agent in _objective.StartPosition)
       {
         cr.Arc(
-          sensor.Position.X * _zoom,
-          sensor.Position.Y * _zoom,
-          sensor.Size * _zoom, 0, 2 * Math.PI);
+          agent.Position.X * _zoom,
+          agent.Position.Y * _zoom,
+          agent.Size * _zoom, 0, 2 * Math.PI);
         cr.ClosePath();
         cr.SetSourceRGBA(0.753, 0.274, 0.275, 0.3);
         cr.FillPreserve();
         cr.SetSourceRGB(0.753, 0.274, 0.275);
         cr.SetDash(new double[]{4}, 0);
         cr.LineWidth = 1;
+        cr.Stroke();
+        
+        cr.Arc(
+          agent.Position.X * _zoom,
+          agent.Position.Y * _zoom,
+          _objective.AllowedDistance * _zoom, 
+          0, 2 * Math.PI);
+        cr.ClosePath();
         cr.Stroke();
       }
     }
