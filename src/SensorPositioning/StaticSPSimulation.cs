@@ -23,7 +23,12 @@ namespace SensorPositioning
    * - Fix Simulation initialization uses Random instance from objective for
    *   swarm start positions;
    * v3.1.0
-   * - ?
+   * - Initialize optimization algorithms with valid agent configuration
+   * - Fix an error where obstacle intersection was still possible
+   * - Remove option to set a random seed for optimization algorithm
+   * - Fix JADE not using search space for initialization
+   * - Add options for different penalty functions
+   * - Fix errors in JADE
    * v3.0.0
    * - Rename optimization algorithm choices PSO and ADE to PSO-global and
    *   JADE-with-archive
