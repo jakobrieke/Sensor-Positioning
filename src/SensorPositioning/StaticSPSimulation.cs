@@ -11,7 +11,8 @@ namespace SensorPositioning
   /* Recent Changes
    *
    * v4.0.0
-   * - Log seen area and seen marked area in percentage of total area
+   * - Log initial state as change
+   * - Log seen area and seen marked area in percentage of their total area
    * - Rename options
    *   - InterestingArea -> MarkedAreas
    * - Remove options
@@ -388,6 +389,7 @@ namespace SensorPositioning
       _unseenArea = _objective.Imperceptible(_agents);
       _objective.StartPosition = _agents;
 
+      if (_logChanges) AddChange();
     }
 
     private void AddChange()
