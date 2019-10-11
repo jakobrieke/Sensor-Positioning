@@ -11,9 +11,18 @@ namespace SensorPositioning
   /* Recent Changes
    *
    * v4.0.0
+   * - Log seen area and seen marked area in percentage of total area
    * - Rename options
-   *   InterestingArea -> MarkedAreas
-   *   
+   *   - InterestingArea -> MarkedAreas
+   * - Remove options
+   *   - ObstacleVelocity
+   *   - InitializeEachIteration
+   *   - UpdatesPerIteration
+   *   - DynamicSearchSpaceRange
+   * - Fix evaluations not logged when activating clearText option
+   * - Add simulation notes
+   * - Update description
+   * - Add light red background to start positions
    * v3.2.0
    * - Flip render output
    * - Remove options for JADE-with-archive and PSO-global
@@ -47,10 +56,10 @@ namespace SensorPositioning
    * - Add a hidden experimental version of a new JADE implementation
    * v2.0.0
    * - Rename options
-   *   PlayerSensorRange -> SensorRange,
-   *   PlayerSensorFOV -> SensorFOV,
-   *   PlayerSize -> ObstacleSize,
-   *   ImpArea -> InterestingArea
+   *   - PlayerSensorRange -> SensorRange,
+   *   - PlayerSensorFOV -> SensorFOV,
+   *   - PlayerSize -> ObstacleSize,
+   *   - ImpArea -> InterestingArea
    * v1.9.1
    * - Fix error in default configuration
    * - Split Update() into multiple methods
@@ -376,30 +385,32 @@ namespace SensorPositioning
       _optimizer.Init(positions);
       
       _agents = _objective.ToAgents(_optimizer.Best().Position.ToArray());
+      _unseenArea = _objective.Imperceptible(_agents);
       _objective.StartPosition = _agents;
+
     }
 
-    private void AddChange(double lastBest)
+    private void AddChange()
     {
-      // Todo: Add real values for unseenArea and unseenMarkedArea
+      // (iteration, best, seen area %, seen marked area %)
       _changes.Add(new Tuple<int, double, double, double>(
-        _optimizer.Iteration,
-        lastBest - _optimizer.Best().Value,
-        0, // unseenArea, 
-        0)); // unseenMarkedArea));
+        _optimizer.Iteration, 
+        _optimizer.Best().Value,
+        1 - Polygon.Area(_unseenArea) / _objective.Field.Area(),
+        Polygon.Area(Polygon.Difference(
+          _objective.MarkedAreas, _unseenArea)) / 
+        Polygon.Area(_objective.MarkedAreas)));
     }
 
     public override void Update(long deltaTime)
     {
       var lastBest = _optimizer.Best().Value;
       _optimizer.Iterate();
-      
-      if (_logChanges && _optimizer.Best().Value < lastBest) 
-      {
-        AddChange(lastBest);
-      }
 
       _agents = _objective.ToAgents(_optimizer.Best().Position.ToArray());
+      _unseenArea = _objective.Imperceptible(_agents);
+      
+      if (_logChanges && _optimizer.Best().Value < lastBest) AddChange();
     }
 
     private void DrawCoordinateSystem(Context cr)
@@ -460,10 +471,9 @@ namespace SensorPositioning
     
     private void DrawSensors(Context cr)
     {
-      var shadows = _objective.Imperceptible(_agents);
       cr.SetSourceRGBA(0, 0, 0, 0.7);
       
-      foreach (var polygon in shadows)
+      foreach (var polygon in _unseenArea)
       {
         if (polygon.Count == 0) continue;
         DrawPolygon(cr, polygon);
