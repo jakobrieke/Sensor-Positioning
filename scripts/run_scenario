@@ -20,7 +20,6 @@ from datetime import datetime as dt
 
 # Configuration template for Version 3.2.0
 config_template = """
-# -- Problem configuration
 FieldHeight = 6
 FieldWidth = 9
 SensorRange = 12
@@ -46,7 +45,7 @@ Optimizer = <optimization-algorithm>
 Zoom = 80
 <draw-grid>
 DrawSensorLines
-DrawStartPositions
+<draw-start-positions>
 
 # -- Logging configuration
 LogChanges
@@ -115,6 +114,11 @@ def print_help():
     print("Usage: run_scenario <build-dir>")
 
 
+def remove_file(file):
+    if path.exists(file):
+        os.remove(file)
+
+
 def main():
     percent = 0
     total_time = 0
@@ -125,19 +129,25 @@ def main():
         start_time = dt.now()
         for optimizer in optimization_algorithms:
             config_text = config_template \
-                .replace('<number-of-sensors>', str(NumberOfSensors)) \
-                .replace('<number-of-obstacles>', str(NumberOfObstacles)) \
+                .replace('<number-of-sensors>', str(number_of_sensors)) \
+                .replace('<number-of-obstacles>', str(number_of_obstacles)) \
                 .replace('<obstacle-randome-seed>', str(random_seed)) \
                 .replace('<allowed-distance>', str(allowed_distance)) \
                 .replace('<allowed-rotation>', str(allowed_rotation)) \
                 .replace('<draw-grid>', "DrawGrid") \
                 .replace('<optimization-algorithm>', optimizer)
 
-            if not marked_area or marked_area == "[]":
-                config_text = config_text.replace('<marked-area>', '')
-            else:
-                config_text = config_text.replace(
-                    '<marked-area>', 'MarkedAreas = ' + str(marked_area))
+            config_text = config_text.replace(
+                '<marked-area>',
+                '' if not marked_area or marked_area == "[]"
+                else 'MarkedAreas = ' + str(marked_area))
+
+            config_text = config_text.replace(
+                '<draw-start-positions>',
+                'DrawStartPositions' if 0 < allowed_distance else '')
+
+            config_text = os.linesep.join(
+                [s for s in config_text.splitlines() if s])
 
             config_file_handler = open(config_file, 'w+')
             config_file_handler.write(config_text)
@@ -165,7 +175,7 @@ def main():
         )
 
     print()
-    os.remove(config_file)
+    remove_file(config_file)
 
 
 if __name__ == "__main__":
@@ -174,8 +184,8 @@ if __name__ == "__main__":
         exit()
 
     try:
-        NumberOfSensors = input_int("Number of agents", 1)
-        NumberOfObstacles = input_int("Number of obstacles", 1)
+        number_of_sensors = input_int("Number of agents", 1)
+        number_of_obstacles = input_int("Number of obstacles", 1)
         marked_area = input_polygon("Marked area", "[]")
         if marked_area is None:
             print_warning("Invalid polygon, using no marked area.")
@@ -193,7 +203,7 @@ if __name__ == "__main__":
     cwd = os.getcwd()
     config_file = os.path.join(
         cwd,
-        "temp-a" + str(NumberOfSensors) + "-o" + str(NumberOfObstacles) +
+        "temp-a" + str(number_of_sensors) + "-o" + str(number_of_obstacles) +
         "-" + dt.now().isoformat() + ".conf")
     sim_path = path.join(
         cwd, sys.argv[1],
@@ -202,9 +212,9 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        os.remove(config_file)
+        remove_file(config_file)
         print_warning("\nSimulation stopped, please remove corrupted files "
                       "with 'cleanup.py'")
         exit()
     except SystemExit:
-        os.remove(config_file)
+        remove_file(config_file)
