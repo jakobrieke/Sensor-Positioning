@@ -35,19 +35,16 @@ namespace LinearAlgebra
     {
       if (polygon.Count < 3) return 0;
 
-      if (polygon[0] != polygon[polygon.Count - 1])
-      {
-        polygon.Add(polygon[0]);
-      }
-
       var result = 0.0;
-
       for (var i = 0; i < polygon.Count - 1; i++)
       {
         result += polygon[i].X * polygon[i + 1].Y -
                   polygon[i + 1].X * polygon[i].Y;
       }
-
+      
+      result += polygon.Last().X * polygon.First().Y -
+                polygon.First().X * polygon.Last().Y;
+      
       return Math.Abs(result / 2);
     }
 
