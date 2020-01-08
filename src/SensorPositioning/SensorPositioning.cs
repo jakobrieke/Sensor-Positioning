@@ -361,7 +361,7 @@ namespace SensorPositioning
       var polygonLists = new List<List<Polygon>>();
       var penalty = 0.0;
       
-      // -- Apply penalties and calculate unseen (imperceptible) area (f1) 
+      // -- Apply penalties and calculate unseen/imperceptible area (f1) 
       
       foreach (var agent in agents)
       {
