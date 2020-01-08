@@ -607,7 +607,10 @@ namespace SensorPositioning
           $"obstacles: {obstaclePositions}\n" +
           (_logChanges ? $"changes: {changes}\n" : "") + 
           (_logEvaluations ? $"objective-evaluations: {_objective.Evaluations}\n" : "") +
-          $"global-best: {_optimizer.Best().Value}";
+          (_logChanges ? $"Visible-area: {_changes.Last().Item3}\n" : "") +
+          (_logChanges ? $"Visible-ma:   {_changes.Last().Item4}\n" : "") +
+          $"Separate  :   {_unseenArea.Count}\n" +
+          $"global-best:  {_optimizer.Best().Value}";
       }
       
       return 
