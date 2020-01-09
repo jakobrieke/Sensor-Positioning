@@ -37,7 +37,7 @@ namespace SensorPositioning
       s2 = new Segment(tangs[1].End, s2.End);
 
       // Since segment (s1.End, s2.End) might intersect with bounds, make
-      // sure that area "behind" that intersection is also included.
+      // sure that the area "behind" that intersection is also included.
       // Therefore two extra points are included:
       // -> s1.End.Move(angle, d), s2.End.Move(angle, d),
       
@@ -96,7 +96,7 @@ namespace SensorPositioning
     }
 
     /// <summary>
-    /// Examines whether an arc or a circle are intersecting.
+    /// Examines whether an arc and a circle are intersecting.
     /// !!! Warning: This function currently only checks if the two radii of arc
     /// and circle are intersecting and ignores the rotation of the arc.
     /// </summary>

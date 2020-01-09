@@ -58,13 +58,19 @@ namespace LinearAlgebra
       return base.GetHashCode();
     }
 
+    /// <summary>
+    /// Calculates the Euclidean distance between two vectors.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
     public static double Distance(Vector2 a, Vector2 b)
     {
       return Sqrt(Pow(a.X - b.X, 2) + Pow(a.Y - b.Y, 2));
     }
 
     /// <summary>
-    /// Calculate the angle from a to b between two vectors.
+    /// Calculates the angle from a to b between two vectors.
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
@@ -79,8 +85,8 @@ namespace LinearAlgebra
     }
 
     /// <summary>
-    /// Move the vector by a given distance and angle where the angle is
-    /// measured anticlockwise from east.
+    /// Rotates a vector (anticlockwise from east) and translates it by a given
+    /// distance. 
     /// </summary>
     /// <param name="angle"></param>
     /// <param name="distance"></param>
