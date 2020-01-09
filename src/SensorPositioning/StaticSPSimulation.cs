@@ -10,6 +10,8 @@ namespace SensorPositioning
 {
   /* Recent Changes
    *
+   * v4.0.1
+   * - Fix polygon difference / union do not handle holes
    * v4.0.0
    * - Modify distance weight options to use a maximum allowed distance instead
    * - Log initial state as change
@@ -124,7 +126,7 @@ namespace SensorPositioning
 
     public override string GetMeta()
     {
-      return "Author: Jakob Rieke; Version v4.0.0; Deterministic: No"; 
+      return "Author: Jakob Rieke; Version v4.0.1; Deterministic: No"; 
     }
     
     public override string GetDescr()
