@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using LinearAlgebra;
+using NUnit.Framework;
 using Rectangle = LinearAlgebra.Rectangle;
 
 namespace SensorPositioning
 {
+  [TestFixture]
   public static class Sensors2DTest
   {
+    [Test]
     public static void TestBlockedArea()
     {
       Console.WriteLine("\nTest Shadows2D.HiddenArea()");
@@ -188,6 +191,24 @@ namespace SensorPositioning
         i++;
         Console.WriteLine(i + ": " + (test.ToString() == tests[test]));
       }
+    }
+    
+    [Test]
+    public static void TestIntersecting()
+    {
+      var arc = new Arc(0, 0, 1, 90, 0);
+      
+      var c1 = new Circle(-.7, 0, 1);
+      Console.WriteLine(Sensors2D.Intersecting(arc, c1));
+      Assert.True(Sensors2D.Intersecting(arc, c1));
+
+      var c2 = new Circle(-1, 0, 1);
+      Console.WriteLine(Sensors2D.Intersecting(arc, c2));
+      Assert.True(Sensors2D.Intersecting(arc, c2));
+      
+      var c3 = new Circle(-1, 0, .5);
+      Console.WriteLine(Sensors2D.Intersecting(arc, c3));
+      Assert.False(Sensors2D.Intersecting(arc, c3));
     }
   }
 }
