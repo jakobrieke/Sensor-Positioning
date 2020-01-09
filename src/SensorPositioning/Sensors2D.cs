@@ -108,17 +108,10 @@ namespace SensorPositioning
       if (Vector2.Distance(arc.Position, circle.Position) >=
           arc.Radius) return false;
       return true;
+      
       // Todo: Implement check for arc rotation
       // Todo: Fix arc rotation is clockwise, angle anticlockwise
       // -> use unit circle as reference
-//      var sensorHalfAngle = sensor.Angle / 2;
-//        var angle = 360 - Vector2.Angle(sensor.Position, obstacle.Position);
-//        Console.WriteLine("Rotation: " + sensor.Rotation);
-//        Console.WriteLine("Alpha: " + (sensor.Rotation + sensorHalfAngle));
-//        Console.WriteLine("Beta: " + (sensor.Rotation - sensorHalfAngle));
-//        Console.WriteLine("Angle: " + angle);
-//        if (sensor.Rotation + sensorHalfAngle < angle
-//            && sensor.Rotation - sensorHalfAngle > angle) continue;
     }
     
     /// <summary>
