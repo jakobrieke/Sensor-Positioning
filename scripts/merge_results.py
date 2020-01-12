@@ -5,7 +5,7 @@ Load a list of results from folders structured like:
 - run-1203947019237432.log
 - run-3151231234123512.log
 - run-2135123512341234.log
-/some/path/pso-1vs1
+/some/path/1-agent-1-obstacle-JADE-d-3
 - run-1235134613241233.log
 - run-8979013849238475.log
 
@@ -52,11 +52,11 @@ and plot all dictionaries.
 """
 
 import xml.etree.ElementTree as ET
+from xml.etree.ElementTree import ParseError
 import os.path as path
 import os
 import sys
 import re
-import csv
 import statsmodels.stats.api as sms
 
 
@@ -99,79 +99,125 @@ def parse_list_of_tuples(list_string: str, parse_fct=None):
 
 
 def mean_changes(changes: list, iterations: int):
+    """
+    Convert a list of changes e.g. 
+    """
     iterations += 1  # Include iteration 0 (start state)
-    result = [0] * iterations
-    for repetition in changes:
+    mean_best_changes = [0] * iterations
+    mean_total_area_changes = [0] * iterations
+    mean_marked_area_changes = [0] * iterations
+    for change in changes:
         index = 0
-        value = repetition[index][1]
         for i in range(iterations):
-            result[i] += value
-            if repetition[index] == repetition[-1]:
+            mean_best_changes[i] += change[index][1]
+            mean_total_area_changes[i] += change[index][2]
+            mean_marked_area_changes[i] += change[index][3]
+
+            if change[index] == change[-1]:
                 continue
-            if i + 1 == repetition[index + 1][0]:
+            if i + 1 == change[index + 1][0]:
                 index += 1
-                value -= repetition[index][1]
     for i in range(iterations):
-        result[i] /= len(changes)
-    return result
+        mean_best_changes[i] /= len(changes)
+        mean_total_area_changes[i] /= len(changes)
+        mean_marked_area_changes[i] /= len(changes)
+
+    return {
+        "best": mean_best_changes,
+        "total_area": mean_total_area_changes,
+        "marked_area": mean_marked_area_changes
+    }
 
 
 def retrieve_results(sim_data_directory: str):
     """
-    Parses and combines all results from within a directory.
-    :param sim_data_directory: The directory containing the log files.
-    :return: A dictionary with all results combined.
+    Combines the results of multiple individual simulations (with the same
+    start configuration) to one single average simulation result.
+    The simulation log files are parsed (it's expected, that the log files do
+    conform with the given XML schema)
+    :param sim_data_directory: A directory containing the simulation log files.
+    :return: A dictionary with all results combined to a dictionary containing
+    the following values:
+    - "title": The title of the simulation (created from sim_data_dir).
+    - "algorithm": The optimization algorithm used by the simulation.
+    - "agents": The number of simulated agents.
+    - "obstacles": The number of objects contained in the simulation.
+    - "sim_count": The number of individual simulations.
+    - "start_areas": The average area at iteration 0, visible to the agents
+    - "final_areas": The average area at the last iteration, visible to the
+      agents
+    - "average_start_areas": The average area seen by all agents after the
+      initialization of all simulations in % of the total area.
+    - "average_final_areas": The average area seen by all agents at the end of
+      all simulations in % of the total area.
+    - "confidence_interval"
+    - "totalTimeInSec"
+    - "averageTimeInSec": The average time need for a simulation to finish in
+      seconds.
+    - "sensor_positions": A list of the final agent-positions at the end of
+      each simulation.
+    - "obstacle_positions" A list of obstacle positions of each simulation.
+    - "best_changes": A list of the average fitness value changes per time
+      step, that occured during all simulations. The first entry of the list is
+      the fitness value after the simulation initializations.
+    - "total_area_changes":
+    - "marked_area_changes":
     """
     sim_data_files = []
     for file in os.listdir(sim_data_directory):
         if file.endswith(".log"):
             sim_data_files.append(path.join(sim_data_directory, file))
 
-    # Number of simulations
-    sim_count = len(sim_data_files)
+    sim_count = len(sim_data_files)  # Number of simulations
     start_areas = []
     final_areas = []
-    # The average improvement of the sensor positions in all simulations
-    # Improvement here is defined as mean-difference between
-    # start area and final area
-    average_improvement = 0
-    # Total time for all simulations in sec
-    total_time = 0
-
+    total_time = 0  # Total time for all simulations in sec
     sensor_positions = []
     obstacle_positions = []
-    changes = []
+    all_changes = []
 
     for file in sim_data_files:
-        root = ET.parse(file).getroot()
+        try:
+            root = ET.parse(file).getroot()
+        except ParseError as e:
+            print("Error in file: " + file)
+            print(e)
+            continue
+
         total_time += int(root.find('elapsed-time').text)
         iterations = root.findall('iteration')
-        start_area = float(iterations[0].find('global-best').text)
-        final_area = float(iterations[1].find('global-best').text)
-        start_areas.append(start_area)
-        final_areas.append(final_area)
-        average_improvement += start_area - final_area
 
         sensor_positions.append(parse_list_of_tuples(
             iterations[1].find('sensors').text))
         obstacle_positions.append(parse_list_of_tuples(
             iterations[1].find('obstacles').text))
-        changes.append(parse_list_of_tuples(
+
+        # The following produces a list where each element is a tuple
+        # containing:
+        # - iteration
+        # - fitness value
+        # - percentage of total visible area
+        # - percentage of marked visible area
+        changes = parse_list_of_tuples(
             iterations[1].find('changes').text,
-            lambda x: [int(x[0]), float(x[1])]))
+            lambda x: [int(x[0]), float(x[1]), float(x[2]), float(x[3])])
+        all_changes.append(changes)
 
-    for i in range(len(changes)):
-        changes[i].insert(0, [0, start_areas[i]])
+        start_areas.append(changes[0][2])
+        final_areas.append(changes[-1][2])
 
-    # Todo: Get iteration count dynamically
-    m_changes = mean_changes(changes, 600)
+    m_changes = mean_changes(all_changes, int(iterations[1].attrib['i']))
 
-    average_improvement /= sim_count
     total_time = total_time / 1000
     average_time = total_time / sim_count
     title = path.split(sim_data_directory)[-1]
     alg_group_size = get_alg_and_group_size(title)
     conf_interval = sms.DescrStatsW(final_areas).tconfint_mean()
+
+    # -- Debug:
+    for change in all_changes:
+        if change[-1][3] > 1:
+            print(title, str(change[-1][1] - change[-1][2]), str(change[-1][3]))
 
     return {
         "title": title,
@@ -184,52 +230,55 @@ def retrieve_results(sim_data_directory: str):
         "average_start_areas": sum(start_areas) / sim_count,
         "average_final_areas": sum(final_areas) / sim_count,
         "confidence_interval": sum(final_areas) / sim_count - conf_interval[0],
-        "average_improvement": average_improvement,
         "totalTimeInSec": total_time,
         "averageTimeInSec": average_time,
         "sensor_positions": sensor_positions,
         "obstacle_positions": obstacle_positions,
-        "mean_changes": m_changes
+        "best_changes": m_changes["best"],
+        "total_area_changes": m_changes["total_area"],
+        "marked_area_changes": m_changes["marked_area"],
     }
 
 
 if __name__ == "__main__":
 
     if len(sys.argv) == 1 or len(sys.argv) == 2 and sys.argv[1] == '--help':
-        print("Usage: merge_results <directories containing simulation logs>"
-              "<output name>")
+        print("Usage: merge_results <directories containing simulation logs>")
         exit()
 
     CWD = path.dirname(path.realpath(__file__))
     simDataDirectories = sys.argv[1:]
 
-    print("Title, "
-          "Repetitions, "
-          "Algorithm, "
-          "Agents, "
-          "Obstacles, "
-          "Start Area, "
-          "Final Area, "
-          "Confidence Interval, "
-          "Improvement, "
-          "Total Time, "
-          "Average Time, "
-          "Changes")
+    # print("Title, "
+    #       "Repetitions, "
+    #       "Algorithm, "
+    #       "Agents, "
+    #       "Obstacles, "
+    #       "Start Area, "
+    #       "Final Area, "
+    #       "Confidence Interval, "
+    #       "Total Time, "
+    #       "Average Time, "
+    #       "Best Changes, "
+    #       "Total Area Changes, "
+    #       "Marked Area Changes")
 
     for directory in simDataDirectories:
         if not os.path.isdir(directory):
             continue
+
         results = retrieve_results(path.join(CWD, directory))
 
-        print(str(results['title']) + ", "
-              + str(results["sim_count"]) + ", "
-              + str(results["algorithm"]) + ", "
-              + str(results["agents"]) + ", "
-              + str(results["obstacles"]) + ", "
-              + str(results["average_start_areas"]) + ", "
-              + str(results["average_final_areas"]) + ", "
-              + str(results["confidence_interval"]) + ", "
-              + str(results["average_improvement"]) + ", "
-              + str(results["totalTimeInSec"]) + ", "
-              + str(results["averageTimeInSec"]) + ", "
-              + ';'.join(str(x) for x in results["mean_changes"]))
+        # print(str(results['title']) + ", "
+        #       + str(results["sim_count"]) + ", "
+        #       + str(results["algorithm"]) + ", "
+        #       + str(results["agents"]) + ", "
+        #       + str(results["obstacles"]) + ", "
+        #       + str(results["average_start_areas"]) + ", "
+        #       + str(results["average_final_areas"]) + ", "
+        #       + str(results["confidence_interval"]) + ", "
+        #       + str(results["totalTimeInSec"]) + ", "
+        #       + str(results["averageTimeInSec"]) + ", "
+        #       + ';'.join(str(x) for x in results["best_changes"]) + ", "
+        #       + ';'.join(str(x) for x in results["total_area_changes"]) + ", "
+        #       + ';'.join(str(x) for x in results["marked_area_changes"]))
