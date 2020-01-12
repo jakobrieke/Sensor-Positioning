@@ -113,9 +113,13 @@ def print_status(message: str):
 
 
 def print_help():
-    print("Usage: \n"
+    print("Usage:\n"
           "> run_scenario <build-dir> <output-dir>\n"
-          "> run_scenario <build-dir> <output-dir> <config.csv>")
+          "> run_scenario <build-dir> <output-dir> <configs-file>\n"
+          "Notes:\n"
+          "- The configs file should be contained in the same directory or a "
+          "  subdirectory of the script\n"
+          "- The configs file must be given as relative path")
 
 
 def remove_file(file):
@@ -181,17 +185,21 @@ def run_simulation(build_dir: str, output_dir: str, config: dict):
         config_file_handler.close()
 
         command = [
-            "charlie", "--run", sim_path, str(iterations), str(1),
+            # -- Server version
+            # "/usr/bin/mono",
+            # "/home/pacosy/student01/charlie-v0.2.3/charlie.exe",
+            # -- Local version
+            "charlie",
+            "--run", sim_path, str(iterations), str(1),
             config_file, output_directory + "-" + optimization_alg]
 
         process = Popen(command, stdout=PIPE, stderr=PIPE)
         out, err = process.communicate()
         if err:
-            print("ERROR: " + err)
+            print("Charlie error: " + err)
             exit()
 
         percent += 1
-        # percentage = round(100 * percent / repetitions, 2)
         total_time += (dt.now() - start_time).total_seconds()
         average_time = round(total_time / (i + 1), 4)
         remaining_time = (repetitions - percent) * average_time
@@ -246,8 +254,13 @@ def read_configs_from_file(file: str):
         print_warning("File '" + file + "' does not exist")
         exit()
     filename, file_extension = path.splitext(file)
-    module = importlib.import_module(filename)
-    return module.configs
+    module_path = filename.replace("/", ".").replace("\\", ".")
+    try:
+        module = importlib.import_module(module_path)
+        return module.configs
+    except ModuleNotFoundError as err:
+        print_warning(str(err))
+        exit()
 
 
 if __name__ == "__main__":
