@@ -1,4 +1,7 @@
 using System;
+using System.Linq;
+using LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra;
 using NUnit.Framework;
 
 namespace Optimization
@@ -150,6 +153,38 @@ namespace Optimization
       pso.Init(20);
 
       RunTest(pso, 1.35E-32);
+    }
+
+    [Test]
+    public static void TestAxisBias()
+    {
+      var center = new Vector(4.5, 6);
+      var sp = new SearchSpace(new[]
+      {
+        new double[] {0, 9}, new double[] {0, 6}
+      });
+      var obj = new SimpleObjective(vector => -Vector.Distance(center, vector));
+      var pso = new StandardPso2006(sp, obj);
+
+      const int runs = 1000;
+      var ll = 0;
+      var lr = 0;
+      var ur = 0;
+      var ul = 0;
+      for (var i = 0; i < runs; i++)
+      {
+        pso.Init(40);
+        pso.Iterate(200);
+        if (pso.GlobalBest[0] == 0 && pso.GlobalBest[1] == 0) ll++;
+        else if (pso.GlobalBest[0] == 9 && pso.GlobalBest[1] == 0) lr++;
+        else if (pso.GlobalBest[0] == 0 && pso.GlobalBest[1] == 6) ul++;
+        else if (pso.GlobalBest[0] == 9 && pso.GlobalBest[1] == 6) ur++;
+        else Console.WriteLine((Vector) pso.GlobalBest);
+      }
+      Console.WriteLine("Lower left: " + (double) ll / runs * 100 + "%");
+      Console.WriteLine("Lower right: " + (double) lr / runs * 100 + "%");
+      Console.WriteLine("Upper left: " + (double) ul / runs * 100 + "%");
+      Console.WriteLine("Upper right: " + (double) ur / runs * 100 + "%");
     }
   }
 }
