@@ -191,7 +191,7 @@ def run_simulation(build_dir: str, output_dir: str, config: dict):
             # -- Local version
             "charlie",
             "--run", sim_path, str(iterations), str(1),
-            config_file, output_directory + "-" + optimization_alg]
+            config_file, output_directory]
 
         process = Popen(command, stdout=PIPE, stderr=PIPE)
         out, err = process.communicate()
