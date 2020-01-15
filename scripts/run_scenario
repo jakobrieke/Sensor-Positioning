@@ -148,6 +148,10 @@ def run_simulation(build_dir: str, output_dir: str, config: dict):
     config_file = os.path.join(
         cwd, output_dir, config['id'] + "-" + dt.now().isoformat() + ".conf")
 
+    error_log_file = os.path.join(
+        cwd, output_dir,
+        config['id'] + "-" + dt.now().isoformat() + ".errorlog")
+
     sim_path = path.join(
         cwd, build_dir,
         "sensor-positioning.dll:SensorPositioning.StaticSpSimulation")
@@ -196,8 +200,10 @@ def run_simulation(build_dir: str, output_dir: str, config: dict):
         process = Popen(command, stdout=PIPE, stderr=PIPE)
         out, err = process.communicate()
         if err:
-            print("Charlie error: " + err)
-            exit()
+            file = open(error_log_file, 'a+')
+            file.write('ERROR: ' + str(err) + '\n')
+            file.close()
+            print("Error occured, see log: " + error_log_file)
 
         percent += 1
         total_time += (dt.now() - start_time).total_seconds()
