@@ -346,8 +346,8 @@ namespace SensorPositioning
     }
     
     /// <summary>
-    /// Evaluates this instance at a certain "position" that is for a given
-    /// configuration (positions and rotations) of agents.
+    /// Evaluates this instance for a given vector, that is the x, y positions
+    /// and rotations of agents.
     /// </summary>
     /// <param name="vector">
     /// A vector of size n * 3, n >= 0 structured like

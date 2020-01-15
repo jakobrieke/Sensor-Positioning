@@ -121,7 +121,7 @@ namespace SensorPositioning
     /// <param name="obstacles"></param>
     /// <param name="bounds"></param>
     /// <returns>
-    /// An intersection of not perceptible areas of all sensors.
+    /// A list of polygons defining the imperceptible area.
     /// </returns>
     public static List<Polygon> Imperceptible(
       Arc sensor, List<Circle> obstacles, Rectangle bounds)
