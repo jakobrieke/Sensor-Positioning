@@ -190,10 +190,10 @@ def run_simulation(build_dir: str, output_dir: str, config: dict):
 
         command = [
             # -- Server version
-            # "/usr/bin/mono",
-            # "/home/pacosy/student01/charlie-v0.2.3/charlie.exe",
+            "/usr/bin/mono",
+            "/home/pacosy/student01/charlie-v0.2.3/charlie.exe",
             # -- Local version
-            "charlie",
+            # "charlie",
             "--run", sim_path, str(iterations), str(1),
             config_file, output_directory]
 
