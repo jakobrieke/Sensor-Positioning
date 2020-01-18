@@ -100,35 +100,5 @@ namespace LinearAlgebra
         Polygon.FromList(new []{0.0, 0, -1, 0, -1, -1, 0, -1}.ToList()),
         difference[8]);
     }
-
-    /// <summary>
-    /// Test how the Poly2Trie API works.
-    /// </summary>
-    [Test]
-    public void TestPoly2Trie()
-    {
-      var polygon = new Poly2Tri.Triangulation.Polygon.Polygon(new[]
-      {
-        new PolygonPoint(0, 0), new PolygonPoint(1, 0),
-        new PolygonPoint(1, 1), new PolygonPoint(0, 1)
-      });
-      var hole1 = new Poly2Tri.Triangulation.Polygon.Polygon(new []
-      {
-        new PolygonPoint(0.1, 0.1), new PolygonPoint(0.2, 0.1),
-        new PolygonPoint(0.2, 0.2), new PolygonPoint(0.1, 0.2)
-      });
-      var hole2 = new Poly2Tri.Triangulation.Polygon.Polygon(new []
-      {
-        new PolygonPoint(0.4, 0.4), new PolygonPoint(0.5, 0.4),
-        new PolygonPoint(0.5, 0.5), new PolygonPoint(0.4, 0.5)
-      });
-      polygon.AddHole(hole1);
-      polygon.AddHole(hole2);
-      Poly2Tri.P2T.Triangulate(polygon);
-      foreach (var triangle in polygon.Triangles)
-      {
-        Console.WriteLine(triangle);
-      }
-    }
   }
 }
