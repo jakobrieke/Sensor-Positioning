@@ -129,7 +129,7 @@ def mean_changes(changes: list, iterations: int):
     }
 
 
-def retrieve_results(sim_data_directory: str):
+def retrieve_results(sim_data_directory: str, error_file):
     """
     Combines the results of multiple individual simulations (with the same
     start configuration) to one single average simulation result.
@@ -180,17 +180,17 @@ def retrieve_results(sim_data_directory: str):
         try:
             root = ET.parse(file).getroot()
         except ParseError as e:
-            print("Error in file: " + file)
-            print(e)
+            error_file.write("ParseError: " + file + "\n")
+            error_file.write("  " + str(e) + "\n")
             continue
 
         total_time += int(root.find('elapsed-time').text)
         iterations = root.findall('iteration')
-
-        sensor_positions.append(parse_list_of_tuples(
-            iterations[1].find('sensors').text))
-        obstacle_positions.append(parse_list_of_tuples(
-            iterations[1].find('obstacles').text))
+        
+        sensors = parse_list_of_tuples(iterations[1].find('sensors').text)
+        obstacles = parse_list_of_tuples(iterations[1].find('obstacles').text)
+        sensor_positions.append(sensors)
+        obstacle_positions.append(obstacles)
 
         # The following produces a list where each element is a tuple
         # containing:
@@ -202,9 +202,15 @@ def retrieve_results(sim_data_directory: str):
             iterations[1].find('changes').text,
             lambda x: [int(x[0]), float(x[1]), float(x[2]), float(x[3])])
         all_changes.append(changes)
-
+        
         start_areas.append(changes[0][2])
         final_areas.append(changes[-1][2])
+
+        # -- Check that visible marked area is not > 100%
+        if changes[-1][3] > 1:
+            error_file.write("Error MA > 100%: " + str(changes[-1][3]) + "\n")
+            error_file.write("  Agents: " + str(sensors) + "\n")
+            error_file.write("  Obstacles: " + str(obstacles) + "\n")
 
     m_changes = mean_changes(all_changes, int(iterations[1].attrib['i']))
 
@@ -213,11 +219,6 @@ def retrieve_results(sim_data_directory: str):
     title = path.split(path.abspath(sim_data_directory))[-1]
     alg_group_size = get_alg_and_group_size(title)
     conf_interval = sms.DescrStatsW(final_areas).tconfint_mean()
-
-    # -- Debug:
-    for change in all_changes:
-        if change[-1][3] > 1:
-            print(title, str(change[-1][1] - change[-1][2]), str(change[-1][3]))
 
     return {
         "title": title,
@@ -242,43 +243,68 @@ def retrieve_results(sim_data_directory: str):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) == 1 or len(sys.argv) == 2 and sys.argv[1] == '--help':
-        print("Usage: merge_results <directories containing simulation logs>")
+    if len(sys.argv) < 3 or sys.argv[1] == '--help':
+        print("Usage: merge_results "
+              "<output_file_name> "
+              "<directories containing simulation logs> ")
         exit()
 
     CWD = path.dirname(path.realpath(__file__))
-    simDataDirectories = sys.argv[1:]
+    directories = sys.argv[2:]
+    output_path = sys.argv[1] 
+    if output_path.endswith(".csv"):
+        output_path = output_path[:-4]
+    output_file_path = output_path + ".csv"
+    error_file_path = output_path + ".errors"
 
-    # print("Title, "
-    #       "Repetitions, "
-    #       "Algorithm, "
-    #       "Agents, "
-    #       "Obstacles, "
-    #       "Start Area, "
-    #       "Final Area, "
-    #       "Confidence Interval, "
-    #       "Total Time, "
-    #       "Average Time, "
-    #       "Best Changes, "
-    #       "Total Area Changes, "
-    #       "Marked Area Changes")
+    if path.isfile(output_file_path):
+        print("Output file '" + output_file_path + "' exists already")
+        answer = input("Override? (y/n): ")
+        if answer != "y" and answer != "yes":
+            exit()
 
-    for directory in simDataDirectories:
+    output_file = open(output_file_path, "w+")
+    output_file.write("Title, "
+          "Repetitions, "
+          "Algorithm, "
+          "Agents, "
+          "Obstacles, "
+          "Start Area, "
+          "Final Area, "
+          "Confidence Interval, "
+          "Total Time, "
+          "Average Time, "
+          "Best Changes, "
+          "Total Area Changes, "
+          "Marked Area Changes"
+          "\n")
+
+    error_file = open(error_file_path, "w")
+    
+    i = 1
+    total = len(directories)
+    for directory in directories:
         if not os.path.isdir(directory):
             continue
 
-        results = retrieve_results(path.join(CWD, directory))
+        print(str(i) + "/" + str(total) + ": " + directory)
+        
+        results = retrieve_results(path.join(CWD, directory), error_file)
+        output_file.write(str(results['title']) + ", "
+              + str(results["sim_count"]) + ", "
+              + str(results["algorithm"]) + ", "
+              + str(results["agents"]) + ", "
+              + str(results["obstacles"]) + ", "
+              + str(results["average_start_areas"]) + ", "
+              + str(results["average_final_areas"]) + ", "
+              + str(results["confidence_interval"]) + ", "
+              + str(results["totalTimeInSec"]) + ", "
+              + str(results["averageTimeInSec"]) + ", "
+              + ';'.join(str(x) for x in results["best_changes"]) + ", "
+              + ';'.join(str(x) for x in results["total_area_changes"]) + ", "
+              + ';'.join(str(x) for x in results["marked_area_changes"])
+              + "\n")
+        i += 1
 
-        # print(str(results['title']) + ", "
-        #       + str(results["sim_count"]) + ", "
-        #       + str(results["algorithm"]) + ", "
-        #       + str(results["agents"]) + ", "
-        #       + str(results["obstacles"]) + ", "
-        #       + str(results["average_start_areas"]) + ", "
-        #       + str(results["average_final_areas"]) + ", "
-        #       + str(results["confidence_interval"]) + ", "
-        #       + str(results["totalTimeInSec"]) + ", "
-        #       + str(results["averageTimeInSec"]) + ", "
-        #       + ';'.join(str(x) for x in results["best_changes"]) + ", "
-        #       + ';'.join(str(x) for x in results["total_area_changes"]) + ", "
-        #       + ';'.join(str(x) for x in results["marked_area_changes"]))
+    output_file.close()
+    error_file.close()
