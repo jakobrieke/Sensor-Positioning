@@ -210,7 +210,7 @@ def retrieve_results(sim_data_directory: str):
 
     total_time = total_time / 1000
     average_time = total_time / sim_count
-    title = path.split(sim_data_directory)[-1]
+    title = path.split(path.abspath(sim_data_directory))[-1]
     alg_group_size = get_alg_and_group_size(title)
     conf_interval = sms.DescrStatsW(final_areas).tconfint_mean()
 
