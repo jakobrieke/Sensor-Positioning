@@ -230,6 +230,7 @@ def retrieve_results(sim_data_directory: str, error_file):
         "final_areas": final_areas,
         "average_start_areas": sum(start_areas) / sim_count,
         "average_final_areas": sum(final_areas) / sim_count,
+        # Todo: Check if the confidence interval is correctly computed
         "confidence_interval": sum(final_areas) / sim_count - conf_interval[0],
         "totalTimeInSec": total_time,
         "averageTimeInSec": average_time,
