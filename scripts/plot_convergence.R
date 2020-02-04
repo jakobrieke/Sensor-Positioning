@@ -7,25 +7,25 @@
 # Notes:
 # - Use graphics.off() to terminate all output devices
 
-m_2 <- rbind(
-  # mapply(function(x) 54 - x * 54, results_jade$Final.Area),
-  # mapply(function(x) 54 - x * 54, results_spso$Final.Area))
-  results_jade$Final.Area,
-  results_spso$Final.Area)
 
-par(mar=c(4.85, 4.9, 1.3, 1.3), cex=1, family="Lato")
-mp <- barplot(
-  m_2, beside=TRUE, ylim = c(0, 1),
-  ylab = "Eingesehene Fläche in %", xlab="Anzahl Agenten und Hindernisse",
-  col=c("brown1","lightblue"),
-  border=c("transparent"),
-  main = title)
-box()
-axis(1, at=seq(2, 32, by=3), labels=1:11, tick=TRUE, tck=-0.03)
-legend("bottomright", cex=0.8, horiz=TRUE,
-       legend=c("JADE", "SPSO-06"), fill=c("brown1","lightblue"), 
-       pt.bg=adjustcolor(c('red','blue','green','orange','grey')))
-
+# m_2 <- rbind(
+#   # mapply(function(x) 54 - x * 54, results_jade$Final.Area),
+#   # mapply(function(x) 54 - x * 54, results_spso$Final.Area))
+#   results_jade$Final.Area,
+#   results_spso$Final.Area)
+# 
+# par(mar=c(4.85, 4.9, 1.3, 1.3), cex=1, family="Lato")
+# mp <- barplot(
+#   m_2, beside=TRUE, ylim = c(0, 1),
+#   ylab = "Eingesehene Fläche in %", xlab="Anzahl Agenten und Hindernisse",
+#   col=c("brown1","lightblue"),
+#   border=c("transparent"),
+#   main = title)
+# box()
+# axis(1, at=seq(2, 32, by=3), labels=1:11, tick=TRUE, tck=-0.03)
+# legend("bottomright", cex=0.8, horiz=TRUE,
+#        legend=c("JADE", "SPSO-06"), fill=c("brown1","lightblue"), 
+#        pt.bg=adjustcolor(c('red','blue','green','orange','grey')))
 plot_equal_team_size <- function(
   data, column, algorithm_prefix, title_prefix, output_dir, 
   levels_of_details = c(0, 0.45, 0.8, 0.95, 0.97),
