@@ -26,6 +26,17 @@
 # legend("bottomright", cex=0.8, horiz=TRUE,
 #        legend=c("JADE", "SPSO-06"), fill=c("brown1","lightblue"), 
 #        pt.bg=adjustcolor(c('red','blue','green','orange','grey')))
+#' Plot graphs convergance graphs for configurations where the number
+#' of agents equals the number of obstacles.
+#'
+#' @param data A data frame
+#' @param column A string
+#' @param algorithm_prefix A string
+#' @param title_prefix A string
+#' @param output_dir A string
+#' @param levels_of_details A vector
+#' @param colors A vector
+#' @return Nothing.
 plot_equal_team_size <- function(
   data, column, algorithm_prefix, title_prefix, output_dir, 
   levels_of_details = c(0, 0.45, 0.8, 0.95, 0.97),
@@ -45,9 +56,16 @@ plot_equal_team_size <- function(
     data_spso, column, algorithm_prefix, paste(title_prefix, "-", "SPSO"), output_dir, levels_of_details, colors)
 }
 
-#
-# Plots a convergance graphs for a dataset.
-# 
+#' Plots a convergance graphs for a dataset.
+#'
+#' @param data_set A data frame
+#' @param column A string
+#' @param algorithm_prefix A string
+#' @param title_prefix A string
+#' @param output_dir A string
+#' @param levels_of_details A vector
+#' @param colors A vector
+#' @return Nothing.
 plot_convergance_graph <- function(
   data, column, algorithm_prefix, title_prefix, output_dir, 
   levels_of_details = c(0, 0.45, 0.8, 0.95, 0.97),
