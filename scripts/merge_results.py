@@ -175,6 +175,7 @@ def retrieve_results(sim_data_directory: str, error_file):
     sensor_positions = []
     obstacle_positions = []
     all_changes = []
+    title = path.split(path.abspath(sim_data_directory))[-1]
 
     for file in sim_data_files:
         try:
@@ -186,7 +187,7 @@ def retrieve_results(sim_data_directory: str, error_file):
 
         total_time += int(root.find('elapsed-time').text)
         iterations = root.findall('iteration')
-        
+
         sensors = parse_list_of_tuples(iterations[1].find('sensors').text)
         obstacles = parse_list_of_tuples(iterations[1].find('obstacles').text)
         sensor_positions.append(sensors)
@@ -202,13 +203,14 @@ def retrieve_results(sim_data_directory: str, error_file):
             iterations[1].find('changes').text,
             lambda x: [int(x[0]), float(x[1]), float(x[2]), float(x[3])])
         all_changes.append(changes)
-        
+
         start_areas.append(changes[0][2])
         final_areas.append(changes[-1][2])
 
         # -- Check that visible marked area is not > 100%
         if changes[-1][3] > 1:
             error_file.write("Error MA > 100%: " + str(changes[-1][3]) + "\n")
+            error_file.write("  Simulation: " + title + "\n")
             error_file.write("  Agents: " + str(sensors) + "\n")
             error_file.write("  Obstacles: " + str(obstacles) + "\n")
 
@@ -216,7 +218,6 @@ def retrieve_results(sim_data_directory: str, error_file):
 
     total_time = total_time / 1000
     average_time = total_time / sim_count
-    title = path.split(path.abspath(sim_data_directory))[-1]
     alg_group_size = get_alg_and_group_size(title)
     conf_interval = sms.DescrStatsW(final_areas).tconfint_mean()
 
@@ -252,7 +253,7 @@ if __name__ == "__main__":
 
     CWD = path.dirname(path.realpath(__file__))
     directories = sys.argv[2:]
-    output_path = sys.argv[1] 
+    output_path = sys.argv[1]
     if output_path.endswith(".csv"):
         output_path = output_path[:-4]
     output_file_path = output_path + ".csv"
