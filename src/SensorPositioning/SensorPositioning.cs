@@ -281,7 +281,7 @@ namespace SensorPositioning
     /// <param name="agents"></param>
     /// <param name="agent"></param>
     /// <returns></returns>
-    private List<Circle> OtherObstacles(List<Agent> agents, Agent agent)
+    public List<Circle> OtherObstacles(List<Agent> agents, Agent agent)
     {
       var others = new List<Circle>();
       others.AddRange(Obstacles);

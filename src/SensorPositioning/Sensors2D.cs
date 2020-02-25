@@ -21,7 +21,7 @@ namespace SensorPositioning
     /// <param name="obstacle"></param>
     /// <param name="bounds"></param>
     /// <returns>A quadrilateral.</returns>
-    private static Polygon CalcBlockedArea(
+    public static Polygon CalcBlockedArea(
       Vector2 position, Circle obstacle, Rectangle bounds)
     {
       var tangs = Circle.ExternalTangents(position, obstacle);
