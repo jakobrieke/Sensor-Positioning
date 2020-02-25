@@ -126,7 +126,7 @@ namespace SensorPositioning
     public static List<Polygon> Imperceptible(
       Arc sensor, List<Circle> obstacles, Rectangle bounds)
     {
-      if (!bounds.Contains(sensor.Position, true))
+      if (!bounds.Contains(sensor.Position, false))
         return new List<Polygon> {bounds.ToPolygon()};
 
       var polygons = new List<Polygon>();
