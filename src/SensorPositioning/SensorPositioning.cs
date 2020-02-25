@@ -301,7 +301,7 @@ namespace SensorPositioning
     /// <returns></returns>
     public List<Polygon> Imperceptible(List<Agent> agents)
     {
-      var area = agents.AsParallel().Select(agent => Sensors2D.Imperceptible(
+      var area = agents.Select(agent => Sensors2D.Imperceptible(
         agent.AreaOfActivity(), OtherObstacles(agents, agent), Field)
       ).ToList();
       
